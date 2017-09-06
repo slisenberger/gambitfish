@@ -6,7 +6,9 @@ type Queen struct {
 }
 
 func (p Queen) LegalMoves() []Square {
-	return nil
+	moves := p.DiagonalMoves()
+	columnMoves := p.ColumnAndRowMoves()
+	return append(moves, columnMoves...)
 }
 
 func (p Queen) String() string {

@@ -6,7 +6,7 @@ type Knight struct {
 }
 
 func (p Knight) LegalMoves() []Square {
-	return nil
+	return p.KnightMoves()
 }
 
 func (p Knight) String() string {

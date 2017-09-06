@@ -6,7 +6,7 @@ type King struct {
 }
 
 func (p King) LegalMoves() []Square {
-	return nil
+	return p.KingMoves()
 }
 
 func (p King) String() string {

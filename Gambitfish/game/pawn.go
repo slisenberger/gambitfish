@@ -6,7 +6,7 @@ type Pawn struct {
 }
 
 func (p Pawn) LegalMoves() []Square {
-	return nil
+	return p.PawnMoves()
 }
 
 func (p Pawn) String() string {

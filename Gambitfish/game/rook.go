@@ -6,7 +6,7 @@ type Rook struct {
 }
 
 func (p Rook) LegalMoves() []Square {
-	return nil
+	return p.ColumnAndRowMoves()
 }
 
 func (p Rook) String() string {

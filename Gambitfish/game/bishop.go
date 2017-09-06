@@ -6,7 +6,7 @@ type Bishop struct {
 }
 
 func (p Bishop) LegalMoves() []Square {
-	return nil
+	return p.DiagonalMoves()
 }
 
 func (p Bishop) String() string {
