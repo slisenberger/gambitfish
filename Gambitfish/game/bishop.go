@@ -2,14 +2,14 @@
 package game
 
 type Bishop struct {
-	BasePiece
+	*BasePiece
 }
 
-func (p Bishop) LegalMoves() []Square {
+func (p *Bishop) LegalMoves() []Square {
 	return p.DiagonalMoves()
 }
 
-func (p Bishop) String() string {
+func (p *Bishop) String() string {
 	switch p.color {
 	case WHITE:
 		return "B"
@@ -17,4 +17,9 @@ func (p Bishop) String() string {
 		return "b"
 	}
 	return ""
+}
+
+func (p *Bishop) ApplyMove(m Move) Piece {
+	p.square = &m.square
+	return p
 }

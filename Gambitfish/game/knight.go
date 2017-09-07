@@ -2,14 +2,14 @@
 package game
 
 type Knight struct {
-	BasePiece
+	*BasePiece
 }
 
-func (p Knight) LegalMoves() []Square {
+func (p *Knight) LegalMoves() []Square {
 	return p.KnightMoves()
 }
 
-func (p Knight) String() string {
+func (p *Knight) String() string {
 	switch p.color {
 	case WHITE:
 		return "N"
@@ -17,4 +17,9 @@ func (p Knight) String() string {
 		return "n"
 	}
 	return ""
+}
+
+func (p *Knight) ApplyMove(m Move) Piece {
+	p.square = &m.square
+	return p
 }

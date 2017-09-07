@@ -5,7 +5,7 @@ package game
 type Color int
 
 const (
-	WHITE Color = 0
+	WHITE Color = -1
 	BLACK Color = 1
 )
 
@@ -15,11 +15,11 @@ type Piece interface {
 	// Returns a string representation of this piece.
 	String() string
 	// Returns the square for this piece.
-	SetSquare(*Square)
-	// Returns the square for this piece.
 	Square() *Square
 	// Returns the color of this piece.
 	Color() Color
+	// ApplyMove updates the state of the piece for a given move and returns a new Piece.
+	ApplyMove(Move) Piece
 }
 
 type BasePiece struct {
@@ -28,21 +28,21 @@ type BasePiece struct {
 	board  *Board
 }
 
-func (bp BasePiece) Square() *Square {
+func (bp *BasePiece) Square() *Square {
 	return bp.square
 }
 
-func (bp BasePiece) SetSquare(s *Square) {
+func (bp *BasePiece) SetSquare(s *Square) {
 	bp.square = s
 }
 
-func (bp BasePiece) Color() Color {
+func (bp *BasePiece) Color() Color {
 	return bp.color
 }
 
 // TargetLegal returns true if a candidate piece can move to the
-// desired square. Returns a
-func (p BasePiece) TargetLegal(s Square) bool {
+// desired square. Capture indicates whether the piece is intending to capture or not.
+func (p *BasePiece) TargetLegal(s Square, capture bool) bool {
 	if !s.InPlay() {
 		return false
 	}
@@ -50,7 +50,7 @@ func (p BasePiece) TargetLegal(s Square) bool {
 	if occupant == nil {
 		return true
 	} else {
-		if p.Color() != occupant.Color() {
+		if capture && p.Color() != occupant.Color() {
 			return true
 		}
 	}
@@ -59,7 +59,7 @@ func (p BasePiece) TargetLegal(s Square) bool {
 
 // Returns true if we should stop searching along a ray, because a piece has
 // encountered a blockage.
-func (p BasePiece) Stop(s Square) bool {
+func (p *BasePiece) Stop(s Square) bool {
 	if !s.InPlay() {
 		return true
 	}
@@ -69,13 +69,13 @@ func (p BasePiece) Stop(s Square) bool {
 	return false
 }
 
-func (p BasePiece) ColumnAndRowMoves() []Square {
+func (p *BasePiece) ColumnAndRowMoves() []Square {
 	moves := []Square{}
 	// Move in each direction, checking for blocking pieces.
 	// Left in row.
 	for i := 1; i <= 7; i++ {
 		s := Square{row: p.square.row, col: p.square.col - i}
-		if p.TargetLegal(s) {
+		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
 		if p.Stop(s) {
@@ -84,7 +84,7 @@ func (p BasePiece) ColumnAndRowMoves() []Square {
 	}
 	for i := 1; i <= 7; i++ {
 		s := Square{row: p.square.row, col: p.square.col + i}
-		if p.TargetLegal(s) {
+		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
 		if p.Stop(s) {
@@ -93,7 +93,7 @@ func (p BasePiece) ColumnAndRowMoves() []Square {
 	}
 	for i := 1; i <= 7; i++ {
 		s := Square{row: p.square.row + i, col: p.square.col}
-		if p.TargetLegal(s) {
+		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
 		if p.Stop(s) {
@@ -102,7 +102,7 @@ func (p BasePiece) ColumnAndRowMoves() []Square {
 	}
 	for i := 1; i <= 7; i++ {
 		s := Square{row: p.square.row - i, col: p.square.col}
-		if p.TargetLegal(s) {
+		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
 		if p.Stop(s) {
@@ -112,12 +112,12 @@ func (p BasePiece) ColumnAndRowMoves() []Square {
 	return moves
 }
 
-func (p BasePiece) DiagonalMoves() []Square {
+func (p *BasePiece) DiagonalMoves() []Square {
 	moves := []Square{}
 	// Move in a diagonal, checking for blocking pieces.
 	for i := 1; i <= 7; i++ {
 		s := Square{row: p.square.row + i, col: p.square.col + i}
-		if p.TargetLegal(s) {
+		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
 		if p.Stop(s) {
@@ -126,7 +126,7 @@ func (p BasePiece) DiagonalMoves() []Square {
 	}
 	for i := 1; i <= 7; i++ {
 		s := Square{row: p.square.row - i, col: p.square.col + i}
-		if p.TargetLegal(s) {
+		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
 		if p.Stop(s) {
@@ -135,7 +135,7 @@ func (p BasePiece) DiagonalMoves() []Square {
 	}
 	for i := 1; i <= 7; i++ {
 		s := Square{row: p.square.row - i, col: p.square.col - i}
-		if p.TargetLegal(s) {
+		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
 		if p.Stop(s) {
@@ -144,7 +144,7 @@ func (p BasePiece) DiagonalMoves() []Square {
 	}
 	for i := 1; i <= 7; i++ {
 		s := Square{row: p.square.row + i, col: p.square.col - i}
-		if p.TargetLegal(s) {
+		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
 		if p.Stop(s) {
@@ -154,7 +154,7 @@ func (p BasePiece) DiagonalMoves() []Square {
 	return moves
 }
 
-func (p BasePiece) KnightMoves() []Square {
+func (p *BasePiece) KnightMoves() []Square {
 	moves := []Square{}
 	// try all knight squares
 	squares := []Square{
@@ -168,14 +168,14 @@ func (p BasePiece) KnightMoves() []Square {
 		{row: p.square.row - 1, col: p.square.col - 2},
 	}
 	for _, s := range squares {
-		if p.TargetLegal(s) {
+		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
 	}
 	return moves
 }
 
-func (p BasePiece) KingMoves() []Square {
+func (p *BasePiece) KingMoves() []Square {
 	moves := []Square{}
 	// try all knight squares
 	squares := []Square{
@@ -189,7 +189,7 @@ func (p BasePiece) KingMoves() []Square {
 		{row: p.square.row, col: p.square.col + 1},
 	}
 	for _, s := range squares {
-		if p.TargetLegal(s) {
+		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
 	}
@@ -197,7 +197,7 @@ func (p BasePiece) KingMoves() []Square {
 
 }
 
-func (p BasePiece) PawnMoves() []Square {
+func (p *BasePiece) PawnMoves() []Square {
 	// Check if the piece can move two squares.
 	var isStartPawn bool
 	var direction int // Which way pawns move.
@@ -213,16 +213,30 @@ func (p BasePiece) PawnMoves() []Square {
 	}
 	moves := []Square{}
 	s := Square{row: p.square.row + direction, col: p.square.col}
-	if p.TargetLegal(s) {
+	if p.TargetLegal(s, false) {
 		moves = append(moves, s)
-	}
-	if isStartPawn {
-		s := Square{row: p.square.row + 2*direction, col: p.square.col}
-		if p.TargetLegal(s) {
-			moves = append(moves, s)
+		// We only can move forward two if we can also move forward one.
+		if isStartPawn {
+			s := Square{row: p.square.row + 2*direction, col: p.square.col}
+			if p.TargetLegal(s, false) {
+				moves = append(moves, s)
+			}
 		}
-		//TODO(slisenberger): build in en passant.
-
 	}
+	// Check for side captures.
+	captures := []Square{
+		{row: p.square.row + direction, col: p.square.col + 1},
+		{row: p.square.row + direction, col: p.square.col - 1},
+	}
+	for _, square := range captures {
+		if !square.InPlay() {
+			continue
+		}
+		occupant := p.board.Squares[square.Index()]
+		if occupant != nil && occupant.Color() != p.Color() {
+			moves = append(moves, square)
+		}
+	}
+	// TODO: build en passant.
 	return moves
 }

@@ -2,14 +2,14 @@
 package game
 
 type Pawn struct {
-	BasePiece
+	*BasePiece
 }
 
-func (p Pawn) LegalMoves() []Square {
+func (p *Pawn) LegalMoves() []Square {
 	return p.PawnMoves()
 }
 
-func (p Pawn) String() string {
+func (p *Pawn) String() string {
 	switch p.color {
 	case WHITE:
 		return "P"
@@ -17,4 +17,9 @@ func (p Pawn) String() string {
 		return "p"
 	}
 	return ""
+}
+
+func (p *Pawn) ApplyMove(m Move) Piece {
+	p.square = &m.square
+	return p
 }

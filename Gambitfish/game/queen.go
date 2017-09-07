@@ -2,16 +2,16 @@
 package game
 
 type Queen struct {
-	BasePiece
+	*BasePiece
 }
 
-func (p Queen) LegalMoves() []Square {
+func (p *Queen) LegalMoves() []Square {
 	moves := p.DiagonalMoves()
 	columnMoves := p.ColumnAndRowMoves()
 	return append(moves, columnMoves...)
 }
 
-func (p Queen) String() string {
+func (p *Queen) String() string {
 	switch p.color {
 	case WHITE:
 		return "Q"
@@ -19,4 +19,9 @@ func (p Queen) String() string {
 		return "q"
 	}
 	return ""
+}
+
+func (p *Queen) ApplyMove(m Move) Piece {
+	p.square = &m.square
+	return p
 }

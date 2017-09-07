@@ -2,15 +2,15 @@
 package game
 
 type Rook struct {
-	BasePiece
+	*BasePiece
 	HasMoved bool
 }
 
-func (p Rook) LegalMoves() []Square {
+func (p *Rook) LegalMoves() []Square {
 	return p.ColumnAndRowMoves()
 }
 
-func (p Rook) String() string {
+func (p *Rook) String() string {
 	switch p.color {
 	case WHITE:
 		return "R"
@@ -18,4 +18,10 @@ func (p Rook) String() string {
 		return "r"
 	}
 	return ""
+}
+
+func (p *Rook) ApplyMove(m Move) Piece {
+	p.square = &m.square
+	p.HasMoved = true
+	return p
 }
