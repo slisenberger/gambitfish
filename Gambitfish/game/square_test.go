@@ -12,7 +12,7 @@ func TestAsString(t *testing.T) {
 			want:   "a1",
 		}, {
 			square: &Square{row: 1, col: 8},
-			want:   "a8",
+			want:   "h1", // 1st row is "1", 8th column is "h"
 		}, {
 
 			square: &Square{row: 8, col: 8},

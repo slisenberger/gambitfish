@@ -15,6 +15,8 @@ type Piece interface {
 	// Returns a string representation of this piece.
 	String() string
 	// Returns the square for this piece.
+	SetSquare(*Square)
+	// Returns the square for this piece.
 	Square() *Square
 	// Returns the color of this piece.
 	Color() Color
@@ -28,6 +30,10 @@ type BasePiece struct {
 
 func (bp BasePiece) Square() *Square {
 	return bp.square
+}
+
+func (bp BasePiece) SetSquare(s *Square) {
+	bp.square = s
 }
 
 func (bp BasePiece) Color() Color {
@@ -194,21 +200,24 @@ func (p BasePiece) KingMoves() []Square {
 func (p BasePiece) PawnMoves() []Square {
 	// Check if the piece can move two squares.
 	var isStartPawn bool
+	var direction int // Which way pawns move.
 	switch p.color {
 	case BLACK:
 		isStartPawn = p.square.row == 7
+		direction = -1
 		break
 	case WHITE:
 		isStartPawn = p.square.row == 2
+		direction = 1
 		break
 	}
 	moves := []Square{}
-	s := Square{row: p.square.row + 1, col: p.square.col}
+	s := Square{row: p.square.row + direction, col: p.square.col}
 	if p.TargetLegal(s) {
 		moves = append(moves, s)
 	}
 	if isStartPawn {
-		s := Square{row: p.square.row + 2, col: p.square.col}
+		s := Square{row: p.square.row + 2*direction, col: p.square.col}
 		if p.TargetLegal(s) {
 			moves = append(moves, s)
 		}

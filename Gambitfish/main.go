@@ -5,18 +5,24 @@ package main
 import "./game"
 import "fmt"
 import "math/rand"
+import "time"
 
 func main() {
+	rand.Seed(time.Now().Unix())
 	b := game.DefaultBoard()
 	b.Print()
-	for _, piece := range b.Squares {
-		moves := piece.LegalMoves()
-		if moves != nil && len(moves) > 0 {
-			for _, move := range moves {
-
-				fmt.Println(fmt.Printf("legal move: piece %v from %v to %v", piece, piece.Square().String(), move.String()))
-
-			}
+	for i := 0; i < 20; i++ {
+		moves := b.AllLegalMoves()
+		for _, move := range moves {
+			fmt.Println("legal move:" + move.String())
 		}
+
+		fmt.Println("selecting move at random../n/n")
+		n := rand.Int() % len(moves)
+		b.ApplyMove(moves[n])
+
+		fmt.Println("selected move: " + moves[n].String())
+		fmt.Println("new board: ")
+		b.Print()
 	}
 }

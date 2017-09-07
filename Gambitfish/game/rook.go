@@ -3,6 +3,7 @@ package game
 
 type Rook struct {
 	BasePiece
+	HasMoved bool
 }
 
 func (p Rook) LegalMoves() []Square {

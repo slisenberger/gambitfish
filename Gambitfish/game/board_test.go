@@ -5,7 +5,7 @@ import "testing"
 func TestDefaultBoard(t *testing.T) {
 	b := DefaultBoard()
 
-	for i, piece := range b.squares {
+	for i, piece := range b.Squares {
 		if piece == nil {
 			continue
 		}

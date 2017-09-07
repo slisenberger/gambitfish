@@ -3,6 +3,7 @@ package game
 
 type King struct {
 	BasePiece
+	HasMoved bool
 }
 
 func (p King) LegalMoves() []Square {
