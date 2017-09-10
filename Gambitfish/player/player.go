@@ -17,7 +17,7 @@ type AIPlayer struct {
 }
 
 func (p *AIPlayer) MakeMove(b *game.Board) error {
-	move := search.AlphaBetaSearch(b, p.Evaluator, 1, 0, 0)
+	move := search.AlphaBetaSearch(b, p.Evaluator, 3)
 	if move == nil {
 		return errors.New("no move could be made")
 	}

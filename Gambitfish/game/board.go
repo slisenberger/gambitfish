@@ -2,6 +2,7 @@
 package game
 
 import "fmt"
+import "math/rand"
 
 type Board struct {
 	Squares  [64]Piece
@@ -136,6 +137,13 @@ func (b *Board) AllLegalMoves() []Move {
 		for _, square := range squares {
 			moves = append(moves, Move{piece, square, b.PieceSet[piece]})
 		}
+	}
+	// We now want to return the moves in a smart order (e.g., try checks and captures.)
+	// Just to get things off the ground, we'll shuffle the moves, just to get some variety
+	// in the AI vs AI games.
+	for i := range moves {
+		j := rand.Intn(i + 1)
+		moves[i], moves[j] = moves[j], moves[i]
 	}
 	return moves
 }
