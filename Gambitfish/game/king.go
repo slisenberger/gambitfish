@@ -7,7 +7,7 @@ type King struct {
 }
 
 func (p *King) LegalMoves() []Square {
-	return p.KingMoves()
+	return p.KingMoves(p.board.PieceSet[p])
 }
 
 func (p *King) String() string {
@@ -22,4 +22,8 @@ func (p *King) String() string {
 
 func (p *King) ApplyMove(m Move) {
 	p.HasMoved = true
+}
+
+func (p *King) Value() float64 {
+	return 100.0
 }

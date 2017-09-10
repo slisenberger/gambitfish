@@ -11,36 +11,12 @@ func (m MaterialEvaluator) Evaluate(b *game.Board) float64 {
 			continue
 		}
 		if piece.Color() == b.Active {
-			eval += GetPieceValue(piece)
+			eval += piece.Value()
 		} else {
-			eval -= GetPieceValue(piece)
+			eval -= piece.Value()
 		}
 
 	}
 	return eval
 
-}
-
-func GetPieceValue(p game.Piece) float64 {
-	switch p.(type) {
-	case game.Pawn:
-		return 1
-		break
-	case game.Bishop:
-		return 3
-		break
-	case game.Knight:
-		return 3
-		break
-	case game.Rook:
-		return 5
-		break
-	case game.King:
-		return 100
-		break
-	case game.Queen:
-		return 9
-		break
-	}
-	return 0
 }

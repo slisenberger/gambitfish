@@ -3,6 +3,8 @@
 package main
 
 import "./game"
+import "./engine/evaluate"
+import "./player"
 import "fmt"
 import "math/rand"
 import "time"
@@ -10,8 +12,12 @@ import "time"
 func main() {
 	rand.Seed(time.Now().Unix())
 	b := game.DefaultBoard()
+	e := evaluate.MaterialEvaluator{}
+	p1 := player.AIPlayer{Evaluator: e, Color: game.WHITE}
+	p2 := player.AIPlayer{Evaluator: e, Color: game.BLACK}
 	b.Print()
-	for i := 0; i < 300; i++ {
+	for i := 0; i < 100; i++ {
+		time.Sleep(1 * time.Second)
 		if b.Winner != 0 {
 			fmt.Println("WINNER")
 			break
@@ -21,15 +27,12 @@ func main() {
 			fmt.Println("GAME ends in STALEMATE! no legal moves!")
 			break
 		}
-		for _, move := range moves {
-			fmt.Println("legal move:" + move.String())
+		if b.Active == p1.Color {
+			p1.MakeMove(b)
+		} else {
+			p2.MakeMove(b)
 		}
-
-		fmt.Println("selecting move at random..\n")
-		n := rand.Int() % len(moves)
-		fmt.Println("selected move: " + moves[n].String())
-		b.ApplyMove(moves[n])
-
+		b.SwitchActivePlayer()
 		fmt.Println("new board: ")
 		b.Print()
 	}

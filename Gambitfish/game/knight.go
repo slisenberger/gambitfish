@@ -6,7 +6,7 @@ type Knight struct {
 }
 
 func (p *Knight) LegalMoves() []Square {
-	return p.KnightMoves()
+	return p.KnightMoves(p.board.PieceSet[p])
 }
 
 func (p *Knight) String() string {
@@ -17,4 +17,8 @@ func (p *Knight) String() string {
 		return "n"
 	}
 	return ""
+}
+
+func (p *Knight) Value() float64 {
+	return 3.0
 }

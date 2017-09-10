@@ -15,10 +15,10 @@ type Piece interface {
 	// Returns a string representation of this piece.
 	String() string
 	// Returns the color of this piece.
-	Color() Color // Applies the result of the move to a piece.
+	Color() Color
+	Board() *Board
 	ApplyMove(Move)
-	// Square
-	Square() Square
+	Value() float64
 }
 
 type BasePiece struct {
@@ -59,11 +59,10 @@ func (p *BasePiece) Stop(s Square) bool {
 	return false
 }
 
-func (p *BasePiece) ColumnAndRowMoves() []Square {
+func (p *BasePiece) ColumnAndRowMoves(cur Square) []Square {
 	moves := []Square{}
 	// Move in each direction, checking for blocking pieces.
 	// Left in row.
-	cur := p.board.PieceSet[p]
 	for i := 1; i <= 7; i++ {
 		s := Square{row: cur.row, col: cur.col - i}
 		if p.TargetLegal(s, true) {
@@ -103,9 +102,8 @@ func (p *BasePiece) ColumnAndRowMoves() []Square {
 	return moves
 }
 
-func (p *BasePiece) DiagonalMoves() []Square {
+func (p *BasePiece) DiagonalMoves(cur Square) []Square {
 	moves := []Square{}
-	cur := p.board.PieceSet[p]
 	// Move in a diagonal, checking for blocking pieces.
 	for i := 1; i <= 7; i++ {
 		s := Square{row: cur.row + i, col: cur.col + i}
@@ -146,9 +144,8 @@ func (p *BasePiece) DiagonalMoves() []Square {
 	return moves
 }
 
-func (p *BasePiece) KnightMoves() []Square {
+func (p *BasePiece) KnightMoves(cur Square) []Square {
 	moves := []Square{}
-	cur := p.board.PieceSet[p]
 	// try all knight squares
 	squares := []Square{
 		{row: cur.row + 2, col: cur.col + 1},
@@ -168,9 +165,8 @@ func (p *BasePiece) KnightMoves() []Square {
 	return moves
 }
 
-func (p *BasePiece) KingMoves() []Square {
+func (p *BasePiece) KingMoves(cur Square) []Square {
 	moves := []Square{}
-	cur := p.board.PieceSet[p]
 	// try all knight squares
 	squares := []Square{
 		{row: cur.row + 1, col: cur.col - 1},
@@ -191,11 +187,10 @@ func (p *BasePiece) KingMoves() []Square {
 
 }
 
-func (p *BasePiece) PawnMoves() []Square {
+func (p *BasePiece) PawnMoves(cur Square) []Square {
 	// Check if the piece can move two squares.
 	var isStartPawn bool
 	var direction int // Which way pawns move.
-	cur := p.board.PieceSet[p]
 	switch p.color {
 	case BLACK:
 		isStartPawn = cur.row == 7
@@ -251,7 +246,10 @@ func (bp *BasePiece) String() string {
 	return "x"
 }
 
-// The square this piece resides on.
-func (bp *BasePiece) Square() Square {
-	return bp.board.PieceSet[bp]
+func (bp *BasePiece) Board() *Board {
+	return bp.board
+}
+
+func (bp *BasePiece) Value() float64 {
+	return 0.0
 }

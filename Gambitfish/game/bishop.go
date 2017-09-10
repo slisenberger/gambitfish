@@ -6,7 +6,7 @@ type Bishop struct {
 }
 
 func (p *Bishop) LegalMoves() []Square {
-	return p.DiagonalMoves()
+	return p.DiagonalMoves(p.board.PieceSet[p])
 }
 
 func (p *Bishop) String() string {
@@ -17,4 +17,8 @@ func (p *Bishop) String() string {
 		return "b"
 	}
 	return ""
+}
+
+func (p *Bishop) Value() float64 {
+	return 3.0
 }

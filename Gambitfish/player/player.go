@@ -1,7 +1,13 @@
 package player
 
+import "errors"
+import "fmt"
+import "../game"
+import "../engine/evaluate"
+import "../engine/search"
+
 type Player interface {
-	MakeMove(*Board) error
+	MakeMove(*game.Board) error
 }
 
 // AIPlayer is a player that makes moves according to AI.
@@ -10,8 +16,13 @@ type AIPlayer struct {
 	Color     game.Color
 }
 
-func (p *AIPlayer) MakeMove(b *Board) error {
-	move := search.AlphaBetaSearch(b, p.Evaluator, 0, 0, 0)
-	b.ApplyMove(move)
+func (p *AIPlayer) MakeMove(b *game.Board) error {
+	move := search.AlphaBetaSearch(b, p.Evaluator, 1, 0, 0)
+	if move == nil {
+		return errors.New("no move could be made")
+	}
+	fmt.Println("AI Player making best move: " + move.String())
+
+	b.ApplyMove(*move)
 	return nil
 }

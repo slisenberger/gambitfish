@@ -6,7 +6,7 @@ type Pawn struct {
 }
 
 func (p *Pawn) LegalMoves() []Square {
-	return p.PawnMoves()
+	return p.PawnMoves(p.board.PieceSet[p])
 }
 
 func (p *Pawn) String() string {
@@ -17,4 +17,8 @@ func (p *Pawn) String() string {
 		return "p"
 	}
 	return ""
+}
+
+func (p *Pawn) Value() float64 {
+	return 1.0
 }

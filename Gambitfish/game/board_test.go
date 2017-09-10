@@ -9,12 +9,11 @@ func TestDefaultBoard(t *testing.T) {
 		if piece == nil {
 			continue
 		}
-		s := piece.Square()
+		s := b.PieceSet[piece]
 		if s.Index() != i {
-			t.Errorf("wrong index for default piece: got %v, want %v", s.Index(), i)
+			t.Errorf("wrong index for default piece %v: got %v, want %v", piece, s.Index(), i)
 
 		}
-
 	}
 
 }

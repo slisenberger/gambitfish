@@ -6,8 +6,8 @@ type Queen struct {
 }
 
 func (p *Queen) LegalMoves() []Square {
-	moves := p.DiagonalMoves()
-	columnMoves := p.ColumnAndRowMoves()
+	moves := p.DiagonalMoves(p.board.PieceSet[p])
+	columnMoves := p.ColumnAndRowMoves(p.board.PieceSet[p])
 	return append(moves, columnMoves...)
 }
 
@@ -19,4 +19,8 @@ func (p *Queen) String() string {
 		return "q"
 	}
 	return ""
+}
+
+func (p *Queen) Value() float64 {
+	return 9.0
 }

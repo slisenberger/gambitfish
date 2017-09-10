@@ -13,10 +13,11 @@ type Board struct {
 type Move struct {
 	piece  Piece
 	square Square
+	old    Square
 }
 
 func (m Move) String() string {
-	return fmt.Sprintf("%v%v to %v", m.piece, m.piece.Square(), &m.square)
+	return fmt.Sprintf("%v%v to %v", m.piece, m.old, m.square)
 }
 
 func (b *Board) InitPieceSet() {
@@ -102,14 +103,14 @@ func (b *Board) ApplyMove(m Move) {
 	if _, ok := b.Squares[s.Index()].(*King); ok {
 		b.Winner = b.Active
 	}
-	// Reset the original square for this piece.
-	oldS := b.PieceSet[p]
-	b.Squares[oldS.Index()] = nil
+	b.Squares[m.old.Index()] = nil
 	// Place the piece on the new squares.
 	b.PieceSet[p] = s
 
 	b.Squares[s.Index()] = p
-	// Change the active player.
+}
+
+func (b *Board) SwitchActivePlayer() {
 	switch b.Active {
 	case WHITE:
 		b.Active = BLACK
@@ -133,7 +134,7 @@ func (b *Board) AllLegalMoves() []Move {
 		}
 		squares := piece.LegalMoves()
 		for _, square := range squares {
-			moves = append(moves, Move{piece, square})
+			moves = append(moves, Move{piece, square, b.PieceSet[piece]})
 		}
 	}
 	return moves
@@ -145,4 +146,11 @@ func (b *Board) Finished() bool {
 		return true
 	}
 	return b.Winner != 0
+}
+
+// Returns a copy of this board with different references.
+func (b *Board) Copy() *Board {
+	newB := &Board{Squares: b.Squares, Active: b.Active, Winner: b.Winner}
+	newB.InitPieceSet()
+	return newB
 }

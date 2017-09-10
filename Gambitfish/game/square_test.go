@@ -67,7 +67,14 @@ func TestSquareFromIndex(t *testing.T) {
 			i:    63,
 			want: Square{8, 8},
 		},
-		{i: 47, want: Square{6, 8}},
+		{
+			i:    47,
+			want: Square{6, 8},
+		},
+		{
+			i:    1,
+			want: Square{1, 2},
+		},
 	}
 
 	for _, tc := range testCases {
