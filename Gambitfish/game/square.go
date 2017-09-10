@@ -21,3 +21,8 @@ func (s *Square) Index() int {
 func (s *Square) InPlay() bool {
 	return s.row >= 1 && s.row <= 8 && s.col >= 1 && s.col <= 8
 }
+
+// SquareFromIndex returns a new square from an index into a single dimension array.
+func SquareFromIndex(i int) Square {
+	return Square{row: i/8 + 1, col: (i % 8) + 1}
+}

@@ -3,8 +3,9 @@ package game
 import "testing"
 
 func initCentralKnightBoard() *Board {
-	b := &Board{active: WHITE}
-	b.Squares[36] = &Knight{&BasePiece{color: WHITE, square: &Square{4, 5}, board: b}}
+	b := &Board{Active: WHITE}
+	b.Squares[36] = &Knight{&BasePiece{color: WHITE, board: b}}
+	b.InitPieceSet()
 	return b
 }
 

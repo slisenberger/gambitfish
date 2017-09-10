@@ -20,8 +20,6 @@ func (p *Rook) String() string {
 	return ""
 }
 
-func (p *Rook) ApplyMove(m Move) Piece {
-	p.square = &m.square
+func (p *Rook) ApplyMove(m Move) {
 	p.HasMoved = true
-	return p
 }

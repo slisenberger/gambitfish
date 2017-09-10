@@ -20,8 +20,6 @@ func (p *King) String() string {
 	return ""
 }
 
-func (p *King) ApplyMove(m Move) Piece {
-	p.square = &m.square
+func (p *King) ApplyMove(m Move) {
 	p.HasMoved = true
-	return p
 }

@@ -14,26 +14,16 @@ type Piece interface {
 	LegalMoves() []Square
 	// Returns a string representation of this piece.
 	String() string
-	// Returns the square for this piece.
-	Square() *Square
 	// Returns the color of this piece.
-	Color() Color
-	// ApplyMove updates the state of the piece for a given move and returns a new Piece.
-	ApplyMove(Move) Piece
+	Color() Color // Applies the result of the move to a piece.
+	ApplyMove(Move)
+	// Square
+	Square() Square
 }
 
 type BasePiece struct {
-	color  Color
-	square *Square
-	board  *Board
-}
-
-func (bp *BasePiece) Square() *Square {
-	return bp.square
-}
-
-func (bp *BasePiece) SetSquare(s *Square) {
-	bp.square = s
+	color Color
+	board *Board
 }
 
 func (bp *BasePiece) Color() Color {
@@ -73,8 +63,9 @@ func (p *BasePiece) ColumnAndRowMoves() []Square {
 	moves := []Square{}
 	// Move in each direction, checking for blocking pieces.
 	// Left in row.
+	cur := p.board.PieceSet[p]
 	for i := 1; i <= 7; i++ {
-		s := Square{row: p.square.row, col: p.square.col - i}
+		s := Square{row: cur.row, col: cur.col - i}
 		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
@@ -83,7 +74,7 @@ func (p *BasePiece) ColumnAndRowMoves() []Square {
 		}
 	}
 	for i := 1; i <= 7; i++ {
-		s := Square{row: p.square.row, col: p.square.col + i}
+		s := Square{row: cur.row, col: cur.col + i}
 		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
@@ -92,7 +83,7 @@ func (p *BasePiece) ColumnAndRowMoves() []Square {
 		}
 	}
 	for i := 1; i <= 7; i++ {
-		s := Square{row: p.square.row + i, col: p.square.col}
+		s := Square{row: cur.row + i, col: cur.col}
 		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
@@ -101,7 +92,7 @@ func (p *BasePiece) ColumnAndRowMoves() []Square {
 		}
 	}
 	for i := 1; i <= 7; i++ {
-		s := Square{row: p.square.row - i, col: p.square.col}
+		s := Square{row: cur.row - i, col: cur.col}
 		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
@@ -114,9 +105,10 @@ func (p *BasePiece) ColumnAndRowMoves() []Square {
 
 func (p *BasePiece) DiagonalMoves() []Square {
 	moves := []Square{}
+	cur := p.board.PieceSet[p]
 	// Move in a diagonal, checking for blocking pieces.
 	for i := 1; i <= 7; i++ {
-		s := Square{row: p.square.row + i, col: p.square.col + i}
+		s := Square{row: cur.row + i, col: cur.col + i}
 		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
@@ -125,7 +117,7 @@ func (p *BasePiece) DiagonalMoves() []Square {
 		}
 	}
 	for i := 1; i <= 7; i++ {
-		s := Square{row: p.square.row - i, col: p.square.col + i}
+		s := Square{row: cur.row - i, col: cur.col + i}
 		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
@@ -134,7 +126,7 @@ func (p *BasePiece) DiagonalMoves() []Square {
 		}
 	}
 	for i := 1; i <= 7; i++ {
-		s := Square{row: p.square.row - i, col: p.square.col - i}
+		s := Square{row: cur.row - i, col: cur.col - i}
 		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
@@ -143,7 +135,7 @@ func (p *BasePiece) DiagonalMoves() []Square {
 		}
 	}
 	for i := 1; i <= 7; i++ {
-		s := Square{row: p.square.row + i, col: p.square.col - i}
+		s := Square{row: cur.row + i, col: cur.col - i}
 		if p.TargetLegal(s, true) {
 			moves = append(moves, s)
 		}
@@ -156,16 +148,17 @@ func (p *BasePiece) DiagonalMoves() []Square {
 
 func (p *BasePiece) KnightMoves() []Square {
 	moves := []Square{}
+	cur := p.board.PieceSet[p]
 	// try all knight squares
 	squares := []Square{
-		{row: p.square.row + 2, col: p.square.col + 1},
-		{row: p.square.row + 2, col: p.square.col - 1},
-		{row: p.square.row - 2, col: p.square.col + 1},
-		{row: p.square.row - 2, col: p.square.col - 1},
-		{row: p.square.row + 1, col: p.square.col + 2},
-		{row: p.square.row + 1, col: p.square.col - 2},
-		{row: p.square.row - 1, col: p.square.col + 2},
-		{row: p.square.row - 1, col: p.square.col - 2},
+		{row: cur.row + 2, col: cur.col + 1},
+		{row: cur.row + 2, col: cur.col - 1},
+		{row: cur.row - 2, col: cur.col + 1},
+		{row: cur.row - 2, col: cur.col - 1},
+		{row: cur.row + 1, col: cur.col + 2},
+		{row: cur.row + 1, col: cur.col - 2},
+		{row: cur.row - 1, col: cur.col + 2},
+		{row: cur.row - 1, col: cur.col - 2},
 	}
 	for _, s := range squares {
 		if p.TargetLegal(s, true) {
@@ -177,16 +170,17 @@ func (p *BasePiece) KnightMoves() []Square {
 
 func (p *BasePiece) KingMoves() []Square {
 	moves := []Square{}
+	cur := p.board.PieceSet[p]
 	// try all knight squares
 	squares := []Square{
-		{row: p.square.row + 1, col: p.square.col - 1},
-		{row: p.square.row + 1, col: p.square.col},
-		{row: p.square.row + 1, col: p.square.col + 1},
-		{row: p.square.row + -1, col: p.square.col - 1},
-		{row: p.square.row + -1, col: p.square.col},
-		{row: p.square.row + -1, col: p.square.col + 1},
-		{row: p.square.row, col: p.square.col - 1},
-		{row: p.square.row, col: p.square.col + 1},
+		{row: cur.row + 1, col: cur.col - 1},
+		{row: cur.row + 1, col: cur.col},
+		{row: cur.row + 1, col: cur.col + 1},
+		{row: cur.row + -1, col: cur.col - 1},
+		{row: cur.row + -1, col: cur.col},
+		{row: cur.row + -1, col: cur.col + 1},
+		{row: cur.row, col: cur.col - 1},
+		{row: cur.row, col: cur.col + 1},
 	}
 	for _, s := range squares {
 		if p.TargetLegal(s, true) {
@@ -201,23 +195,24 @@ func (p *BasePiece) PawnMoves() []Square {
 	// Check if the piece can move two squares.
 	var isStartPawn bool
 	var direction int // Which way pawns move.
+	cur := p.board.PieceSet[p]
 	switch p.color {
 	case BLACK:
-		isStartPawn = p.square.row == 7
+		isStartPawn = cur.row == 7
 		direction = -1
 		break
 	case WHITE:
-		isStartPawn = p.square.row == 2
+		isStartPawn = cur.row == 2
 		direction = 1
 		break
 	}
 	moves := []Square{}
-	s := Square{row: p.square.row + direction, col: p.square.col}
+	s := Square{row: cur.row + direction, col: cur.col}
 	if p.TargetLegal(s, false) {
 		moves = append(moves, s)
 		// We only can move forward two if we can also move forward one.
 		if isStartPawn {
-			s := Square{row: p.square.row + 2*direction, col: p.square.col}
+			s := Square{row: cur.row + 2*direction, col: cur.col}
 			if p.TargetLegal(s, false) {
 				moves = append(moves, s)
 			}
@@ -225,8 +220,8 @@ func (p *BasePiece) PawnMoves() []Square {
 	}
 	// Check for side captures.
 	captures := []Square{
-		{row: p.square.row + direction, col: p.square.col + 1},
-		{row: p.square.row + direction, col: p.square.col - 1},
+		{row: cur.row + direction, col: cur.col + 1},
+		{row: cur.row + direction, col: cur.col - 1},
 	}
 	for _, square := range captures {
 		if !square.InPlay() {
@@ -239,4 +234,24 @@ func (p *BasePiece) PawnMoves() []Square {
 	}
 	// TODO: build en passant.
 	return moves
+}
+
+// The default is no-op; only kings, rooks, and pawns have fancy accounting.
+func (bp *BasePiece) ApplyMove(m Move) {
+	return
+}
+
+// The nil piece can't move.
+func (bp *BasePiece) LegalMoves() []Square {
+	return []Square{}
+}
+
+// The nil piece.
+func (bp *BasePiece) String() string {
+	return "x"
+}
+
+// The square this piece resides on.
+func (bp *BasePiece) Square() Square {
+	return bp.board.PieceSet[bp]
 }

@@ -18,8 +18,3 @@ func (p *Bishop) String() string {
 	}
 	return ""
 }
-
-func (p *Bishop) ApplyMove(m Move) Piece {
-	p.square = &m.square
-	return p
-}

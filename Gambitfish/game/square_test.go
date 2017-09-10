@@ -54,3 +54,27 @@ func TestIndex(t *testing.T) {
 		}
 	}
 }
+
+func TestSquareFromIndex(t *testing.T) {
+	testCases := []struct {
+		i    int
+		want Square
+	}{
+		{
+			i:    0,
+			want: Square{1, 1},
+		}, {
+			i:    63,
+			want: Square{8, 8},
+		},
+		{i: 47, want: Square{6, 8}},
+	}
+
+	for _, tc := range testCases {
+		got := SquareFromIndex(tc.i)
+		if got != tc.want {
+			t.Errorf("wrong square returned from index %v: got %v, want %v", tc.i, got, tc.want)
+		}
+	}
+
+}

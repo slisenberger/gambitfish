@@ -20,8 +20,3 @@ func (p *Queen) String() string {
 	}
 	return ""
 }
-
-func (p *Queen) ApplyMove(m Move) Piece {
-	p.square = &m.square
-	return p
-}

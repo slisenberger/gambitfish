@@ -18,8 +18,3 @@ func (p *Knight) String() string {
 	}
 	return ""
 }
-
-func (p *Knight) ApplyMove(m Move) Piece {
-	p.square = &m.square
-	return p
-}

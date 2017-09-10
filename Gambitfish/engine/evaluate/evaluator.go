@@ -5,5 +5,5 @@ package evaluate
 import "../../game"
 
 type Evaluator interface {
-	Evaluate(*game.Board) float
+	Evaluate(*game.Board) float64
 }

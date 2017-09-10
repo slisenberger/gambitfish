@@ -18,8 +18,3 @@ func (p *Pawn) String() string {
 	}
 	return ""
 }
-
-func (p *Pawn) ApplyMove(m Move) Piece {
-	p.square = &m.square
-	return p
-}
