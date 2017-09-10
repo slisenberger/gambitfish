@@ -2,6 +2,7 @@ package player
 
 import "errors"
 import "fmt"
+import "math"
 import "../game"
 import "../engine/evaluate"
 import "../engine/search"
@@ -17,11 +18,11 @@ type AIPlayer struct {
 }
 
 func (p *AIPlayer) MakeMove(b *game.Board) error {
-	move := search.AlphaBetaSearch(b, p.Evaluator, 3)
+	eval, move := search.AlphaBetaSearch(b, p.Evaluator, 4, math.Inf(-1), math.Inf(1))
 	if move == nil {
 		return errors.New("no move could be made")
 	}
-	fmt.Println("AI Player making best move: " + move.String())
+	fmt.Println(fmt.Sprintf("AI Player making best move: %v, eval %v", move, eval))
 
 	b.ApplyMove(*move)
 	return nil

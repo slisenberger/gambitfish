@@ -101,8 +101,9 @@ func (b *Board) ApplyMove(m Move) {
 	p := m.piece
 	s := m.square
 	// Check for victory
-	if _, ok := b.Squares[s.Index()].(*King); ok {
-		b.Winner = b.Active
+	// TODO(slisenberger): this needs some serious work.
+	if king, ok := b.Squares[s.Index()].(*King); ok {
+		b.Winner = -1 * king.Color()
 	}
 	b.Squares[m.old.Index()] = nil
 	// Place the piece on the new squares.
