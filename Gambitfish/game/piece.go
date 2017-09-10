@@ -14,6 +14,8 @@ type Piece interface {
 	LegalMoves() []Square
 	// Returns a string representation of this piece.
 	String() string
+	// Returns a unicode graphic representation of this piece.
+	Graphic() string
 	// Returns the color of this piece.
 	Color() Color
 	Board() *Board
@@ -252,4 +254,7 @@ func (bp *BasePiece) Board() *Board {
 
 func (bp *BasePiece) Value() float64 {
 	return 0.0
+}
+func (bp *BasePiece) Graphic() string {
+	return ""
 }

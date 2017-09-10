@@ -11,11 +11,15 @@ func (p *King) LegalMoves() []Square {
 }
 
 func (p *King) String() string {
+	return "K"
+}
+
+func (p *King) Graphic() string {
 	switch p.color {
-	case WHITE:
-		return "K"
 	case BLACK:
-		return "k"
+		return "♔"
+	case WHITE:
+		return "♚"
 	}
 	return ""
 }

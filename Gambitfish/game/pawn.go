@@ -10,11 +10,15 @@ func (p *Pawn) LegalMoves() []Square {
 }
 
 func (p *Pawn) String() string {
+	return "P"
+}
+
+func (p *Pawn) Graphic() string {
 	switch p.color {
-	case WHITE:
-		return "P"
 	case BLACK:
-		return "p"
+		return "♙"
+	case WHITE:
+		return "♟"
 	}
 	return ""
 }

@@ -11,11 +11,15 @@ func (p *Rook) LegalMoves() []Square {
 }
 
 func (p *Rook) String() string {
+	return "R"
+}
+
+func (p *Rook) Graphic() string {
 	switch p.color {
-	case WHITE:
-		return "R"
 	case BLACK:
-		return "r"
+		return "♖"
+	case WHITE:
+		return "♜"
 	}
 	return ""
 }

@@ -10,11 +10,15 @@ func (p *Bishop) LegalMoves() []Square {
 }
 
 func (p *Bishop) String() string {
+	return "B"
+}
+
+func (p *Bishop) Graphic() string {
 	switch p.color {
-	case WHITE:
-		return "B"
 	case BLACK:
-		return "b"
+		return "♗"
+	case WHITE:
+		return "♝"
 	}
 	return ""
 }

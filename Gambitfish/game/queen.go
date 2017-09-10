@@ -12,11 +12,15 @@ func (p *Queen) LegalMoves() []Square {
 }
 
 func (p *Queen) String() string {
+	return "Q"
+}
+
+func (p *Queen) Graphic() string {
 	switch p.color {
-	case WHITE:
-		return "Q"
 	case BLACK:
-		return "q"
+		return "♕"
+	case WHITE:
+		return "♛"
 	}
 	return ""
 }

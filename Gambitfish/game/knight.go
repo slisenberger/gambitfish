@@ -10,11 +10,15 @@ func (p *Knight) LegalMoves() []Square {
 }
 
 func (p *Knight) String() string {
+	return "N"
+}
+
+func (p *Knight) Graphic() string {
 	switch p.color {
-	case WHITE:
-		return "N"
 	case BLACK:
-		return "n"
+		return "♘"
+	case WHITE:
+		return "♞"
 	}
 	return ""
 }

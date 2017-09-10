@@ -73,17 +73,17 @@ func (b *Board) Print() {
 	}
 	fmt.Println("")
 
-	newline := ""
 	// We want to print a row at a time, but in backwards order to how this is stored
 	// Since a1 occurs at the bottom left of the board.
 	for row := 7; row >= 0; row-- {
+		newline := fmt.Sprintf("%v | ", row+1)
 		// Get 8 consecutive Squares
 		Squares := b.Squares[8*row : 8*row+8]
-		for i, square := range Squares {
-			if square == nil {
-				newline += "-"
+		for i, piece := range Squares {
+			if piece == nil {
+				newline += "·"
 			} else {
-				newline += square.String()
+				newline += piece.Graphic()
 			}
 			newline += " "
 			// Print a new line every 8 Squares, and reset.
@@ -93,6 +93,10 @@ func (b *Board) Print() {
 			}
 		}
 	}
+	// Print the letters at the bottom.
+	fmt.Println("   ________________")
+	fmt.Println("    a b c d e f g h")
+
 }
 
 // ApplyMove changes the state of the board for any given move.
