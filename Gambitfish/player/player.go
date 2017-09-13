@@ -14,15 +14,17 @@ type Player interface {
 // AIPlayer is a player that makes moves according to AI.
 type AIPlayer struct {
 	Evaluator evaluate.Evaluator
+	Depth     int
 	Color     game.Color
 }
 
 func (p *AIPlayer) MakeMove(b *game.Board) error {
-	eval, move := search.AlphaBetaSearch(b, p.Evaluator, 4, math.Inf(-1), math.Inf(1))
+	searchBoard := b.Copy()
+	eval, move := search.AlphaBetaSearch(searchBoard, p.Evaluator, p.Depth, math.Inf(-1), math.Inf(1), true)
 	if move == nil {
 		return errors.New("no move could be made")
 	}
-	fmt.Println(fmt.Sprintf("AI Player making best move: %v, eval %v", move, eval))
+	fmt.Println(fmt.Sprintf("AI Player making best move with depth %v: %v, eval %v", p.Depth, move, eval))
 
 	b.ApplyMove(*move)
 	return nil

@@ -7,7 +7,7 @@ type Rook struct {
 }
 
 func (p *Rook) LegalMoves() []Square {
-	return p.ColumnAndRowMoves(p.board.PieceSet[p])
+	return p.ColumnAndRowMoves(p.Board().PieceSet[p])
 }
 
 func (p *Rook) String() string {
@@ -15,7 +15,7 @@ func (p *Rook) String() string {
 }
 
 func (p *Rook) Graphic() string {
-	switch p.color {
+	switch p.Color() {
 	case BLACK:
 		return "♖"
 	case WHITE:

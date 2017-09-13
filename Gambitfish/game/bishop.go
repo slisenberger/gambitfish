@@ -6,7 +6,7 @@ type Bishop struct {
 }
 
 func (p *Bishop) LegalMoves() []Square {
-	return p.DiagonalMoves(p.board.PieceSet[p])
+	return p.DiagonalMoves(p.Board().PieceSet[p])
 }
 
 func (p *Bishop) String() string {
@@ -14,7 +14,7 @@ func (p *Bishop) String() string {
 }
 
 func (p *Bishop) Graphic() string {
-	switch p.color {
+	switch p.Color() {
 	case BLACK:
 		return "♗"
 	case WHITE:

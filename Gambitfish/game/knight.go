@@ -6,7 +6,7 @@ type Knight struct {
 }
 
 func (p *Knight) LegalMoves() []Square {
-	return p.KnightMoves(p.board.PieceSet[p])
+	return p.KnightMoves(p.Board().PieceSet[p])
 }
 
 func (p *Knight) String() string {
@@ -14,7 +14,7 @@ func (p *Knight) String() string {
 }
 
 func (p *Knight) Graphic() string {
-	switch p.color {
+	switch p.Color() {
 	case BLACK:
 		return "♘"
 	case WHITE:

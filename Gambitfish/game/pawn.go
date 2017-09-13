@@ -6,7 +6,7 @@ type Pawn struct {
 }
 
 func (p *Pawn) LegalMoves() []Square {
-	return p.PawnMoves(p.board.PieceSet[p])
+	return p.PawnMoves(p.Board().PieceSet[p])
 }
 
 func (p *Pawn) String() string {
@@ -14,7 +14,7 @@ func (p *Pawn) String() string {
 }
 
 func (p *Pawn) Graphic() string {
-	switch p.color {
+	switch p.Color() {
 	case BLACK:
 		return "♙"
 	case WHITE:

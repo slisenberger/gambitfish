@@ -7,7 +7,7 @@ type King struct {
 }
 
 func (p *King) LegalMoves() []Square {
-	return p.KingMoves(p.board.PieceSet[p])
+	return p.KingMoves(p.Board().PieceSet[p])
 }
 
 func (p *King) String() string {
@@ -15,7 +15,7 @@ func (p *King) String() string {
 }
 
 func (p *King) Graphic() string {
-	switch p.color {
+	switch p.Color() {
 	case BLACK:
 		return "♔"
 	case WHITE:

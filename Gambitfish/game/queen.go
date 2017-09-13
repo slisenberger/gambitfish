@@ -6,8 +6,8 @@ type Queen struct {
 }
 
 func (p *Queen) LegalMoves() []Square {
-	moves := p.DiagonalMoves(p.board.PieceSet[p])
-	columnMoves := p.ColumnAndRowMoves(p.board.PieceSet[p])
+	moves := p.DiagonalMoves(p.Board().PieceSet[p])
+	columnMoves := p.ColumnAndRowMoves(p.Board().PieceSet[p])
 	return append(moves, columnMoves...)
 }
 
@@ -16,7 +16,7 @@ func (p *Queen) String() string {
 }
 
 func (p *Queen) Graphic() string {
-	switch p.color {
+	switch p.Color() {
 	case BLACK:
 		return "♕"
 	case WHITE:

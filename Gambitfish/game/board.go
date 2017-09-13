@@ -1,4 +1,4 @@
-// Board is a representation of a chess board and the operations possible on it.
+// Board is a representation of a chess Board and the operations possible on it.
 package game
 
 import "fmt"
@@ -12,13 +12,13 @@ type Board struct {
 }
 
 type Move struct {
-	piece  Piece
-	square Square
-	old    Square
+	Piece  Piece
+	Square Square
+	Old    Square
 }
 
 func (m Move) String() string {
-	return fmt.Sprintf("%v%v to %v", m.piece, m.old, m.square)
+	return fmt.Sprintf("%v%v to %v", m.Piece, m.Old, m.Square)
 }
 
 func (b *Board) InitPieceSet() {
@@ -36,30 +36,30 @@ func DefaultBoard() *Board {
 	for i := 1; i <= 8; i++ {
 		blackPawnSquare := &Square{7, i}
 		whitePawnSquare := &Square{2, i}
-		b.Squares[blackPawnSquare.Index()] = &Pawn{&BasePiece{color: BLACK, board: b}}
-		b.Squares[whitePawnSquare.Index()] = &Pawn{&BasePiece{color: WHITE, board: b}}
+		b.Squares[blackPawnSquare.Index()] = &Pawn{&BasePiece{C: BLACK, B: b}}
+		b.Squares[whitePawnSquare.Index()] = &Pawn{&BasePiece{C: WHITE, B: b}}
 	}
 	// Add rooks.
-	b.Squares[0] = &Rook{&BasePiece{color: WHITE, board: b}, false}
-	b.Squares[7] = &Rook{&BasePiece{color: WHITE, board: b}, false}
-	b.Squares[56] = &Rook{&BasePiece{color: BLACK, board: b}, false}
-	b.Squares[63] = &Rook{&BasePiece{color: BLACK, board: b}, false}
+	b.Squares[0] = &Rook{&BasePiece{C: WHITE, B: b}, false}
+	b.Squares[7] = &Rook{&BasePiece{C: WHITE, B: b}, false}
+	b.Squares[56] = &Rook{&BasePiece{C: BLACK, B: b}, false}
+	b.Squares[63] = &Rook{&BasePiece{C: BLACK, B: b}, false}
 	// Add &Knights.
-	b.Squares[1] = &Knight{&BasePiece{color: WHITE, board: b}}
-	b.Squares[6] = &Knight{&BasePiece{color: WHITE, board: b}}
-	b.Squares[57] = &Knight{&BasePiece{color: BLACK, board: b}}
-	b.Squares[62] = &Knight{&BasePiece{color: BLACK, board: b}}
+	b.Squares[1] = &Knight{&BasePiece{C: WHITE, B: b}}
+	b.Squares[6] = &Knight{&BasePiece{C: WHITE, B: b}}
+	b.Squares[57] = &Knight{&BasePiece{C: BLACK, B: b}}
+	b.Squares[62] = &Knight{&BasePiece{C: BLACK, B: b}}
 	// Add &Bishops.
-	b.Squares[2] = &Bishop{&BasePiece{color: WHITE, board: b}}
-	b.Squares[5] = &Bishop{&BasePiece{color: WHITE, board: b}}
-	b.Squares[58] = &Bishop{&BasePiece{color: BLACK, board: b}}
-	b.Squares[61] = &Bishop{&BasePiece{color: BLACK, board: b}}
+	b.Squares[2] = &Bishop{&BasePiece{C: WHITE, B: b}}
+	b.Squares[5] = &Bishop{&BasePiece{C: WHITE, B: b}}
+	b.Squares[58] = &Bishop{&BasePiece{C: BLACK, B: b}}
+	b.Squares[61] = &Bishop{&BasePiece{C: BLACK, B: b}}
 	// Add queens
-	b.Squares[3] = &Queen{&BasePiece{color: WHITE, board: b}}
-	b.Squares[59] = &Queen{&BasePiece{color: BLACK, board: b}}
+	b.Squares[3] = &Queen{&BasePiece{C: WHITE, B: b}}
+	b.Squares[59] = &Queen{&BasePiece{C: BLACK, B: b}}
 	// Add Kings
-	b.Squares[4] = &King{&BasePiece{color: WHITE, board: b}, false}
-	b.Squares[60] = &King{&BasePiece{color: BLACK, board: b}, false}
+	b.Squares[4] = &King{&BasePiece{C: WHITE, B: b}, false}
+	b.Squares[60] = &King{&BasePiece{C: BLACK, B: b}, false}
 	b.InitPieceSet()
 	return b
 }
@@ -74,7 +74,7 @@ func (b *Board) Print() {
 	fmt.Println("")
 
 	// We want to print a row at a time, but in backwards order to how this is stored
-	// Since a1 occurs at the bottom left of the board.
+	// Since a1 occurs at the bottom left of the Board.
 	for row := 7; row >= 0; row-- {
 		newline := fmt.Sprintf("%v | ", row+1)
 		// Get 8 consecutive Squares
@@ -99,17 +99,19 @@ func (b *Board) Print() {
 
 }
 
-// ApplyMove changes the state of the board for any given move.
+// ApplyMove changes the state of the Board for any given move.
 // TODO: This won't work for castling, we will need to special case that move.
 func (b *Board) ApplyMove(m Move) {
-	p := m.piece
-	s := m.square
+	p := m.Piece
+	s := m.Square
 	// Check for victory
 	// TODO(slisenberger): this needs some serious work.
+	// Currently checks if we are capturing a king, and if so, loser is
+	// opposite Color.
 	if king, ok := b.Squares[s.Index()].(*King); ok {
 		b.Winner = -1 * king.Color()
 	}
-	b.Squares[m.old.Index()] = nil
+	b.Squares[m.Old.Index()] = nil
 	// Place the piece on the new squares.
 	b.PieceSet[p] = s
 
@@ -161,7 +163,7 @@ func (b *Board) Finished() bool {
 	return b.Winner != 0
 }
 
-// Returns a copy of this board with different references.
+// Returns a copy of this Board with different references.
 func (b *Board) Copy() *Board {
 	newB := &Board{Squares: b.Squares, Active: b.Active, Winner: b.Winner}
 	newB.InitPieceSet()

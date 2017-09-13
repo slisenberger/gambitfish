@@ -5,8 +5,8 @@ package game
 type Color int
 
 const (
-	WHITE Color = -1
-	BLACK Color = 1
+	WHITE Color = 1
+	BLACK Color = -1
 )
 
 type Piece interface {
@@ -24,12 +24,12 @@ type Piece interface {
 }
 
 type BasePiece struct {
-	color Color
-	board *Board
+	C Color
+	B *Board
 }
 
 func (bp *BasePiece) Color() Color {
-	return bp.color
+	return bp.C
 }
 
 // TargetLegal returns true if a candidate piece can move to the
@@ -38,7 +38,7 @@ func (p *BasePiece) TargetLegal(s Square, capture bool) bool {
 	if !s.InPlay() {
 		return false
 	}
-	occupant := p.board.Squares[s.Index()]
+	occupant := p.Board().Squares[s.Index()]
 	if occupant == nil {
 		return true
 	} else {
@@ -55,7 +55,7 @@ func (p *BasePiece) Stop(s Square) bool {
 	if !s.InPlay() {
 		return true
 	}
-	if occupant := p.board.Squares[s.Index()]; occupant != nil {
+	if occupant := p.Board().Squares[s.Index()]; occupant != nil {
 		return true
 	}
 	return false
@@ -193,7 +193,7 @@ func (p *BasePiece) PawnMoves(cur Square) []Square {
 	// Check if the piece can move two squares.
 	var isStartPawn bool
 	var direction int // Which way pawns move.
-	switch p.color {
+	switch p.Color() {
 	case BLACK:
 		isStartPawn = cur.row == 7
 		direction = -1
@@ -224,7 +224,7 @@ func (p *BasePiece) PawnMoves(cur Square) []Square {
 		if !square.InPlay() {
 			continue
 		}
-		occupant := p.board.Squares[square.Index()]
+		occupant := p.Board().Squares[square.Index()]
 		if occupant != nil && occupant.Color() != p.Color() {
 			moves = append(moves, square)
 		}
@@ -249,7 +249,7 @@ func (bp *BasePiece) String() string {
 }
 
 func (bp *BasePiece) Board() *Board {
-	return bp.board
+	return bp.B
 }
 
 func (bp *BasePiece) Value() float64 {
