@@ -16,7 +16,7 @@ type Move struct {
 	EnPassant   bool
 	CastleLong  bool
 	CastleShort bool
-	Promotion   *Piece // Applicable for only Pawn moves
+	Promotion   Piece // Applicable for only Pawn moves
 }
 
 func (m Move) String() string {

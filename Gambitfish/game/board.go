@@ -103,8 +103,15 @@ func ApplyMove(b *Board, m Move) {
 		delete(b.PieceSet, m.Capture.Piece)
 	}
 	// Then, move the piece to its new square.
-	b.PieceSet[p] = s
-	b.Squares[s.Index()] = p
+	// Check for promotion of a pawn.
+	if m.Promotion != nil {
+		b.PieceSet[m.Promotion] = s
+		b.Squares[s.Index()] = m.Promotion
+		delete(b.PieceSet, p)
+	} else {
+		b.PieceSet[p] = s
+		b.Squares[s.Index()] = p
+	}
 	// Then, remove the piece from its old square.
 	b.Squares[m.Old.Index()] = nil
 }
@@ -115,7 +122,11 @@ func UndoMove(b *Board, m Move) {
 	p := m.Piece
 	o := m.Old
 	s := m.Square
-	// Return the piece to its old square.
+	// Return the piece to its old square, and undo promotion.
+	if m.Promotion != nil {
+		delete(b.PieceSet, m.Promotion)
+	}
+
 	b.Squares[o.Index()] = p
 	b.PieceSet[p] = o
 	// Return the square we were on to its old state.

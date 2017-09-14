@@ -247,7 +247,24 @@ func PawnMoves(p Piece, cur Square) []Move {
 	moves := []Move{}
 	s := Square{row: cur.row + direction, col: cur.col}
 	if l, _ := TargetLegal(p, s, false); l {
-		moves = append(moves, NewMove(p, s, cur))
+		// Check for promotion and add the promotions.
+		if s.row == 1 || s.row == 8 {
+			move := NewMove(p, s, cur)
+			move.Promotion = &Queen{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+			moves = append(moves, move)
+			move = NewMove(p, s, cur)
+			move.Promotion = &Bishop{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+			moves = append(moves, move)
+			move = NewMove(p, s, cur)
+			move.Promotion = &Knight{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+			moves = append(moves, move)
+			move = NewMove(p, s, cur)
+			move.Promotion = &Rook{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+			moves = append(moves, move)
+
+		} else {
+			moves = append(moves, NewMove(p, s, cur))
+		}
 		// We only can move forward two if we can also move forward one.
 		if isStartPawn {
 			s := Square{row: cur.row + 2*direction, col: cur.col}
@@ -267,9 +284,29 @@ func PawnMoves(p Piece, cur Square) []Move {
 		}
 		occupant := p.Board().Squares[square.Index()]
 		if occupant != nil && occupant.Color() != p.Color() {
-			move := NewMove(p, square, cur)
-			move.Capture = &Capture{occupant, square}
-			moves = append(moves, move)
+			if s.row == 1 || s.row == 8 {
+				move := NewMove(p, s, cur)
+				move.Capture = &Capture{occupant, square}
+				move.Promotion = &Queen{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+				moves = append(moves, move)
+				move = NewMove(p, s, cur)
+				move.Capture = &Capture{occupant, square}
+				move.Promotion = &Bishop{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+				moves = append(moves, move)
+				move = NewMove(p, s, cur)
+				move.Capture = &Capture{occupant, square}
+				move.Promotion = &Knight{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+				moves = append(moves, move)
+				move = NewMove(p, s, cur)
+				move.Capture = &Capture{occupant, square}
+				move.Promotion = &Rook{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+				moves = append(moves, move)
+
+			} else {
+				move := NewMove(p, square, cur)
+				move.Capture = &Capture{occupant, square}
+				moves = append(moves, move)
+			}
 		}
 	}
 	// TODO: build en passant.
