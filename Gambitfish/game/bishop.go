@@ -5,8 +5,8 @@ type Bishop struct {
 	*BasePiece
 }
 
-func (p *Bishop) LegalMoves() []Square {
-	return p.DiagonalMoves(p.Board().PieceSet[p])
+func (p *Bishop) LegalMoves() []Move {
+	return DiagonalMoves(p, p.Board().PieceSet[p])
 }
 
 func (p *Bishop) String() string {

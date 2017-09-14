@@ -5,9 +5,9 @@ type Queen struct {
 	*BasePiece
 }
 
-func (p *Queen) LegalMoves() []Square {
-	moves := p.DiagonalMoves(p.Board().PieceSet[p])
-	columnMoves := p.ColumnAndRowMoves(p.Board().PieceSet[p])
+func (p *Queen) LegalMoves() []Move {
+	moves := DiagonalMoves(p, p.Board().PieceSet[p])
+	columnMoves := ColumnAndRowMoves(p, p.Board().PieceSet[p])
 	return append(moves, columnMoves...)
 }
 

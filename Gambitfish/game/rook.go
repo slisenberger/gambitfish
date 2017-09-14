@@ -6,8 +6,8 @@ type Rook struct {
 	HasMoved bool
 }
 
-func (p *Rook) LegalMoves() []Square {
-	return p.ColumnAndRowMoves(p.Board().PieceSet[p])
+func (p *Rook) LegalMoves() []Move {
+	return ColumnAndRowMoves(p, p.Board().PieceSet[p])
 }
 
 func (p *Rook) String() string {

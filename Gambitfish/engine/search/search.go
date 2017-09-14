@@ -1,6 +1,5 @@
 package search
 
-import "fmt"
 import "math"
 import "../../game"
 import "../evaluate"
@@ -18,23 +17,23 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	moves := b.AllLegalMoves()
 	bestVal := math.Inf(-1)
 	for _, move := range moves {
-		newBoard := game.CopyBoard(b)
-		newBoard.ApplyMove(move)
-		newBoard.SwitchActivePlayer()
-		eval, _ = AlphaBetaSearch(newBoard, e, depth-1, -beta, -alpha)
-		eval = -eval
+		game.ApplyMove(b, move)
+		b.SwitchActivePlayer()
+		eval, _ = AlphaBetaSearch(b, e, depth-1, -beta, -alpha)
+		// Undo move and restore player.
+		b.SwitchActivePlayer()
+		game.UndoMove(b, move)
+		eval = -1.0 * eval
 		if eval > bestVal {
-			fmt.Println(fmt.Sprintf("new best eval at depth %v!: %v, %v", depth, eval, move))
-			fmt.Println(fmt.Sprintf("above value is negative of value for %v", newBoard.Active))
 			bestVal = eval
 			best = move
 		}
-		//		if eval > alpha {
-		//			alpha = eval
-		//		}
-		//		if alpha >= beta {
-		//			break
-		//		}
+		if eval > alpha {
+			alpha = eval
+		}
+		if alpha >= beta {
+			break
+		}
 	}
 	return bestVal, &best
 }

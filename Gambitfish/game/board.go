@@ -11,16 +11,6 @@ type Board struct {
 	PieceSet map[Piece]Square
 }
 
-type Move struct {
-	Piece  Piece
-	Square Square
-	Old    Square
-}
-
-func (m Move) String() string {
-	return fmt.Sprintf("%v%v to %v", m.Piece, m.Old, m.Square)
-}
-
 func (b *Board) InitPieceSet() {
 	b.PieceSet = make(map[Piece]Square, 32)
 	for i, piece := range b.Squares {
@@ -101,21 +91,43 @@ func (b *Board) Print() {
 
 // ApplyMove changes the state of the Board for any given move.
 // TODO: This won't work for castling, we will need to special case that move.
-func (b *Board) ApplyMove(m Move) {
+func ApplyMove(b *Board, m Move) {
 	p := m.Piece
 	s := m.Square
-	// Check for victory
-	// TODO(slisenberger): this needs some serious work.
-	// Currently checks if we are capturing a king, and if so, loser is
-	// opposite Color.
-	if king, ok := b.Squares[s.Index()].(*King); ok {
-		b.Winner = -1 * king.Color()
+	// If there's a capture: remove the captured piece.
+	if m.Capture != nil {
+		// checks for victory = capturing king, we'll want to abstract this.
+		if king, ok := m.Capture.Piece.(*King); ok {
+			b.Winner = -1 * king.Color()
+		}
+		delete(b.PieceSet, m.Capture.Piece)
 	}
-	b.Squares[m.Old.Index()] = nil
-	// Place the piece on the new squares.
+	// Then, move the piece to its new square.
 	b.PieceSet[p] = s
-
 	b.Squares[s.Index()] = p
+	// Then, remove the piece from its old square.
+	b.Squares[m.Old.Index()] = nil
+}
+
+// UndoMove returns a board to the state it was at prior to
+// applying a move m.
+func UndoMove(b *Board, m Move) {
+	p := m.Piece
+	o := m.Old
+	s := m.Square
+	// Return the piece to its old square.
+	b.Squares[o.Index()] = p
+	b.PieceSet[p] = o
+	// Return the square we were on to its old state.
+	b.Squares[s.Index()] = nil
+	// Return a captured piece.
+	if m.Capture != nil {
+		b.PieceSet[m.Capture.Piece] = m.Capture.Square
+		b.Squares[m.Capture.Square.Index()] = m.Capture.Piece
+	}
+
+	// Return arbitrary game state.
+	b.Winner = 0
 }
 
 func (b *Board) SwitchActivePlayer() {
@@ -140,9 +152,9 @@ func (b *Board) AllLegalMoves() []Move {
 		if piece.Color() != b.Active {
 			continue
 		}
-		squares := piece.LegalMoves()
-		for _, square := range squares {
-			moves = append(moves, Move{piece, square, b.PieceSet[piece]})
+		m := piece.LegalMoves()
+		for _, move := range m {
+			moves = append(moves, move)
 		}
 	}
 	// We now want to return the moves in a smart order (e.g., try checks and captures.)
@@ -152,7 +164,7 @@ func (b *Board) AllLegalMoves() []Move {
 		j := rand.Intn(i + 1)
 		moves[i], moves[j] = moves[j], moves[i]
 	}
-	return moves
+	return OrderMoves(moves)
 }
 
 // Returns true if the game is drawn, won, or lost.
@@ -164,8 +176,10 @@ func (b *Board) Finished() bool {
 }
 
 // Returns a copy of this Board with different references.
-func (b *Board) Copy() *Board {
-	newB := &Board{Squares: b.Squares, Active: b.Active, Winner: b.Winner}
+func CopyBoard(b *Board) *Board {
+	var s [64]Piece
+	copy(s[:], b.Squares[:])
+	newB := &Board{Squares: s, Active: b.Active, Winner: b.Winner}
 	newB.InitPieceSet()
 	return newB
 }

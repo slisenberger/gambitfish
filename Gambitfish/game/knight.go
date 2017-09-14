@@ -5,8 +5,8 @@ type Knight struct {
 	*BasePiece
 }
 
-func (p *Knight) LegalMoves() []Square {
-	return p.KnightMoves(p.Board().PieceSet[p])
+func (p *Knight) LegalMoves() []Move {
+	return KnightMoves(p, p.Board().PieceSet[p])
 }
 
 func (p *Knight) String() string {

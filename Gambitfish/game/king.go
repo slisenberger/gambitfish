@@ -6,8 +6,8 @@ type King struct {
 	HasMoved bool
 }
 
-func (p *King) LegalMoves() []Square {
-	return p.KingMoves(p.Board().PieceSet[p])
+func (p *King) LegalMoves() []Move {
+	return KingMoves(p, p.Board().PieceSet[p])
 }
 
 func (p *King) String() string {

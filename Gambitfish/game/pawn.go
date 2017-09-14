@@ -5,8 +5,8 @@ type Pawn struct {
 	*BasePiece
 }
 
-func (p *Pawn) LegalMoves() []Square {
-	return p.PawnMoves(p.Board().PieceSet[p])
+func (p *Pawn) LegalMoves() []Move {
+	return PawnMoves(p, p.Board().PieceSet[p])
 }
 
 func (p *Pawn) String() string {
