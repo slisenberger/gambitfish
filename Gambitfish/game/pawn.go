@@ -9,6 +9,10 @@ func (p *Pawn) LegalMoves() []Move {
 	return PawnMoves(p, p.Board().PieceSet[p])
 }
 
+func (p *Pawn) Attacking() []Square {
+	return PawnAttackingSquares(p, p.Board().PieceSet[p])
+}
+
 func (p *Pawn) String() string {
 	return "P"
 }

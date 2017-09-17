@@ -10,6 +10,15 @@ func (p *King) LegalMoves() []Move {
 	return KingMoves(p, p.Board().PieceSet[p])
 }
 
+func (p *King) Attacking() []Square {
+	moves := p.LegalMoves()
+	squares := make([]Square, len(moves))
+	for i, move := range moves {
+		squares[i] = move.Square
+	}
+	return squares
+}
+
 func (p *King) String() string {
 	return "K"
 }

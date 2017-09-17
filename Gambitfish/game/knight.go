@@ -9,6 +9,15 @@ func (p *Knight) LegalMoves() []Move {
 	return KnightMoves(p, p.Board().PieceSet[p])
 }
 
+func (p *Knight) Attacking() []Square {
+	moves := p.LegalMoves()
+	squares := make([]Square, len(moves))
+	for i, move := range moves {
+		squares[i] = move.Square
+	}
+	return squares
+}
+
 func (p *Knight) String() string {
 	return "N"
 }

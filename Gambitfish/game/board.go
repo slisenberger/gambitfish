@@ -96,10 +96,6 @@ func ApplyMove(b *Board, m Move) {
 	s := m.Square
 	// If there's a capture: remove the captured piece.
 	if m.Capture != nil {
-		// checks for victory = capturing king, we'll want to abstract this.
-		if king, ok := m.Capture.Piece.(*King); ok {
-			b.Winner = -1 * king.Color()
-		}
 		delete(b.PieceSet, m.Capture.Piece)
 	}
 	// Then, move the piece to its new square.
@@ -136,9 +132,6 @@ func UndoMove(b *Board, m Move) {
 		b.PieceSet[m.Capture.Piece] = m.Capture.Square
 		b.Squares[m.Capture.Square.Index()] = m.Capture.Piece
 	}
-
-	// Return arbitrary game state.
-	b.Winner = 0
 }
 
 func (b *Board) SwitchActivePlayer() {
@@ -165,7 +158,16 @@ func (b *Board) AllLegalMoves() []Move {
 		}
 		m := piece.LegalMoves()
 		for _, move := range m {
-			moves = append(moves, move)
+			// Remove pseudolegal moves
+			ApplyMove(b, move)
+			isCheck := IsCheck(b, b.Active)
+			UndoMove(b, move)
+			if isCheck {
+				fmt.Println(fmt.Sprintf("not making a move %v: puts king in check!", move))
+
+			} else {
+				moves = append(moves, move)
+			}
 		}
 	}
 	// We now want to return the moves in a smart order (e.g., try checks and captures.)
@@ -178,12 +180,21 @@ func (b *Board) AllLegalMoves() []Move {
 	return OrderMoves(moves)
 }
 
-// Returns true if the game is drawn, won, or lost.
-func (b *Board) Finished() bool {
+// Returns true if the game is drawn, won, or lost. The integer
+// returned is the winner (or draw). This function should be called on the beginning
+// of a move.
+func (b *Board) CalculateGameOver() (bool, Color) {
 	if len(b.AllLegalMoves()) == 0 {
-		return true
+		// If the active player is in check, they lose.
+		if IsCheck(b, b.Active) {
+			return true, -1 * b.Active
+		} else {
+			// Otherwise, it's stalemate!
+			return true, 0
+		}
+
 	}
-	return b.Winner != 0
+	return false, 0
 }
 
 // Returns a copy of this Board with different references.
@@ -193,4 +204,27 @@ func CopyBoard(b *Board) *Board {
 	newB := &Board{Squares: s, Active: b.Active, Winner: b.Winner}
 	newB.InitPieceSet()
 	return newB
+}
+
+// Returns true if the board state results in the color c's king being in check.
+func IsCheck(b *Board, c Color) bool {
+	for piece, _ := range b.PieceSet {
+		// If it's our piece, we don't care.
+		if piece.Color() == c {
+			continue
+		}
+		attacking := piece.Attacking()
+		for _, s := range attacking {
+			occupant := b.Squares[s.Index()]
+			// check if it's us under attack
+			if occupant != nil && occupant.Color() == c {
+				// If our king is under attack, it's check.
+				if _, ok := occupant.(*King); ok {
+					fmt.Println(fmt.Sprintf("found king on square %v", s.Index()))
+					return true
+				}
+			}
+		}
+	}
+	return false
 }

@@ -12,6 +12,10 @@ const (
 type Piece interface {
 	// Returns an array of all the legal positions this piece can move to.
 	LegalMoves() []Move
+	// Returns an array of all the squares this piece is attacking. Only open
+	// squares or squares containing opponent pieces are considered attacked.
+
+	Attacking() []Square
 	// Returns a string representation of this piece.
 	String() string
 	// Returns a unicode graphic representation of this piece.
@@ -228,6 +232,40 @@ func KingMoves(p Piece, cur Square) []Move {
 	}
 	return moves
 
+}
+
+// Returns the set of squares a pawn is attacking.
+func PawnAttackingSquares(p Piece, cur Square) []Square {
+	var direction int // Which way pawns move.
+	switch p.Color() {
+	case BLACK:
+		direction = -1
+		break
+	case WHITE:
+		direction = 1
+		break
+	}
+
+	// Check for side attacks.
+	attacks := []Square{
+		{row: cur.row + direction, col: cur.col + 1},
+		{row: cur.row + direction, col: cur.col - 1},
+	}
+	var results []Square
+	for _, attack := range attacks {
+		// If it's not legal to move there, we aren't attacking it.
+		if !attack.InPlay() {
+			continue
+		}
+		// We aren't attacking if it is our own piece.
+		occupant := p.Board().Squares[attack.Index()]
+		if occupant != nil && occupant.Color() == p.Color() {
+			continue
+		}
+		// Else, it's fine.
+		results = append(results, attack)
+	}
+	return results
 }
 
 func PawnMoves(p Piece, cur Square) []Move {

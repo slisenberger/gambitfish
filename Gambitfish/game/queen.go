@@ -11,6 +11,15 @@ func (p *Queen) LegalMoves() []Move {
 	return append(moves, columnMoves...)
 }
 
+func (p *Queen) Attacking() []Square {
+	moves := p.LegalMoves()
+	squares := make([]Square, len(moves))
+	for i, move := range moves {
+		squares[i] = move.Square
+	}
+	return squares
+}
+
 func (p *Queen) String() string {
 	return "Q"
 }

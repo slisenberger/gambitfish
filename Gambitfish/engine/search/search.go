@@ -7,7 +7,8 @@ import "../evaluate"
 // An Alpha Beta Negamax implementation. Function stolen from here:
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning
 func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta float64) (float64, *game.Move) {
-	if b.Finished() || depth == 0 {
+	over, _ := b.CalculateGameOver()
+	if over || depth == 0 {
 		return e.Evaluate(b), nil
 	}
 	_ = alpha

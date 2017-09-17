@@ -13,18 +13,17 @@ func main() {
 	rand.Seed(time.Now().Unix())
 	b := game.DefaultBoard()
 	e := evaluate.MaterialEvaluator{}
-	p1 := player.AIPlayer{Evaluator: e, Depth: 5, Color: game.WHITE}
-	p2 := player.AIPlayer{Evaluator: e, Depth: 5, Color: game.BLACK}
+	p1 := player.AIPlayer{Evaluator: e, Depth: 1, Color: game.WHITE}
+	p2 := player.AIPlayer{Evaluator: e, Depth: 1, Color: game.BLACK}
 	b.Print()
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 300; i++ {
 		time.Sleep(1 * time.Second)
-		if b.Winner != 0 {
-			fmt.Println("WINNER")
-			break
-		}
-		moves := b.AllLegalMoves()
-		if len(moves) == 0 {
-			fmt.Println("GAME ends in STALEMATE! no legal moves!")
+		if over, winner := b.CalculateGameOver(); over {
+			if winner != 0 {
+				fmt.Println("WINNER")
+			} else {
+				fmt.Println("GAME ends in STALEMATE! no legal moves!")
+			}
 			break
 		}
 		if b.Active == p1.Color {
