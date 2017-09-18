@@ -1,15 +1,20 @@
 package search
 
-import "fmt"
 import "math"
 import "../../game"
 import "../evaluate"
+
+// MAX_QUIESCENCE_DEPTH is the number of extra nodes to search if
+// We reach depth 0 with pending captures.
+// This should eventually be controlled, but for now we max quiescence search
+// another nodes.
+const MAX_QUIESCENCE_DEPTH = -1
 
 // An Alpha Beta Negamax implementation. Function stolen from here:
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning
 func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta float64) (float64, *game.Move) {
 	over, _ := b.CalculateGameOver()
-	if over || (depth <= 0 && IsQuiet(b)) {
+	if over || depth == MAX_QUIESCENCE_DEPTH || (depth <= 0 && IsQuiet(b)) {
 		return e.Evaluate(b), nil
 	}
 	if bm := BookMove(b); bm != nil {
@@ -31,7 +36,6 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 			}
 		}
 		moves = captures
-		fmt.Println(fmt.Sprintf("in quiescence search for the moves: %v", moves))
 	}
 	bestVal := math.Inf(-1)
 	for _, move := range moves {

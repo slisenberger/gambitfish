@@ -12,9 +12,14 @@ import "time"
 func main() {
 	rand.Seed(time.Now().Unix())
 	b := game.DefaultBoard()
-	e := evaluate.MaterialEvaluator{}
-	p1 := player.AIPlayer{Evaluator: e, Depth: 2, Color: game.WHITE}
-	p2 := player.AIPlayer{Evaluator: e, Depth: 2, Color: game.BLACK}
+	e := evaluate.CompoundEvaluator{
+		Evaluators: []evaluate.Evaluator{
+			evaluate.MaterialEvaluator{},
+			evaluate.MobilityEvaluator{},
+		},
+	}
+	p1 := player.AIPlayer{Evaluator: e, Depth: 3, Color: game.WHITE}
+	p2 := player.AIPlayer{Evaluator: e, Depth: 3, Color: game.BLACK}
 	b.Print()
 	for i := 0; i < 300; i++ {
 		time.Sleep(1 * time.Second)
