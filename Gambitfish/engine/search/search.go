@@ -9,14 +9,30 @@ import "../evaluate"
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning
 func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta float64) (float64, *game.Move) {
 	over, _ := b.CalculateGameOver()
-	if over || depth == 0 {
-		return b.ACTIVE * e.Evaluate(b), nil
+	if over || (depth <= 0 && IsQuiet(b)) {
+		return e.Evaluate(b), nil
+	}
+	if bm := BookMove(b); bm != nil {
+		return 0.0, bm
 	}
 	_ = alpha
 	_ = beta
 	var best game.Move
 	var eval float64
+
 	moves := b.AllLegalMoves()
+	// If we are past our depth limit, we are only in quiescence search.
+	// In quiescence search, only search remaining captures.
+	if depth <= 0 {
+		captures := []game.Move{}
+		for _, move := range moves {
+			if move.Capture != nil {
+				captures = append(captures, move)
+			}
+		}
+		moves = captures
+		fmt.Println(fmt.Sprintf("in quiescence search for the moves: %v", moves))
+	}
 	bestVal := math.Inf(-1)
 	for _, move := range moves {
 		game.ApplyMove(b, move)
@@ -39,4 +55,13 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 		}
 	}
 	return bestVal, &best
+}
+
+func IsQuiet(b *game.Board) bool {
+	for _, m := range b.AllLegalMoves() {
+		if m.Capture != nil {
+			return false
+		}
+	}
+	return true
 }

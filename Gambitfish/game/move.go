@@ -27,7 +27,13 @@ func (m Move) String() string {
 	} else if m.KSCastle {
 		return "O-O"
 	}
-	mv := fmt.Sprintf("%v%v to %v", m.Piece, m.Old, m.Square)
+	mv := fmt.Sprintf("%v%v", m.Piece, m.Old)
+	if m.Capture != nil {
+		mv += "x"
+	} else {
+		mv += "-"
+	}
+	mv += m.Square.String()
 	if m.Promotion != nil {
 		mv = fmt.Sprintf("%v=%v", mv, m.Promotion)
 	}

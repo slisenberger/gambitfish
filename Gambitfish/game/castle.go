@@ -90,13 +90,13 @@ func CanCastleGeneric(b *Board, c Color, castleSquares []Square) bool {
 func CastlingMoves(p *King, cur Square) []Move {
 	moves := []Move{}
 	if CanCastleQueenside(p.Board(), p.Color()) {
-		s := Square{cur.row, cur.col - 2}
+		s := Square{cur.Row, cur.Col - 2}
 		move := NewMove(p, s, cur)
 		move.QSCastle = true
 		moves = append(moves, move)
 	}
 	if CanCastleKingside(p.Board(), p.Color()) {
-		s := Square{cur.row, cur.col + 2}
+		s := Square{cur.Row, cur.Col + 2}
 		move := NewMove(p, s, cur)
 		move.KSCastle = true
 		moves = append(moves, move)

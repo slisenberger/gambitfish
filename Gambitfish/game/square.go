@@ -4,25 +4,25 @@ package game
 import "fmt"
 
 type Square struct {
-	row, col int
+	Row, Col int
 }
 
 // Prints this square as a string.
 func (s Square) String() string {
-	return fmt.Sprintf("%v%v", string('a'+s.col-1), s.row)
+	return fmt.Sprintf("%v%v", string('a'+s.Col-1), s.Row)
 }
 
 // Returns an index for this square in a one-dimensional array.
 func (s Square) Index() int {
-	return 8*(s.row-1) + s.col - 1
+	return 8*(s.Row-1) + s.Col - 1
 }
 
 // InPlay returns true if a square is on the 8 by 8 chess board.
 func (s Square) InPlay() bool {
-	return s.row >= 1 && s.row <= 8 && s.col >= 1 && s.col <= 8
+	return s.Row >= 1 && s.Row <= 8 && s.Col >= 1 && s.Col <= 8
 }
 
 // SquareFromIndex returns a new square from an index into a single dimension array.
 func SquareFromIndex(i int) Square {
-	return Square{row: i/8 + 1, col: (i % 8) + 1}
+	return Square{Row: i/8 + 1, Col: (i % 8) + 1}
 }

@@ -23,8 +23,15 @@ func (p *AIPlayer) MakeMove(b *game.Board) error {
 	if move == nil {
 		return errors.New("no move could be made")
 	}
+	// Convert eval to + for white, - for black.
+	if p.Color == game.BLACK {
+		eval = -1 * eval
+	}
 	fmt.Println(fmt.Sprintf("AI Player making best move with depth %v: %v, eval %v", p.Depth, move, eval))
 
 	game.ApplyMove(b, *move)
+	if p.Color == game.BLACK {
+		b.Move += 1
+	}
 	return nil
 }

@@ -8,14 +8,14 @@ func TestAsString(t *testing.T) {
 		want   string
 	}{
 		{
-			square: &Square{row: 1, col: 1},
+			square: &Square{Row: 1, Col: 1},
 			want:   "a1",
 		}, {
-			square: &Square{row: 1, col: 8},
-			want:   "h1", // 1st row is "1", 8th column is "h"
+			square: &Square{Row: 1, Col: 8},
+			want:   "h1", // 1st Row is "1", 8th Column is "h"
 		}, {
 
-			square: &Square{row: 8, col: 8},
+			square: &Square{Row: 8, Col: 8},
 			want:   "h8",
 		},
 	}
@@ -23,7 +23,7 @@ func TestAsString(t *testing.T) {
 	for _, tc := range testCases {
 		got := tc.square.String()
 		if got != tc.want {
-			t.Errorf("string representation for %v, %v: got %v, want %v", tc.square.row, tc.square.col, got, tc.want)
+			t.Errorf("string representation for %v, %v: got %v, want %v", tc.square.Row, tc.square.Col, got, tc.want)
 
 		}
 	}
@@ -50,7 +50,7 @@ func TestIndex(t *testing.T) {
 	for _, tc := range testCases {
 		got := tc.square.Index()
 		if got != tc.want {
-			t.Errorf("index for %v, %v incorrect: got %v, want %v", tc.square.row, tc.square.col, got, tc.want)
+			t.Errorf("index for %v, %v incorrect: got %v, want %v", tc.square.Row, tc.square.Col, got, tc.want)
 		}
 	}
 }
