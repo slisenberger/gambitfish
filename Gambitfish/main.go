@@ -13,8 +13,8 @@ func main() {
 	rand.Seed(time.Now().Unix())
 	b := game.DefaultBoard()
 	e := evaluate.MaterialEvaluator{}
-	p1 := player.AIPlayer{Evaluator: e, Depth: 1, Color: game.WHITE}
-	p2 := player.AIPlayer{Evaluator: e, Depth: 1, Color: game.BLACK}
+	p1 := player.AIPlayer{Evaluator: e, Depth: 3, Color: game.WHITE}
+	p2 := player.AIPlayer{Evaluator: e, Depth: 3, Color: game.BLACK}
 	b.Print()
 	for i := 0; i < 300; i++ {
 		time.Sleep(1 * time.Second)

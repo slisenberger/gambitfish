@@ -180,7 +180,6 @@ func UndoMove(b *Board, m Move) {
 
 	// Undo rook moves from castling.
 	if m.QSCastle || m.KSCastle {
-		fmt.Println("undoing a castling move..")
 		var newRookSquare Square
 		var oldRookSquare Square
 		if m.QSCastle {

@@ -18,18 +18,14 @@ func ColorToString(c game.Color) string {
 func (m MaterialEvaluator) Evaluate(b *game.Board) float64 {
 	eval := 0.0
 	if over, winner := b.CalculateGameOver(); over {
-		if winner == b.Active {
-			return math.Inf(1)
-
-		} else if winner == -1*b.Active {
-
-			return math.Inf(-1)
+		if winner != 0 {
+			return math.Inf(winner)
 		} else {
 			return 0.0
 		}
 	}
 	for piece, _ := range b.PieceSet {
-		if piece.Color() == b.Active {
+		if piece.Color() == game.WHITE {
 			eval += piece.Value()
 		} else {
 			eval -= piece.Value()
