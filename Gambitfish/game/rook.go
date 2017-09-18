@@ -3,7 +3,8 @@ package game
 
 type Rook struct {
 	*BasePiece
-	HasMoved bool
+	KS bool
+	QS bool
 }
 
 func (p *Rook) LegalMoves() []Move {
@@ -31,10 +32,6 @@ func (p *Rook) Graphic() string {
 		return "♜"
 	}
 	return ""
-}
-
-func (p *Rook) ApplyMove(m Move) {
-	p.HasMoved = true
 }
 
 func (p *Rook) Value() float64 {

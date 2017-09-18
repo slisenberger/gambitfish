@@ -9,6 +9,14 @@ const (
 	BLACK Color = -1
 )
 
+func (c Color) String() string {
+	if c == WHITE {
+		return "WHITE"
+	} else {
+		return "BLACK"
+	}
+}
+
 type Piece interface {
 	// Returns an array of all the legal positions this piece can move to.
 	LegalMoves() []Move
@@ -316,33 +324,33 @@ func PawnMoves(p Piece, cur Square) []Move {
 		{row: cur.row + direction, col: cur.col + 1},
 		{row: cur.row + direction, col: cur.col - 1},
 	}
-	for _, square := range captures {
-		if !square.InPlay() {
+	for _, s := range captures {
+		if !s.InPlay() {
 			continue
 		}
-		occupant := p.Board().Squares[square.Index()]
+		occupant := p.Board().Squares[s.Index()]
 		if occupant != nil && occupant.Color() != p.Color() {
 			if s.row == 1 || s.row == 8 {
 				move := NewMove(p, s, cur)
-				move.Capture = &Capture{occupant, square}
+				move.Capture = &Capture{occupant, s}
 				move.Promotion = &Queen{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
 				moves = append(moves, move)
 				move = NewMove(p, s, cur)
-				move.Capture = &Capture{occupant, square}
+				move.Capture = &Capture{occupant, s}
 				move.Promotion = &Bishop{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
 				moves = append(moves, move)
 				move = NewMove(p, s, cur)
-				move.Capture = &Capture{occupant, square}
+				move.Capture = &Capture{occupant, s}
 				move.Promotion = &Knight{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
 				moves = append(moves, move)
 				move = NewMove(p, s, cur)
-				move.Capture = &Capture{occupant, square}
+				move.Capture = &Capture{occupant, s}
 				move.Promotion = &Rook{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
 				moves = append(moves, move)
 
 			} else {
-				move := NewMove(p, square, cur)
-				move.Capture = &Capture{occupant, square}
+				move := NewMove(p, s, cur)
+				move.Capture = &Capture{occupant, s}
 				moves = append(moves, move)
 			}
 		}

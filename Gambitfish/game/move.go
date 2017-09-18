@@ -9,29 +9,50 @@ type Capture struct {
 
 // Moves have Pieces and squares
 type Move struct {
-	Piece       Piece
-	Square      Square
-	Old         Square
-	Capture     *Capture
-	EnPassant   bool
-	CastleLong  bool
-	CastleShort bool
-	Promotion   Piece // Applicable for only Pawn moves
+	Piece                Piece
+	Square               Square
+	Old                  Square
+	Capture              *Capture
+	EnPassant            bool
+	KSCastle             bool
+	QSCastle             bool
+	Promotion            Piece // Applicable for only Pawn moves
+	PrevQSCastlingRights map[Color]bool
+	PrevKSCastlingRights map[Color]bool
 }
 
 func (m Move) String() string {
-	return fmt.Sprintf("%v%v to %v", m.Piece, m.Old, m.Square)
+	if m.QSCastle {
+		return "O-O-O"
+	} else if m.KSCastle {
+		return "O-O"
+	}
+	mv := fmt.Sprintf("%v%v to %v", m.Piece, m.Old, m.Square)
+	if m.Promotion != nil {
+		mv = fmt.Sprintf("%v=%v", mv, m.Promotion)
+	}
+	return mv
 }
 
 func NewMove(p Piece, square Square, old Square) Move {
+	qr := p.Board().qsCastlingRights
+	kr := p.Board().ksCastlingRights
 	return Move{
-		Piece:       p,
-		Square:      square,
-		Old:         old,
-		EnPassant:   false,
-		CastleLong:  false,
-		CastleShort: false,
-		Promotion:   nil,
+		Piece:     p,
+		Square:    square,
+		Old:       old,
+		EnPassant: false,
+		KSCastle:  false,
+		QSCastle:  false,
+		Promotion: nil,
+		PrevQSCastlingRights: map[Color]bool{
+			WHITE: qr[WHITE],
+			BLACK: qr[BLACK],
+		},
+		PrevKSCastlingRights: map[Color]bool{
+			WHITE: kr[WHITE],
+			BLACK: kr[BLACK],
+		},
 	}
 }
 

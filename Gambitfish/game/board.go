@@ -5,10 +5,12 @@ import "fmt"
 import "math/rand"
 
 type Board struct {
-	Squares  [64]Piece
-	Active   Color
-	Winner   Color
-	PieceSet map[Piece]Square
+	Squares          [64]Piece
+	Active           Color
+	Winner           Color
+	PieceSet         map[Piece]Square
+	ksCastlingRights map[Color]bool
+	qsCastlingRights map[Color]bool
 }
 
 func (b *Board) InitPieceSet() {
@@ -30,10 +32,10 @@ func DefaultBoard() *Board {
 		b.Squares[whitePawnSquare.Index()] = &Pawn{&BasePiece{C: WHITE, B: b}}
 	}
 	// Add rooks.
-	b.Squares[0] = &Rook{&BasePiece{C: WHITE, B: b}, false}
-	b.Squares[7] = &Rook{&BasePiece{C: WHITE, B: b}, false}
-	b.Squares[56] = &Rook{&BasePiece{C: BLACK, B: b}, false}
-	b.Squares[63] = &Rook{&BasePiece{C: BLACK, B: b}, false}
+	b.Squares[0] = &Rook{&BasePiece{C: WHITE, B: b}, false, true}
+	b.Squares[7] = &Rook{&BasePiece{C: WHITE, B: b}, true, false}
+	b.Squares[56] = &Rook{&BasePiece{C: BLACK, B: b}, false, true}
+	b.Squares[63] = &Rook{&BasePiece{C: BLACK, B: b}, true, false}
 	// Add &Knights.
 	b.Squares[1] = &Knight{&BasePiece{C: WHITE, B: b}}
 	b.Squares[6] = &Knight{&BasePiece{C: WHITE, B: b}}
@@ -51,6 +53,8 @@ func DefaultBoard() *Board {
 	b.Squares[4] = &King{&BasePiece{C: WHITE, B: b}, false}
 	b.Squares[60] = &King{&BasePiece{C: BLACK, B: b}, false}
 	b.InitPieceSet()
+	b.ksCastlingRights = map[Color]bool{WHITE: true, BLACK: true}
+	b.qsCastlingRights = map[Color]bool{WHITE: true, BLACK: true}
 	return b
 }
 
@@ -61,6 +65,7 @@ func (b *Board) Print() {
 	case BLACK:
 		fmt.Println("Black to play:")
 	}
+	fmt.Println(fmt.Sprintf("Castling Rights:\n KINGSIDE: %v\n QUEENSIDE: %v", b.ksCastlingRights, b.qsCastlingRights))
 	fmt.Println("")
 
 	// We want to print a row at a time, but in backwards order to how this is stored
@@ -90,9 +95,9 @@ func (b *Board) Print() {
 }
 
 // ApplyMove changes the state of the Board for any given move.
-// TODO: This won't work for castling, we will need to special case that move.
 func ApplyMove(b *Board, m Move) {
 	p := m.Piece
+	o := m.Old
 	s := m.Square
 	// If there's a capture: remove the captured piece.
 	if m.Capture != nil {
@@ -108,8 +113,48 @@ func ApplyMove(b *Board, m Move) {
 		b.PieceSet[p] = s
 		b.Squares[s.Index()] = p
 	}
+	// Check for castling and modify rook state if so.
+	// New rook squares are relative to king.
+	if m.QSCastle || m.KSCastle {
+		var newRookSquare Square
+		var oldRookSquare Square
+		if m.QSCastle {
+			newRookSquare = Square{o.row, o.col - 1}
+			oldRookSquare = Square{o.row, 1}
+		}
+		if m.KSCastle {
+			newRookSquare = Square{o.row, o.col + 1}
+			oldRookSquare = Square{o.row, 8}
+		}
+		rook := b.Squares[oldRookSquare.Index()]
+		b.PieceSet[rook] = newRookSquare
+		b.Squares[newRookSquare.Index()] = rook
+		b.Squares[oldRookSquare.Index()] = nil
+	}
 	// Then, remove the piece from its old square.
 	b.Squares[m.Old.Index()] = nil
+	// Modify castling state from rook and king moves.
+	if _, ok := p.(*King); ok {
+		b.qsCastlingRights[p.Color()] = false
+		b.ksCastlingRights[p.Color()] = false
+	}
+	if r, ok := p.(*Rook); ok {
+		if r.QS {
+			b.qsCastlingRights[p.Color()] = false
+		} else if r.KS {
+			b.ksCastlingRights[p.Color()] = false
+		}
+	}
+	// Affect castling state of captured rooks.
+	if m.Capture != nil {
+		if r, ok := m.Capture.Piece.(*Rook); ok {
+			if r.QS {
+				b.qsCastlingRights[r.Color()] = false
+			} else if r.KS {
+				b.ksCastlingRights[r.Color()] = false
+			}
+		}
+	}
 }
 
 // UndoMove returns a board to the state it was at prior to
@@ -132,6 +177,30 @@ func UndoMove(b *Board, m Move) {
 		b.PieceSet[m.Capture.Piece] = m.Capture.Square
 		b.Squares[m.Capture.Square.Index()] = m.Capture.Piece
 	}
+
+	// Undo rook moves from castling.
+	if m.QSCastle || m.KSCastle {
+		fmt.Println("undoing a castling move..")
+		var newRookSquare Square
+		var oldRookSquare Square
+		if m.QSCastle {
+			newRookSquare = Square{o.row, o.col + -1}
+			oldRookSquare = Square{o.row, 1}
+		}
+		if m.KSCastle {
+			newRookSquare = Square{o.row, o.col + 1}
+			oldRookSquare = Square{o.row, 8}
+		}
+		rook := b.Squares[newRookSquare.Index()]
+		b.Squares[newRookSquare.Index()] = nil
+		b.Squares[oldRookSquare.Index()] = rook
+		b.PieceSet[rook] = oldRookSquare
+
+	}
+
+	// Reapply original castling rights.
+	b.qsCastlingRights = m.PrevQSCastlingRights
+	b.ksCastlingRights = m.PrevKSCastlingRights
 }
 
 func (b *Board) SwitchActivePlayer() {
@@ -158,16 +227,11 @@ func (b *Board) AllLegalMoves() []Move {
 		}
 		m := piece.LegalMoves()
 		for _, move := range m {
-			// Remove pseudolegal moves
 			ApplyMove(b, move)
-			isCheck := IsCheck(b, b.Active)
-			UndoMove(b, move)
-			if isCheck {
-				fmt.Println(fmt.Sprintf("not making a move %v: puts king in check!", move))
-
-			} else {
+			if !IsCheck(b, b.Active) {
 				moves = append(moves, move)
 			}
+			UndoMove(b, move)
 		}
 	}
 	// We now want to return the moves in a smart order (e.g., try checks and captures.)
@@ -208,23 +272,32 @@ func CopyBoard(b *Board) *Board {
 
 // Returns true if the board state results in the color c's king being in check.
 func IsCheck(b *Board, c Color) bool {
-	for piece, _ := range b.PieceSet {
-		// If it's our piece, we don't care.
-		if piece.Color() == c {
-			continue
-		}
-		attacking := piece.Attacking()
-		for _, s := range attacking {
-			occupant := b.Squares[s.Index()]
-			// check if it's us under attack
-			if occupant != nil && occupant.Color() == c {
-				// If our king is under attack, it's check.
-				if _, ok := occupant.(*King); ok {
-					fmt.Println(fmt.Sprintf("found king on square %v", s.Index()))
-					return true
-				}
+	attacking := GetAttacking(b, -1*c)
+	for _, s := range attacking {
+		occupant := b.Squares[s.Index()]
+		// check if it's us under attack
+		if occupant != nil && occupant.Color() == c {
+			// If our king is under attack, it's check.
+			if _, ok := occupant.(*King); ok {
+				return true
 			}
 		}
 	}
 	return false
+}
+
+// Returns all attacked squares by c's pieces.
+func GetAttacking(b *Board, c Color) []Square {
+	results := []Square{}
+	for piece, s := range b.PieceSet {
+		if piece == nil {
+			panic(fmt.Sprintf("have nil piece in piece set: square %v", s))
+		}
+		// If it's our piece, we don't care.
+		if piece.Color() != c {
+			continue
+		}
+		results = append(results, piece.Attacking()...)
+	}
+	return results
 }

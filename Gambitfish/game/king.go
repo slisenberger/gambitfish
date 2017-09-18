@@ -7,11 +7,13 @@ type King struct {
 }
 
 func (p *King) LegalMoves() []Move {
-	return KingMoves(p, p.Board().PieceSet[p])
+	moves := KingMoves(p, p.Board().PieceSet[p])
+	moves = append(moves, CastlingMoves(p, p.Board().PieceSet[p])...)
+	return moves
 }
 
 func (p *King) Attacking() []Square {
-	moves := p.LegalMoves()
+	moves := KingMoves(p, p.Board().PieceSet[p])
 	squares := make([]Square, len(moves))
 	for i, move := range moves {
 		squares[i] = move.Square
