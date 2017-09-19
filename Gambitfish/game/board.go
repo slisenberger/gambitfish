@@ -18,7 +18,7 @@ func (b *Board) InitPieceSet() {
 	b.PieceSet = make(map[Piece]Square, 32)
 	for i, piece := range b.Squares {
 		if piece != nil {
-			b.PieceSet[piece] = SquareFromIndex(i)
+			b.PieceSet[piece] = Square(i)
 		}
 	}
 }
@@ -27,10 +27,10 @@ func DefaultBoard() *Board {
 	b := &Board{Active: WHITE}
 	// Add pawns
 	for i := 1; i <= 8; i++ {
-		blackPawnSquare := &Square{7, i}
-		whitePawnSquare := &Square{2, i}
-		b.Squares[blackPawnSquare.Index()] = &Pawn{&BasePiece{C: BLACK, B: b}}
-		b.Squares[whitePawnSquare.Index()] = &Pawn{&BasePiece{C: WHITE, B: b}}
+		blackPawnSquare := GetSquare(7, i)
+		whitePawnSquare := GetSquare(2, i)
+		b.Squares[blackPawnSquare] = &Pawn{&BasePiece{C: BLACK, B: b}}
+		b.Squares[whitePawnSquare] = &Pawn{&BasePiece{C: WHITE, B: b}}
 	}
 	// Add rooks.
 	b.Squares[0] = &Rook{&BasePiece{C: WHITE, B: b}, false, true}
@@ -65,13 +65,13 @@ func (b *Board) Print() {
 	fmt.Println(fmt.Sprintf("Castling Rights:\n KINGSIDE: %v\n QUEENSIDE: %v", b.ksCastlingRights, b.qsCastlingRights))
 	fmt.Println("")
 
-	// We want to print a Row at a time, but in backwards order to how this is stored
+	// We want to print a row at a time, but in backwards order to how this is stored
 	// Since a1 occurs at the bottom left of the Board.
-	for Row := 7; Row >= 0; Row-- {
-		newline := fmt.Sprintf("%v | ", Row+1)
+	for row := 7; row >= 0; row-- {
+		newline := fmt.Sprintf("%v | ", row+1)
 		// Get 8 consecutive Squares
-		Squares := b.Squares[8*Row : 8*Row+8]
-		for i, piece := range Squares {
+		squares := b.Squares[8*row : 8*row+8]
+		for i, piece := range squares {
 			if piece == nil {
 				newline += "·"
 			} else {
@@ -103,34 +103,34 @@ func ApplyMove(b *Board, m Move) {
 	// Check for promotion of a pawn.
 	if m.Promotion != nil {
 		b.PieceSet[m.Promotion] = s
-		b.Squares[s.Index()] = m.Promotion
+		b.Squares[s] = m.Promotion
 		delete(b.PieceSet, p)
 	} else {
 		b.PieceSet[p] = s
-		b.Squares[s.Index()] = p
+		b.Squares[s] = p
 	}
 	// Check for castling and modify rook state if so.
 	// New rook squares are relative to king.
 	if m.QSCastle || m.KSCastle {
-		var newRookSquare Square
-		var oldRookSquare Square
+		var newRookGetSquare Square
+		var oldRookGetSquare Square
 		if m.QSCastle {
-			newRookSquare = Square{o.Row, o.Col - 1}
-			oldRookSquare = Square{o.Row, 1}
+			newRookGetSquare = GetSquare(o.Row(), o.Col()-1)
+			oldRookGetSquare = GetSquare(o.Row(), 1)
 		}
 		if m.KSCastle {
-			newRookSquare = Square{o.Row, o.Col + 1}
-			oldRookSquare = Square{o.Row, 8}
+			newRookGetSquare = GetSquare(o.Row(), o.Col()+1)
+			oldRookGetSquare = GetSquare(o.Row(), 8)
 		}
-		rook := b.Squares[oldRookSquare.Index()]
+		rook := b.Squares[oldRookGetSquare]
 		if rook == nil {
 		}
-		b.PieceSet[rook] = newRookSquare
-		b.Squares[newRookSquare.Index()] = rook
-		b.Squares[oldRookSquare.Index()] = nil
+		b.PieceSet[rook] = newRookGetSquare
+		b.Squares[newRookGetSquare] = rook
+		b.Squares[oldRookGetSquare] = nil
 	}
 	// Then, remove the piece from its old square.
-	b.Squares[m.Old.Index()] = nil
+	b.Squares[m.Old] = nil
 	// Modify castling state from rook and king moves.
 	if _, ok := p.(*King); ok {
 		b.qsCastlingRights[p.Color()] = false
@@ -155,7 +155,7 @@ func ApplyMove(b *Board, m Move) {
 	}
 	// Apply En Passant state
 	if m.TwoPawnAdvance {
-		b.EPCol = s.Col
+		b.EPCol = s.Col()
 	} else {
 		b.EPCol = 0
 	}
@@ -172,14 +172,14 @@ func UndoMove(b *Board, m Move) {
 		delete(b.PieceSet, m.Promotion)
 	}
 
-	b.Squares[o.Index()] = p
+	b.Squares[o] = p
 	b.PieceSet[p] = o
 	// Return the square we were on to its old state.
-	b.Squares[s.Index()] = nil
+	b.Squares[s] = nil
 	// Return a captured piece.
 	if m.Capture != nil {
 		b.PieceSet[m.Capture.Piece] = m.Capture.Square
-		b.Squares[m.Capture.Square.Index()] = m.Capture.Piece
+		b.Squares[m.Capture.Square] = m.Capture.Piece
 	}
 
 	// Undo rook moves from castling.
@@ -187,16 +187,16 @@ func UndoMove(b *Board, m Move) {
 		var newRookSquare Square
 		var oldRookSquare Square
 		if m.QSCastle {
-			newRookSquare = Square{o.Row, o.Col + -1}
-			oldRookSquare = Square{o.Row, 1}
+			newRookSquare = GetSquare(o.Row(), o.Col()+-1)
+			oldRookSquare = GetSquare(o.Row(), 1)
 		}
 		if m.KSCastle {
-			newRookSquare = Square{o.Row, o.Col + 1}
-			oldRookSquare = Square{o.Row, 8}
+			newRookSquare = GetSquare(o.Row(), o.Col()+1)
+			oldRookSquare = GetSquare(o.Row(), 8)
 		}
-		rook := b.Squares[newRookSquare.Index()]
-		b.Squares[newRookSquare.Index()] = nil
-		b.Squares[oldRookSquare.Index()] = rook
+		rook := b.Squares[newRookSquare]
+		b.Squares[newRookSquare] = nil
+		b.Squares[oldRookSquare] = rook
 		b.PieceSet[rook] = oldRookSquare
 
 	}
@@ -271,7 +271,7 @@ func CopyBoard(b *Board) *Board {
 func IsCheck(b *Board, c Color) bool {
 	attacking := GetAttacking(b, -1*c)
 	for _, s := range attacking {
-		occupant := b.Squares[s.Index()]
+		occupant := b.Squares[s]
 		// check if it's us under attack
 		if occupant != nil && occupant.Color() == c {
 			// If our king is under attack, it's check.

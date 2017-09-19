@@ -10,8 +10,8 @@ func TestDefaultBoard(t *testing.T) {
 			continue
 		}
 		s := b.PieceSet[piece]
-		if s.Index() != i {
-			t.Errorf("wrong index for default piece %v: got %v, want %v", piece, s.Index(), i)
+		if int(s) != i {
+			t.Errorf("wrong index for default piece %v: got %v, want %v", piece, s, i)
 
 		}
 	}

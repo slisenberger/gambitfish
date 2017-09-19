@@ -70,48 +70,48 @@ func HandleFenBoardRow(row string, b *Board, rowNum int) error {
 			continue
 		}
 		colNum += 1
-		square := Square{rowNum, colNum}
+		square := GetSquare(rowNum, colNum)
 		switch char {
 		case 'p':
-			b.Squares[square.Index()] = &Pawn{&BasePiece{C: BLACK, B: b}}
+			b.Squares[square] = &Pawn{&BasePiece{C: BLACK, B: b}}
 		case 'P':
-			b.Squares[square.Index()] = &Pawn{&BasePiece{C: WHITE, B: b}}
+			b.Squares[square] = &Pawn{&BasePiece{C: WHITE, B: b}}
 		case 'b':
-			b.Squares[square.Index()] = &Bishop{&BasePiece{C: BLACK, B: b}}
+			b.Squares[square] = &Bishop{&BasePiece{C: BLACK, B: b}}
 		case 'B':
-			b.Squares[square.Index()] = &Bishop{&BasePiece{C: WHITE, B: b}}
+			b.Squares[square] = &Bishop{&BasePiece{C: WHITE, B: b}}
 		case 'n':
-			b.Squares[square.Index()] = &Knight{&BasePiece{C: BLACK, B: b}}
+			b.Squares[square] = &Knight{&BasePiece{C: BLACK, B: b}}
 		case 'N':
-			b.Squares[square.Index()] = &Knight{&BasePiece{C: WHITE, B: b}}
+			b.Squares[square] = &Knight{&BasePiece{C: WHITE, B: b}}
 		case 'q':
-			b.Squares[square.Index()] = &Queen{&BasePiece{C: BLACK, B: b}}
+			b.Squares[square] = &Queen{&BasePiece{C: BLACK, B: b}}
 		case 'Q':
-			b.Squares[square.Index()] = &Queen{&BasePiece{C: WHITE, B: b}}
+			b.Squares[square] = &Queen{&BasePiece{C: WHITE, B: b}}
 		case 'k':
-			b.Squares[square.Index()] = &King{&BasePiece{C: BLACK, B: b}}
+			b.Squares[square] = &King{&BasePiece{C: BLACK, B: b}}
 		case 'K':
-			b.Squares[square.Index()] = &King{&BasePiece{C: WHITE, B: b}}
+			b.Squares[square] = &King{&BasePiece{C: WHITE, B: b}}
 		case 'r':
 			ks := false
 			qs := false
-			if square.Col == 1 {
+			if square.Col() == 1 {
 				qs = true
 			}
-			if square.Col == 8 {
+			if square.Col() == 8 {
 				ks = true
 			}
-			b.Squares[square.Index()] = &Rook{&BasePiece{C: BLACK, B: b}, qs, ks}
+			b.Squares[square] = &Rook{&BasePiece{C: BLACK, B: b}, qs, ks}
 		case 'R':
 			ks := false
 			qs := false
-			if square.Col == 1 {
+			if square.Col() == 1 {
 				qs = true
 			}
-			if square.Col == 8 {
+			if square.Col() == 8 {
 				ks = true
 			}
-			b.Squares[square.Index()] = &Rook{&BasePiece{C: WHITE, B: b}, qs, ks}
+			b.Squares[square] = &Rook{&BasePiece{C: WHITE, B: b}, qs, ks}
 		default:
 			return fmt.Errorf("fen notation has unrecognized char: %v", string(char))
 		}

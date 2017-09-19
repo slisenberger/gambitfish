@@ -2,16 +2,16 @@
 package game
 
 var whiteQueensideSquares = []Square{
-	Square{1, 4}, Square{1, 3}, Square{1, 2},
+	GetSquare(1, 4), GetSquare(1, 3), GetSquare(1, 2),
 }
 var blackQueensideSquares = []Square{
-	Square{8, 4}, Square{8, 3}, Square{8, 2},
+	GetSquare(8, 4), GetSquare(8, 3), GetSquare(8, 2),
 }
 var whiteKingsideSquares = []Square{
-	Square{1, 6}, Square{1, 7},
+	GetSquare(1, 6), GetSquare(1, 7),
 }
 var blackKingsideSquares = []Square{
-	Square{8, 6}, Square{8, 7},
+	GetSquare(8, 6), GetSquare(8, 7),
 }
 
 func CanCastleQueenside(b *Board, c Color) bool {
@@ -26,10 +26,10 @@ func CanCastleQueenside(b *Board, c Color) bool {
 	switch c {
 	case 1:
 		castleSquares = whiteQueensideSquares
-		rookSquare = Square{1, 1}
+		rookSquare = GetSquare(1, 1)
 	case -1:
 		castleSquares = blackQueensideSquares
-		rookSquare = Square{8, 1}
+		rookSquare = GetSquare(8, 1)
 	}
 	if !CanCastleGeneric(b, c, castleSquares, rookSquare) {
 		return false
@@ -49,10 +49,10 @@ func CanCastleKingside(b *Board, c Color) bool {
 	switch c {
 	case 1:
 		castleSquares = whiteKingsideSquares
-		rookSquare = Square{1, 8}
+		rookSquare = GetSquare(1, 8)
 	case -1:
 		castleSquares = blackKingsideSquares
-		rookSquare = Square{8, 8}
+		rookSquare = GetSquare(8, 8)
 	}
 	if !CanCastleGeneric(b, c, castleSquares, rookSquare) {
 		return false
@@ -63,12 +63,12 @@ func CanCastleKingside(b *Board, c Color) bool {
 func CanCastleGeneric(b *Board, c Color, castleSquares []Square, rookSquare Square) bool {
 	// Don't castle if there are pieces between.
 	for _, cs := range castleSquares {
-		if b.Squares[cs.Index()] != nil {
+		if b.Squares[cs] != nil {
 			return false
 		}
 	}
 	// Make sure there's a rook on our target square.
-	r := b.Squares[rookSquare.Index()]
+	r := b.Squares[rookSquare]
 	if r == nil {
 		return false
 	}
@@ -84,7 +84,7 @@ func CanCastleGeneric(b *Board, c Color, castleSquares []Square, rookSquare Squa
 				break
 			}
 			// If any attacked square is our forbidden squares, return false.
-			if s.Index() == cs.Index() {
+			if s == cs {
 				return false
 			}
 
@@ -99,13 +99,13 @@ func CanCastleGeneric(b *Board, c Color, castleSquares []Square, rookSquare Squa
 func CastlingMoves(p *King, cur Square) []Move {
 	moves := []Move{}
 	if CanCastleQueenside(p.Board(), p.Color()) {
-		s := Square{cur.Row, cur.Col - 2}
+		s := GetSquare(cur.Row(), cur.Col()-2)
 		move := NewMove(p, s, cur)
 		move.QSCastle = true
 		moves = append(moves, move)
 	}
 	if CanCastleKingside(p.Board(), p.Color()) {
-		s := Square{cur.Row, cur.Col + 2}
+		s := GetSquare(cur.Row(), cur.Col()+2)
 		move := NewMove(p, s, cur)
 		move.KSCastle = true
 		moves = append(moves, move)

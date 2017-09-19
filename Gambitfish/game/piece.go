@@ -48,10 +48,10 @@ func (bp *BasePiece) Color() Color {
 // desired square. It also optionally returns a piece that will
 // be captured.
 func TargetLegal(p Piece, s Square, capture bool) (bool, Piece) {
-	if !s.InPlay() {
+	if s == OFFBOARD_SQUARE {
 		return false, nil
 	}
-	occupant := p.Board().Squares[s.Index()]
+	occupant := p.Board().Squares[s]
 	if occupant == nil {
 		return true, nil
 	} else {
@@ -65,10 +65,10 @@ func TargetLegal(p Piece, s Square, capture bool) (bool, Piece) {
 // Returns true if we should stop searching along a ray, because a piece has
 // encountered a blockage.
 func Stop(p Piece, s Square) bool {
-	if !s.InPlay() {
+	if s == OFFBOARD_SQUARE {
 		return true
 	}
-	if occupant := p.Board().Squares[s.Index()]; occupant != nil {
+	if occupant := p.Board().Squares[s]; occupant != nil {
 		return true
 	}
 	return false
@@ -79,7 +79,7 @@ func ColumnAndRowMoves(p Piece, cur Square) []Move {
 	// Move in each direction, checking for blocking pieces.
 	// Left in Row.
 	for i := 1; i <= 7; i++ {
-		s := Square{Row: cur.Row, Col: cur.Col - i}
+		s := GetSquare(cur.Row(), cur.Col()-i)
 		if l, capture := TargetLegal(p, s, true); l {
 			move := NewMove(p, s, cur)
 			if capture != nil {
@@ -92,7 +92,7 @@ func ColumnAndRowMoves(p Piece, cur Square) []Move {
 		}
 	}
 	for i := 1; i <= 7; i++ {
-		s := Square{Row: cur.Row, Col: cur.Col + i}
+		s := GetSquare(cur.Row(), cur.Col()+i)
 		if l, capture := TargetLegal(p, s, true); l {
 			move := NewMove(p, s, cur)
 			if capture != nil {
@@ -105,7 +105,7 @@ func ColumnAndRowMoves(p Piece, cur Square) []Move {
 		}
 	}
 	for i := 1; i <= 7; i++ {
-		s := Square{Row: cur.Row + i, Col: cur.Col}
+		s := GetSquare(cur.Row()+i, cur.Col())
 		if l, capture := TargetLegal(p, s, true); l {
 			move := NewMove(p, s, cur)
 			if capture != nil {
@@ -118,7 +118,7 @@ func ColumnAndRowMoves(p Piece, cur Square) []Move {
 		}
 	}
 	for i := 1; i <= 7; i++ {
-		s := Square{Row: cur.Row - i, Col: cur.Col}
+		s := GetSquare(cur.Row()-i, cur.Col())
 		if l, capture := TargetLegal(p, s, true); l {
 			move := NewMove(p, s, cur)
 			if capture != nil {
@@ -137,7 +137,7 @@ func DiagonalMoves(p Piece, cur Square) []Move {
 	moves := []Move{}
 	// Move in a diagonal, checking for blocking pieces.
 	for i := 1; i <= 7; i++ {
-		s := Square{Row: cur.Row + i, Col: cur.Col + i}
+		s := GetSquare(cur.Row()+i, cur.Col()+i)
 		if l, capture := TargetLegal(p, s, true); l {
 			move := NewMove(p, s, cur)
 			if capture != nil {
@@ -150,7 +150,7 @@ func DiagonalMoves(p Piece, cur Square) []Move {
 		}
 	}
 	for i := 1; i <= 7; i++ {
-		s := Square{Row: cur.Row - i, Col: cur.Col + i}
+		s := GetSquare(cur.Row()-i, cur.Col()+i)
 		if l, capture := TargetLegal(p, s, true); l {
 			move := NewMove(p, s, cur)
 			if capture != nil {
@@ -163,7 +163,7 @@ func DiagonalMoves(p Piece, cur Square) []Move {
 		}
 	}
 	for i := 1; i <= 7; i++ {
-		s := Square{Row: cur.Row - i, Col: cur.Col - i}
+		s := GetSquare(cur.Row()-i, cur.Col()-i)
 		if l, capture := TargetLegal(p, s, true); l {
 			move := NewMove(p, s, cur)
 			if capture != nil {
@@ -176,7 +176,7 @@ func DiagonalMoves(p Piece, cur Square) []Move {
 		}
 	}
 	for i := 1; i <= 7; i++ {
-		s := Square{Row: cur.Row + i, Col: cur.Col - i}
+		s := GetSquare(cur.Row()+i, cur.Col()-i)
 		if l, capture := TargetLegal(p, s, true); l {
 			move := NewMove(p, s, cur)
 			if capture != nil {
@@ -195,14 +195,14 @@ func KnightMoves(p Piece, cur Square) []Move {
 	moves := []Move{}
 	// try all knight squares
 	squares := []Square{
-		{Row: cur.Row + 2, Col: cur.Col + 1},
-		{Row: cur.Row + 2, Col: cur.Col - 1},
-		{Row: cur.Row - 2, Col: cur.Col + 1},
-		{Row: cur.Row - 2, Col: cur.Col - 1},
-		{Row: cur.Row + 1, Col: cur.Col + 2},
-		{Row: cur.Row + 1, Col: cur.Col - 2},
-		{Row: cur.Row - 1, Col: cur.Col + 2},
-		{Row: cur.Row - 1, Col: cur.Col - 2},
+		GetSquare(cur.Row()+2, cur.Col()+1),
+		GetSquare(cur.Row()+2, cur.Col()-1),
+		GetSquare(cur.Row()-2, cur.Col()+1),
+		GetSquare(cur.Row()-2, cur.Col()-1),
+		GetSquare(cur.Row()+1, cur.Col()+2),
+		GetSquare(cur.Row()+1, cur.Col()-2),
+		GetSquare(cur.Row()-1, cur.Col()+2),
+		GetSquare(cur.Row()-1, cur.Col()-2),
 	}
 	for _, s := range squares {
 		if l, capture := TargetLegal(p, s, true); l {
@@ -220,14 +220,14 @@ func KingMoves(p Piece, cur Square) []Move {
 	moves := []Move{}
 	// try all knight squares
 	squares := []Square{
-		{Row: cur.Row + 1, Col: cur.Col - 1},
-		{Row: cur.Row + 1, Col: cur.Col},
-		{Row: cur.Row + 1, Col: cur.Col + 1},
-		{Row: cur.Row + -1, Col: cur.Col - 1},
-		{Row: cur.Row + -1, Col: cur.Col},
-		{Row: cur.Row + -1, Col: cur.Col + 1},
-		{Row: cur.Row, Col: cur.Col - 1},
-		{Row: cur.Row, Col: cur.Col + 1},
+		GetSquare(cur.Row()+1, cur.Col()-1),
+		GetSquare(cur.Row()+1, cur.Col()),
+		GetSquare(cur.Row()+1, cur.Col()+1),
+		GetSquare(cur.Row()+-1, cur.Col()-1),
+		GetSquare(cur.Row()+-1, cur.Col()),
+		GetSquare(cur.Row()+-1, cur.Col()+1),
+		GetSquare(cur.Row(), cur.Col()-1),
+		GetSquare(cur.Row(), cur.Col()+1),
 	}
 	for _, s := range squares {
 		if l, capture := TargetLegal(p, s, true); l {
@@ -256,17 +256,17 @@ func PawnAttackingSquares(p Piece, cur Square) []Square {
 
 	// Check for side attacks.
 	attacks := []Square{
-		{Row: cur.Row + direction, Col: cur.Col + 1},
-		{Row: cur.Row + direction, Col: cur.Col - 1},
+		GetSquare(cur.Row()+direction, cur.Col()+1),
+		GetSquare(cur.Row()+direction, cur.Col()-1),
 	}
 	var results []Square
 	for _, attack := range attacks {
 		// If it's not legal to move there, we aren't attacking it.
-		if !attack.InPlay() {
+		if attack == OFFBOARD_SQUARE {
 			continue
 		}
 		// We aren't attacking if it is our own piece.
-		occupant := p.Board().Squares[attack.Index()]
+		occupant := p.Board().Squares[attack]
 		if occupant != nil && occupant.Color() == p.Color() {
 			continue
 		}
@@ -282,19 +282,19 @@ func PawnMoves(p Piece, cur Square) []Move {
 	var direction int // Which way pawns move.
 	switch p.Color() {
 	case BLACK:
-		isStartPawn = cur.Row == 7
+		isStartPawn = cur.Row() == 7
 		direction = -1
 		break
 	case WHITE:
-		isStartPawn = cur.Row == 2
+		isStartPawn = cur.Row() == 2
 		direction = 1
 		break
 	}
 	moves := []Move{}
-	s := Square{Row: cur.Row + direction, Col: cur.Col}
+	s := GetSquare(cur.Row()+direction, cur.Col())
 	if l, _ := TargetLegal(p, s, false); l {
 		// Check for promotion and add the promotions.
-		if s.Row == 1 || s.Row == 8 {
+		if s.Row() == 1 || s.Row() == 8 {
 			move := NewMove(p, s, cur)
 			move.Promotion = &Queen{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
 			moves = append(moves, move)
@@ -313,7 +313,7 @@ func PawnMoves(p Piece, cur Square) []Move {
 		}
 		// We only can move forward two if we can also move forward one.
 		if isStartPawn {
-			s := Square{Row: cur.Row + 2*direction, Col: cur.Col}
+			s := GetSquare(cur.Row()+2*direction, cur.Col())
 			if l, _ := TargetLegal(p, s, false); l {
 				m := NewMove(p, s, cur)
 				m.TwoPawnAdvance = true
@@ -323,16 +323,16 @@ func PawnMoves(p Piece, cur Square) []Move {
 	}
 	// Check for side captures.
 	captures := []Square{
-		{Row: cur.Row + direction, Col: cur.Col + 1},
-		{Row: cur.Row + direction, Col: cur.Col - 1},
+		GetSquare(cur.Row()+direction, cur.Col()+1),
+		GetSquare(cur.Row()+direction, cur.Col()-1),
 	}
 	for _, s := range captures {
-		if !s.InPlay() {
+		if s == OFFBOARD_SQUARE {
 			continue
 		}
-		occupant := p.Board().Squares[s.Index()]
+		occupant := p.Board().Squares[s]
 		if occupant != nil && occupant.Color() != p.Color() {
-			if s.Row == 1 || s.Row == 8 {
+			if s.Row() == 1 || s.Row() == 8 {
 				move := NewMove(p, s, cur)
 				move.Capture = &Capture{occupant, s}
 				move.Promotion = &Queen{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
@@ -359,18 +359,18 @@ func PawnMoves(p Piece, cur Square) []Move {
 	}
 	// Check for en passants
 	epCol := p.Board().EPCol
-	adjToEP := cur.Col-1 == epCol || cur.Col+1 == epCol
+	adjToEP := cur.Col()-1 == epCol || cur.Col()+1 == epCol
 	if epCol != 0 {
-		if p.Color() == WHITE && cur.Row == 5 && adjToEP {
-			move := NewMove(p, Square{6, epCol}, cur)
-			epSquare := Square{5, epCol}
-			move.Capture = &Capture{p.Board().Squares[epSquare.Index()], epSquare}
+		if p.Color() == WHITE && cur.Row() == 5 && adjToEP {
+			move := NewMove(p, GetSquare(6, epCol), cur)
+			epSquare := GetSquare(5, epCol)
+			move.Capture = &Capture{p.Board().Squares[epSquare], epSquare}
 			moves = append(moves, move)
 		}
-		if p.Color() == BLACK && cur.Row == 4 && adjToEP {
-			move := NewMove(p, Square{3, epCol}, cur)
-			epSquare := Square{4, epCol}
-			move.Capture = &Capture{p.Board().Squares[epSquare.Index()], epSquare}
+		if p.Color() == BLACK && cur.Row() == 4 && adjToEP {
+			move := NewMove(p, GetSquare(3, epCol), cur)
+			epSquare := GetSquare(4, epCol)
+			move.Capture = &Capture{p.Board().Squares[epSquare], epSquare}
 			moves = append(moves, move)
 		}
 	}
