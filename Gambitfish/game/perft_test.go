@@ -1,6 +1,5 @@
 package game
 
-import "fmt"
 import "testing"
 
 func TestPerft(t *testing.T) {

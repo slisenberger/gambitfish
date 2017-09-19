@@ -62,7 +62,7 @@ func NewMove(p Piece, square Square, old Square) Move {
 			WHITE: kr[WHITE],
 			BLACK: kr[BLACK],
 		},
-		PrevEPCol:      p.Board().EPCol,
+		PrevEPCol:      0,
 		TwoPawnAdvance: false,
 	}
 }

@@ -146,7 +146,7 @@ func ApplyMove(b *Board, m Move) {
 	}
 	// Affect castling state of captured rooks.
 	if m.Capture != nil {
-		if m.Capture.Piece.Type() == ROOK {
+		if m.Capture.Piece != nil && m.Capture.Piece.Type() == ROOK {
 			if m.Capture.Square.Col() == 1 {
 				b.qsCastlingRights[p.Color()] = false
 			} else if m.Capture.Square.Col() == 8 {
@@ -155,6 +155,7 @@ func ApplyMove(b *Board, m Move) {
 		}
 	}
 	// Apply En Passant state
+	m.PrevEPCol = b.EPCol
 	if m.TwoPawnAdvance {
 		b.EPCol = s.Col()
 	} else {
@@ -175,9 +176,6 @@ func UndoMove(b *Board, m Move) {
 
 	b.Squares[o] = p
 	b.PieceSet[p] = o
-	if p == nil {
-		panic("nil piece while undoing move: " + m.String())
-	}
 	// Return the square we were on to its old state.
 	b.Squares[s] = nil
 	// Return a captured piece.

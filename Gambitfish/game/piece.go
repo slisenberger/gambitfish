@@ -1,6 +1,8 @@
 // Piepce is an interface that defines the operations possible for a piece on the board.
 package game
 
+import "fmt"
+
 // Define the possible Colors of a piece as an enum
 type Color int
 
@@ -379,12 +381,20 @@ func PawnMoves(p Piece, cur Square) []Move {
 		if p.Color() == WHITE && cur.Row() == 5 && adjToEP {
 			move := NewMove(p, GetSquare(6, epCol), cur)
 			epSquare := GetSquare(5, epCol)
+			capturedPiece := p.Board().Squares[epSquare]
+			if capturedPiece == nil {
+				panic(fmt.Sprintf("capture on %v is nil", epSquare))
+			}
 			move.Capture = &Capture{p.Board().Squares[epSquare], epSquare}
 			moves = append(moves, move)
 		}
 		if p.Color() == BLACK && cur.Row() == 4 && adjToEP {
 			move := NewMove(p, GetSquare(3, epCol), cur)
 			epSquare := GetSquare(4, epCol)
+			capturedPiece := p.Board().Squares[epSquare]
+			if capturedPiece == nil {
+				panic(fmt.Sprintf("capture on %v is nil", epSquare))
+			}
 			move.Capture = &Capture{p.Board().Squares[epSquare], epSquare}
 			moves = append(moves, move)
 		}
