@@ -4,31 +4,31 @@ import "testing"
 
 func initBlockedPawnBoard() *Board {
 	b := &Board{Active: WHITE}
-	b.Squares[8] = &Pawn{&BasePiece{color: WHITE, board: b}}
-	b.Squares[16] = &Pawn{&BasePiece{color: WHITE, board: b}}
+	b.Squares[8] = &Pawn{&BasePiece{C: WHITE, B: b}}
+	b.Squares[16] = &Pawn{&BasePiece{C: WHITE, B: b}}
 	b.InitPieceSet()
 	return b
 }
 
 func initLonePawnThirdRank() *Board {
 	b := &Board{Active: WHITE}
-	b.Squares[16] = &Pawn{&BasePiece{color: WHITE, board: b}}
+	b.Squares[16] = &Pawn{&BasePiece{C: WHITE, B: b}}
 	b.InitPieceSet()
 	return b
 }
 
 func initFullPawnCaptures() *Board {
 	b := &Board{Active: WHITE}
-	b.Squares[9] = &Pawn{&BasePiece{color: WHITE, board: b}}
-	b.Squares[16] = &Pawn{&BasePiece{color: BLACK, board: b}}
-	b.Squares[18] = &Pawn{&BasePiece{color: BLACK, board: b}}
+	b.Squares[9] = &Pawn{&BasePiece{C: WHITE, B: b}}
+	b.Squares[16] = &Pawn{&BasePiece{C: BLACK, B: b}}
+	b.Squares[18] = &Pawn{&BasePiece{C: BLACK, B: b}}
 	b.InitPieceSet()
 	return b
 }
 func initPawnBlockedByOtherTeam() *Board {
 	b := &Board{Active: WHITE}
-	b.Squares[8] = &Pawn{&BasePiece{color: WHITE, board: b}}
-	b.Squares[16] = &Pawn{&BasePiece{color: BLACK, board: b}}
+	b.Squares[8] = &Pawn{&BasePiece{C: WHITE, B: b}}
+	b.Squares[16] = &Pawn{&BasePiece{C: BLACK, B: b}}
 	b.InitPieceSet()
 	return b
 }

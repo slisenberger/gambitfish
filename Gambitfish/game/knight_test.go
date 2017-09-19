@@ -4,7 +4,7 @@ import "testing"
 
 func initCentralKnightBoard() *Board {
 	b := &Board{Active: WHITE}
-	b.Squares[36] = &Knight{&BasePiece{color: WHITE, board: b}}
+	b.Squares[36] = &Knight{&BasePiece{C: WHITE, B: b}}
 	b.InitPieceSet()
 	return b
 }

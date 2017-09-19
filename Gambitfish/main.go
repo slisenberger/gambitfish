@@ -52,4 +52,5 @@ func main() {
 		fmt.Println("new board: ")
 		b.Print()
 	}
+
 }

@@ -3,7 +3,6 @@ package game
 
 type King struct {
 	*BasePiece
-	HasMoved bool
 }
 
 func (p *King) LegalMoves() []Move {
@@ -33,10 +32,6 @@ func (p *King) Graphic() string {
 		return "♚"
 	}
 	return ""
-}
-
-func (p *King) ApplyMove(m Move) {
-	p.HasMoved = true
 }
 
 func (p *King) Value() float64 {

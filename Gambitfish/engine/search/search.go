@@ -8,7 +8,7 @@ import "../evaluate"
 // We reach depth 0 with pending captures.
 // This should eventually be controlled, but for now we max quiescence search
 // another nodes.
-const MAX_QUIESCENCE_DEPTH = -1
+const MAX_QUIESCENCE_DEPTH = -2
 
 // An Alpha Beta Negamax implementation. Function stolen from here:
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning

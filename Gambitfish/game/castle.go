@@ -22,16 +22,16 @@ func CanCastleQueenside(b *Board, c Color) bool {
 		return false
 	}
 	var castleSquares []Square
+	var rookSquare Square
 	switch c {
 	case 1:
 		castleSquares = whiteQueensideSquares
-		break
+		rookSquare = Square{1, 1}
 	case -1:
 		castleSquares = blackQueensideSquares
-		break
-
+		rookSquare = Square{8, 1}
 	}
-	if !CanCastleGeneric(b, c, castleSquares) {
+	if !CanCastleGeneric(b, c, castleSquares, rookSquare) {
 		return false
 	}
 	return true
@@ -45,28 +45,37 @@ func CanCastleKingside(b *Board, c Color) bool {
 		return false
 	}
 	var castleSquares []Square
+	var rookSquare Square
 	switch c {
 	case 1:
 		castleSquares = whiteKingsideSquares
-		break
+		rookSquare = Square{1, 8}
 	case -1:
 		castleSquares = blackKingsideSquares
-		break
-
+		rookSquare = Square{8, 8}
 	}
-	if !CanCastleGeneric(b, c, castleSquares) {
+	if !CanCastleGeneric(b, c, castleSquares, rookSquare) {
 		return false
 	}
 	return true
 }
 
-func CanCastleGeneric(b *Board, c Color, castleSquares []Square) bool {
+func CanCastleGeneric(b *Board, c Color, castleSquares []Square, rookSquare Square) bool {
 	// Don't castle if there are pieces between.
 	for _, cs := range castleSquares {
 		if b.Squares[cs.Index()] != nil {
 			return false
 		}
 	}
+	// Make sure there's a rook on our target square.
+	r := b.Squares[rookSquare.Index()]
+	if r == nil {
+		return false
+	}
+	if _, ok := r.(*Rook); !ok {
+		return false
+	}
+
 	attacking := GetAttacking(b, -1*c)
 	for _, s := range attacking {
 		for i, cs := range castleSquares {

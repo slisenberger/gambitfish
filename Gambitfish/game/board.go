@@ -51,8 +51,8 @@ func DefaultBoard() *Board {
 	b.Squares[3] = &Queen{&BasePiece{C: WHITE, B: b}}
 	b.Squares[59] = &Queen{&BasePiece{C: BLACK, B: b}}
 	// Add Kings
-	b.Squares[4] = &King{&BasePiece{C: WHITE, B: b}, false}
-	b.Squares[60] = &King{&BasePiece{C: BLACK, B: b}, false}
+	b.Squares[4] = &King{&BasePiece{C: WHITE, B: b}}
+	b.Squares[60] = &King{&BasePiece{C: BLACK, B: b}}
 	b.InitPieceSet()
 	b.ksCastlingRights = map[Color]bool{WHITE: true, BLACK: true}
 	b.qsCastlingRights = map[Color]bool{WHITE: true, BLACK: true}
@@ -124,6 +124,8 @@ func ApplyMove(b *Board, m Move) {
 			oldRookSquare = Square{o.Row, 8}
 		}
 		rook := b.Squares[oldRookSquare.Index()]
+		if rook == nil {
+		}
 		b.PieceSet[rook] = newRookSquare
 		b.Squares[newRookSquare.Index()] = rook
 		b.Squares[oldRookSquare.Index()] = nil
@@ -171,6 +173,7 @@ func UndoMove(b *Board, m Move) {
 	b.Squares[s.Index()] = nil
 	// Return a captured piece.
 	if m.Capture != nil {
+
 		b.PieceSet[m.Capture.Piece] = m.Capture.Square
 		b.Squares[m.Capture.Square.Index()] = m.Capture.Piece
 	}
@@ -203,10 +206,8 @@ func (b *Board) SwitchActivePlayer() {
 	switch b.Active {
 	case WHITE:
 		b.Active = BLACK
-		break
 	case BLACK:
 		b.Active = WHITE
-		break
 	}
 }
 
@@ -287,6 +288,7 @@ func GetAttacking(b *Board, c Color) []Square {
 	results := []Square{}
 	for piece, s := range b.PieceSet {
 		if piece == nil {
+			b.Print()
 			panic(fmt.Sprintf("have nil piece in piece set: square %v", s))
 		}
 		// If it's our piece, we don't care.
