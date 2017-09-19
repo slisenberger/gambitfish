@@ -1,5 +1,6 @@
 package game
 
+import "fmt"
 import "testing"
 
 func TestPerft(t *testing.T) {
@@ -45,7 +46,7 @@ func TestPerft(t *testing.T) {
 	}
 }
 
-// PerftHelper handles the move generation and test logic.
+// PerftHelper handles the move generation.
 func PerftHelper(b *Board, depth int) int {
 	legalMoves := b.AllLegalMoves()
 	if depth == 1 {

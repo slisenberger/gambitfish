@@ -278,6 +278,7 @@ func IsCheck(b *Board, c Color) bool {
 		occupant := b.Squares[s]
 		// If our king is under attack, it's check.
 		if occupant != nil && occupant.Type() == KING && occupant.Color() == c {
+			return true
 		}
 	}
 	return false
