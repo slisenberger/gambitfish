@@ -72,7 +72,7 @@ func CanCastleGeneric(b *Board, c Color, castleSquares []Square, rookSquare Squa
 	if r == nil {
 		return false
 	}
-	if _, ok := r.(*Rook); !ok {
+	if r.Type() != ROOK {
 		return false
 	}
 

@@ -37,3 +37,7 @@ func (p *Queen) Graphic() string {
 func (p *Queen) Value() float64 {
 	return 9.0
 }
+
+func (p *Queen) Type() PieceType {
+	return QUEEN
+}

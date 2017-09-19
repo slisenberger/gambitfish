@@ -30,3 +30,7 @@ func (p *Pawn) Graphic() string {
 func (p *Pawn) Value() float64 {
 	return 1.0
 }
+
+func (p *Pawn) Type() PieceType {
+	return PAWN
+}

@@ -9,6 +9,18 @@ const (
 	BLACK Color = -1
 )
 
+type PieceType int
+
+const (
+	NULLPIECE = PieceType(iota)
+	PAWN
+	BISHOP
+	KNIGHT
+	ROOK
+	QUEEN
+	KING
+)
+
 func (c Color) String() string {
 	if c == WHITE {
 		return "WHITE"
@@ -33,6 +45,8 @@ type Piece interface {
 	Board() *Board
 	ApplyMove(Move)
 	Value() float64
+	// Returns the type enum of this piece.
+	Type() PieceType
 }
 
 type BasePiece struct {
@@ -360,6 +374,7 @@ func PawnMoves(p Piece, cur Square) []Move {
 	// Check for en passants
 	epCol := p.Board().EPCol
 	adjToEP := cur.Col()-1 == epCol || cur.Col()+1 == epCol
+	// If en passant is legal, we migh be able to capture.
 	if epCol != 0 {
 		if p.Color() == WHITE && cur.Row() == 5 && adjToEP {
 			move := NewMove(p, GetSquare(6, epCol), cur)
@@ -401,4 +416,7 @@ func (bp *BasePiece) Value() float64 {
 }
 func (bp *BasePiece) Graphic() string {
 	return ""
+}
+func (bp *BasePiece) Type() PieceType {
+	return NULLPIECE
 }

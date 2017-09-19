@@ -98,6 +98,7 @@ func ApplyMove(b *Board, m Move) {
 	// If there's a capture: remove the captured piece.
 	if m.Capture != nil {
 		delete(b.PieceSet, m.Capture.Piece)
+		b.Squares[m.Capture.Square] = nil
 	}
 	// Then, move the piece to its new square.
 	// Check for promotion of a pawn.
@@ -132,24 +133,24 @@ func ApplyMove(b *Board, m Move) {
 	// Then, remove the piece from its old square.
 	b.Squares[m.Old] = nil
 	// Modify castling state from rook and king moves.
-	if _, ok := p.(*King); ok {
+	if p.Type() == KING {
 		b.qsCastlingRights[p.Color()] = false
 		b.ksCastlingRights[p.Color()] = false
 	}
-	if r, ok := p.(*Rook); ok {
-		if r.QS {
+	if p.Type() == ROOK {
+		if m.Old.Col() == 1 {
 			b.qsCastlingRights[p.Color()] = false
-		} else if r.KS {
+		} else if m.Old.Col() == 8 {
 			b.ksCastlingRights[p.Color()] = false
 		}
 	}
 	// Affect castling state of captured rooks.
 	if m.Capture != nil {
-		if r, ok := m.Capture.Piece.(*Rook); ok {
-			if r.QS {
-				b.qsCastlingRights[r.Color()] = false
-			} else if r.KS {
-				b.ksCastlingRights[r.Color()] = false
+		if m.Capture.Piece.Type() == ROOK {
+			if m.Capture.Square.Col() == 1 {
+				b.qsCastlingRights[p.Color()] = false
+			} else if m.Capture.Square.Col() == 8 {
+				b.ksCastlingRights[p.Color()] = false
 			}
 		}
 	}
@@ -174,6 +175,9 @@ func UndoMove(b *Board, m Move) {
 
 	b.Squares[o] = p
 	b.PieceSet[p] = o
+	if p == nil {
+		panic("nil piece while undoing move: " + m.String())
+	}
 	// Return the square we were on to its old state.
 	b.Squares[s] = nil
 	// Return a captured piece.
@@ -272,12 +276,8 @@ func IsCheck(b *Board, c Color) bool {
 	attacking := GetAttacking(b, -1*c)
 	for _, s := range attacking {
 		occupant := b.Squares[s]
-		// check if it's us under attack
-		if occupant != nil && occupant.Color() == c {
-			// If our king is under attack, it's check.
-			if _, ok := occupant.(*King); ok {
-				return true
-			}
+		// If our king is under attack, it's check.
+		if occupant != nil && occupant.Type() == KING && occupant.Color() == c {
 		}
 	}
 	return false

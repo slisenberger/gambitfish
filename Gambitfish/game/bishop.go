@@ -35,3 +35,7 @@ func (p *Bishop) Graphic() string {
 func (p *Bishop) Value() float64 {
 	return 3.0
 }
+
+func (p *Bishop) Type() PieceType {
+	return BISHOP
+}

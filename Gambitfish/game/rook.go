@@ -37,3 +37,7 @@ func (p *Rook) Graphic() string {
 func (p *Rook) Value() float64 {
 	return 5.0
 }
+
+func (p *Rook) Type() PieceType {
+	return ROOK
+}

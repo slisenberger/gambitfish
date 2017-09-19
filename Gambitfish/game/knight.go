@@ -35,3 +35,7 @@ func (p *Knight) Graphic() string {
 func (p *Knight) Value() float64 {
 	return 3.0
 }
+
+func (p *Knight) Type() PieceType {
+	return KNIGHT
+}
