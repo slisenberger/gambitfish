@@ -315,7 +315,9 @@ func PawnMoves(p Piece, cur Square) []Move {
 		if isStartPawn {
 			s := Square{Row: cur.Row + 2*direction, Col: cur.Col}
 			if l, _ := TargetLegal(p, s, false); l {
-				moves = append(moves, NewMove(p, s, cur))
+				m := NewMove(p, s, cur)
+				m.TwoPawnAdvance = true
+				moves = append(moves, m)
 			}
 		}
 	}
@@ -355,7 +357,23 @@ func PawnMoves(p Piece, cur Square) []Move {
 			}
 		}
 	}
-	// TODO: build en passant.
+	// Check for en passants
+	epCol := p.Board().EPCol
+	adjToEP := cur.Col-1 == epCol || cur.Col+1 == epCol
+	if epCol != 0 {
+		if p.Color() == WHITE && cur.Row == 5 && adjToEP {
+			move := NewMove(p, Square{6, epCol}, cur)
+			epSquare := Square{5, epCol}
+			move.Capture = &Capture{p.Board().Squares[epSquare.Index()], epSquare}
+			moves = append(moves, move)
+		}
+		if p.Color() == BLACK && cur.Row == 4 && adjToEP {
+			move := NewMove(p, Square{3, epCol}, cur)
+			epSquare := Square{4, epCol}
+			move.Capture = &Capture{p.Board().Squares[epSquare.Index()], epSquare}
+			moves = append(moves, move)
+		}
+	}
 	return moves
 }
 

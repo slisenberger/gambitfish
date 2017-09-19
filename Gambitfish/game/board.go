@@ -2,7 +2,6 @@
 package game
 
 import "fmt"
-import "math/rand"
 
 type Board struct {
 	Squares          [64]Piece
@@ -12,6 +11,7 @@ type Board struct {
 	ksCastlingRights map[Color]bool
 	qsCastlingRights map[Color]bool
 	Move             int
+	EPCol            int
 }
 
 func (b *Board) InitPieceSet() {
@@ -88,7 +88,6 @@ func (b *Board) Print() {
 	// Print the letters at the bottom.
 	fmt.Println("   ________________")
 	fmt.Println("    a b c d e f g h")
-
 }
 
 // ApplyMove changes the state of the Board for any given move.
@@ -154,6 +153,12 @@ func ApplyMove(b *Board, m Move) {
 			}
 		}
 	}
+	// Apply En Passant state
+	if m.TwoPawnAdvance {
+		b.EPCol = s.Col
+	} else {
+		b.EPCol = 0
+	}
 }
 
 // UndoMove returns a board to the state it was at prior to
@@ -173,7 +178,6 @@ func UndoMove(b *Board, m Move) {
 	b.Squares[s.Index()] = nil
 	// Return a captured piece.
 	if m.Capture != nil {
-
 		b.PieceSet[m.Capture.Piece] = m.Capture.Square
 		b.Squares[m.Capture.Square.Index()] = m.Capture.Piece
 	}
@@ -200,6 +204,9 @@ func UndoMove(b *Board, m Move) {
 	// Reapply original castling rights.
 	b.qsCastlingRights = m.PrevQSCastlingRights
 	b.ksCastlingRights = m.PrevKSCastlingRights
+
+	// Reapply original en passant column.
+	b.EPCol = m.PrevEPCol
 }
 
 func (b *Board) SwitchActivePlayer() {
@@ -231,14 +238,7 @@ func (b *Board) AllLegalMoves() []Move {
 			UndoMove(b, move)
 		}
 	}
-	// We now want to return the moves in a smart order (e.g., try checks and captures.)
-	// Just to get things off the ground, we'll shuffle the moves, just to get some variety
-	// in the AI vs AI games.
-	for i := range moves {
-		j := rand.Intn(i + 1)
-		moves[i], moves[j] = moves[j], moves[i]
-	}
-	return OrderMoves(moves)
+	return moves
 }
 
 // Returns true if the game is drawn, won, or lost. The integer

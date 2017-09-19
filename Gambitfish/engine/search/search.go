@@ -25,7 +25,7 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	var best game.Move
 	var eval float64
 
-	moves := b.AllLegalMoves()
+	moves := game.OrderMoves(b.AllLegalMoves())
 	// If we are past our depth limit, we are only in quiescence search.
 	// In quiescence search, only search remaining captures.
 	if depth <= 0 {
