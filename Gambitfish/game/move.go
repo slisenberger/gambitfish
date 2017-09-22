@@ -20,7 +20,7 @@ type Move struct {
 	Promotion            Piece // Applicable for only Pawn moves
 	PrevQSCastlingRights map[Color]bool
 	PrevKSCastlingRights map[Color]bool
-	PrevEPCol            int
+	PrevEPSquare         Square
 	TwoPawnAdvance       bool // For En Passant Management.
 }
 
@@ -62,7 +62,7 @@ func NewMove(p Piece, square Square, old Square) Move {
 			WHITE: kr[WHITE],
 			BLACK: kr[BLACK],
 		},
-		PrevEPCol:      0,
+		PrevEPSquare:   p.Board().EPSquare,
 		TwoPawnAdvance: false,
 	}
 }

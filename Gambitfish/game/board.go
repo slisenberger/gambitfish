@@ -5,13 +5,14 @@ import "fmt"
 
 type Board struct {
 	Squares          [64]Piece
+	Position         Position
 	Active           Color
 	Winner           Color
 	PieceSet         map[Piece]Square
 	ksCastlingRights map[Color]bool
 	qsCastlingRights map[Color]bool
 	Move             int
-	EPCol            int
+	EPSquare         Square // The square a pawn was just pushed two forward.
 }
 
 func (b *Board) InitPieceSet() {
@@ -30,6 +31,7 @@ func DefaultBoard() *Board {
 		blackPawnSquare := GetSquare(7, i)
 		whitePawnSquare := GetSquare(2, i)
 		b.Squares[blackPawnSquare] = &Pawn{&BasePiece{C: BLACK, B: b}}
+
 		b.Squares[whitePawnSquare] = &Pawn{&BasePiece{C: WHITE, B: b}}
 	}
 	// Add rooks.
@@ -54,15 +56,22 @@ func DefaultBoard() *Board {
 	b.Squares[4] = &King{&BasePiece{C: WHITE, B: b}}
 	b.Squares[60] = &King{&BasePiece{C: BLACK, B: b}}
 	b.InitPieceSet()
+	b.Position = Position{}
+	for p, s := range b.PieceSet {
+		b.Position = SetPiece(b.Position, p, s)
+	}
+	b.Position = UpdateBitboards(b.Position)
 	b.ksCastlingRights = map[Color]bool{WHITE: true, BLACK: true}
 	b.qsCastlingRights = map[Color]bool{WHITE: true, BLACK: true}
 	b.Move = 1
+	b.EPSquare = OFFBOARD_SQUARE
 	return b
 }
 
 func (b *Board) Print() {
 	fmt.Println(fmt.Sprintf("Move %v: %v to play", b.Move, b.Active))
 	fmt.Println(fmt.Sprintf("Castling Rights:\n KINGSIDE: %v\n QUEENSIDE: %v", b.ksCastlingRights, b.qsCastlingRights))
+	fmt.Println(fmt.Sprintf("bitboard repr: %v", b.Position))
 	fmt.Println("")
 
 	// We want to print a row at a time, but in backwards order to how this is stored
@@ -105,32 +114,35 @@ func ApplyMove(b *Board, m Move) {
 	if m.Promotion != nil {
 		b.PieceSet[m.Promotion] = s
 		b.Squares[s] = m.Promotion
+		b.Position = SetPiece(b.Position, m.Promotion, s)
 		delete(b.PieceSet, p)
 	} else {
 		b.PieceSet[p] = s
 		b.Squares[s] = p
+		b.Position = SetPiece(b.Position, p, s)
 	}
 	// Check for castling and modify rook state if so.
 	// New rook squares are relative to king.
 	if m.QSCastle || m.KSCastle {
-		var newRookGetSquare Square
-		var oldRookGetSquare Square
+		var newRookSquare Square
+		var oldRookSquare Square
 		if m.QSCastle {
-			newRookGetSquare = GetSquare(o.Row(), o.Col()-1)
-			oldRookGetSquare = GetSquare(o.Row(), 1)
+			newRookSquare = GetSquare(o.Row(), o.Col()-1)
+			oldRookSquare = GetSquare(o.Row(), 1)
 		}
 		if m.KSCastle {
-			newRookGetSquare = GetSquare(o.Row(), o.Col()+1)
-			oldRookGetSquare = GetSquare(o.Row(), 8)
+			newRookSquare = GetSquare(o.Row(), o.Col()+1)
+			oldRookSquare = GetSquare(o.Row(), 8)
 		}
-		rook := b.Squares[oldRookGetSquare]
-		if rook == nil {
-		}
-		b.PieceSet[rook] = newRookGetSquare
-		b.Squares[newRookGetSquare] = rook
-		b.Squares[oldRookGetSquare] = nil
+		rook := b.Squares[oldRookSquare]
+		b.PieceSet[rook] = newRookSquare
+		b.Squares[newRookSquare] = rook
+		b.Position = SetPiece(b.Position, rook, newRookSquare)
+		b.Squares[oldRookSquare] = nil
+		b.Position = UnSetPiece(b.Position, rook, newRookSquare)
 	}
 	// Then, remove the piece from its old square.
+	b.Position = UnSetPiece(b.Position, p, m.Old)
 	b.Squares[m.Old] = nil
 	// Modify castling state from rook and king moves.
 	if p.Type() == KING {
@@ -155,12 +167,19 @@ func ApplyMove(b *Board, m Move) {
 		}
 	}
 	// Apply En Passant state
-	m.PrevEPCol = b.EPCol
 	if m.TwoPawnAdvance {
-		b.EPCol = s.Col()
+		b.EPSquare = s
 	} else {
-		b.EPCol = 0
+		b.EPSquare = OFFBOARD_SQUARE
 	}
+
+	// Advance the move counter.
+	if b.Active == BLACK {
+		b.Move++
+	}
+
+	// Update bitboard representations.
+	b.Position = UpdateBitboards(b.Position)
 }
 
 // UndoMove returns a board to the state it was at prior to
@@ -176,12 +195,15 @@ func UndoMove(b *Board, m Move) {
 
 	b.Squares[o] = p
 	b.PieceSet[p] = o
+	b.Position = SetPiece(b.Position, p, o)
 	// Return the square we were on to its old state.
 	b.Squares[s] = nil
+	b.Position = UnSetPiece(b.Position, p, s)
 	// Return a captured piece.
 	if m.Capture != nil {
 		b.PieceSet[m.Capture.Piece] = m.Capture.Square
 		b.Squares[m.Capture.Square] = m.Capture.Piece
+		b.Position = SetPiece(b.Position, m.Capture.Piece, m.Capture.Square)
 	}
 
 	// Undo rook moves from castling.
@@ -198,8 +220,10 @@ func UndoMove(b *Board, m Move) {
 		}
 		rook := b.Squares[newRookSquare]
 		b.Squares[newRookSquare] = nil
+		b.Position = UnSetPiece(b.Position, rook, newRookSquare)
 		b.Squares[oldRookSquare] = rook
 		b.PieceSet[rook] = oldRookSquare
+		b.Position = SetPiece(b.Position, rook, oldRookSquare)
 
 	}
 
@@ -208,7 +232,12 @@ func UndoMove(b *Board, m Move) {
 	b.ksCastlingRights = m.PrevKSCastlingRights
 
 	// Reapply original en passant column.
-	b.EPCol = m.PrevEPCol
+	b.EPSquare = m.PrevEPSquare
+	// Reverse the move counter.
+	if b.Active == BLACK {
+		b.Move--
+	}
+	b.Position = UpdateBitboards(b.Position)
 }
 
 func (b *Board) SwitchActivePlayer() {

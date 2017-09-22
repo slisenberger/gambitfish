@@ -45,7 +45,6 @@ type Piece interface {
 	// Returns the Color of this piece.
 	Color() Color
 	Board() *Board
-	ApplyMove(Move)
 	Value() float64
 	// Returns the type enum of this piece.
 	Type() PieceType
@@ -374,37 +373,30 @@ func PawnMoves(p Piece, cur Square) []Move {
 		}
 	}
 	// Check for en passants
-	epCol := p.Board().EPCol
-	adjToEP := cur.Col()-1 == epCol || cur.Col()+1 == epCol
+	epSquare := p.Board().EPSquare
 	// If en passant is legal, we migh be able to capture.
-	if epCol != 0 {
+	if epSquare != OFFBOARD_SQUARE {
+		adjToEP := cur.Col()-1 == epSquare.Col() || cur.Col()+1 == epSquare.Col()
 		if p.Color() == WHITE && cur.Row() == 5 && adjToEP {
-			move := NewMove(p, GetSquare(6, epCol), cur)
-			epSquare := GetSquare(5, epCol)
+			move := NewMove(p, GetSquare(6, epSquare.Col()), cur)
 			capturedPiece := p.Board().Squares[epSquare]
 			if capturedPiece == nil {
 				panic(fmt.Sprintf("capture on %v is nil", epSquare))
 			}
-			move.Capture = &Capture{p.Board().Squares[epSquare], epSquare}
+			move.Capture = &Capture{capturedPiece, epSquare}
 			moves = append(moves, move)
 		}
 		if p.Color() == BLACK && cur.Row() == 4 && adjToEP {
-			move := NewMove(p, GetSquare(3, epCol), cur)
-			epSquare := GetSquare(4, epCol)
+			move := NewMove(p, GetSquare(3, epSquare.Col()), cur)
 			capturedPiece := p.Board().Squares[epSquare]
 			if capturedPiece == nil {
 				panic(fmt.Sprintf("capture on %v is nil", epSquare))
 			}
-			move.Capture = &Capture{p.Board().Squares[epSquare], epSquare}
+			move.Capture = &Capture{capturedPiece, epSquare}
 			moves = append(moves, move)
 		}
 	}
 	return moves
-}
-
-// The default is no-op; only kings, rooks, and pawns have fancy accounting.
-func (bp *BasePiece) ApplyMove(m Move) {
-	return
 }
 
 // The nil piece can't move.

@@ -54,6 +54,7 @@ func BoardFromFen(s string) (*Board, error) {
 	}
 
 	// TODO(slisenberger): Add En-passant square
+	b.EPSquare = OFFBOARD_SQUARE
 	// TODO(slisenberger): add move count!
 	b.InitPieceSet()
 	return b, nil
