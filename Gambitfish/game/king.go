@@ -11,15 +11,6 @@ func (p *King) LegalMoves() []Move {
 	return moves
 }
 
-func (p *King) Attacking() []Square {
-	moves := KingMoves(p, p.Board().PieceSet[p])
-	squares := make([]Square, len(moves))
-	for i, move := range moves {
-		squares[i] = move.Square
-	}
-	return squares
-}
-
 // AttackBitboard returns the bitboard for the pieces under attack by this king.
 func (p *King) AttackBitboard(cur Square) uint64 {
 	km := LEGALKINGMOVES[cur]

@@ -88,6 +88,22 @@ func TestRayAttacksDict(t *testing.T) {
 			C1,
 			W,
 			[]Square{A1, B1},
+		}, {
+			B4,
+			N,
+			[]Square{B5, B6, B7, B8},
+		}, {
+			B4,
+			S,
+			[]Square{B1, B2, B3},
+		}, {
+			B4,
+			E,
+			[]Square{C4, D4, E4, F4, G4, H4},
+		}, {
+			B4,
+			W,
+			[]Square{A4},
 		},
 	}
 

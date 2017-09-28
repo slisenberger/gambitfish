@@ -27,10 +27,15 @@ const (
 // has a bitboard of attacking squares.
 var RAY_ATTACKS map[Direction][64]uint64
 
+// The preprocessed set of squares a pawn can move to in a capture.
+var WHITEPAWNATTACKS [64]uint64
+var BLACKPAWNATTACKS [64]uint64
+
 func InitInternalData() {
 	LEGALKINGMOVES = LegalKingMovesDict()
 	LEGALKNIGHTMOVES = LegalKnightMovesDict()
 	InitRayAttacks()
+	InitPawnAttacks()
 }
 
 // InitRayAttacks initializes the set of bitboards for ray movements
@@ -51,9 +56,9 @@ func InitRayAttacks() {
 			cur = 1 << i
 			// We will extend in each direction at most 7 times.
 			for j = 1; j <= 7; j++ {
+				s := Square(i + j*uint64(dir))
 				if dir > 0 {
 					cur = cur << uint64(dir)
-					s := Square(i + j*uint64(dir))
 					// Since positive directions can wrap around, we might nee dto end the loop here.
 					// Shouldn't be on the first column.
 					if dir == NE || dir == E {
@@ -62,18 +67,53 @@ func InitRayAttacks() {
 							break
 						}
 						// For NW, we shouldn't be on the 8th column.
-					} else {
+					} else if dir == NW {
 						if s.Col() == 8 {
 							break
 						}
 					}
 				} else {
 					cur = cur >> uint64(-dir)
+					// It's also possible for negative directions to wrap around.
+					// Western movement should never be on col 8
+					if dir == W || dir == SW {
+						if s.Col() == 8 {
+							break
+						}
+					} else if dir == SE {
+						if s.Col() == 1 {
+							break
+						}
+
+					}
 				}
 				bb = bb | cur
 			}
 			vectors[i] = bb
 		}
 		RAY_ATTACKS[dir] = vectors
+	}
+}
+
+func InitPawnAttacks() {
+	var i uint64
+	var wbb uint64
+	var bbb uint64
+	var pos uint64
+	for i = 0; i < 64; i++ {
+		wbb = 0
+		bbb = 0
+		pos = 1 << i
+		s := Square(i)
+		if s.Col() > 1 {
+			wbb = wbb | (pos << 7)
+			bbb = wbb | (pos << 9)
+		}
+		if s.Col() < 8 {
+			wbb = wbb | (pos << 9)
+			bbb = wbb | (pos << 7)
+		}
+		WHITEPAWNATTACKS[i] = wbb
+		BLACKPAWNATTACKS[i] = bbb
 	}
 }

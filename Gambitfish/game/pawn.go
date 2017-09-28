@@ -9,13 +9,18 @@ func (p *Pawn) LegalMoves() []Move {
 	return PawnMoves(p, p.Board().PieceSet[p])
 }
 
-func (p *Pawn) Attacking() []Square {
-	return PawnAttackingSquares(p, p.Board().PieceSet[p])
-}
-
 func (p *Pawn) AttackBitboard(cur Square) uint64 {
-	//TODO(slisenberger): THIS IS NOT IMPLEMENTED.
-	return 0
+	var res uint64
+	res = 0
+	switch p.Color() {
+	case WHITE:
+		res = WHITEPAWNATTACKS[cur]
+		res = res & p.Board().Position.BlackPieces
+	case BLACK:
+		res = BLACKPAWNATTACKS[cur]
+		res = res & p.Board().Position.WhitePieces
+	}
+	return res
 }
 
 func (p *Pawn) String() string {

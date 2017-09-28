@@ -71,7 +71,6 @@ func DefaultBoard() *Board {
 func (b *Board) Print() {
 	fmt.Println(fmt.Sprintf("Move %v: %v to play", b.Move, b.Active))
 	fmt.Println(fmt.Sprintf("Castling Rights:\n KINGSIDE: %v\n QUEENSIDE: %v", b.ksCastlingRights, b.qsCastlingRights))
-	fmt.Println(fmt.Sprintf("bitboard repr: %v", b.Position))
 	fmt.Println("")
 
 	// We want to print a row at a time, but in backwards order to how this is stored
@@ -298,42 +297,12 @@ func IsCheck(b *Board, c Color) bool {
 	atk := GetAttackBitboard(b, c)
 	switch c {
 	case WHITE:
-		return atk&b.Position.WhiteKing > 0
-	case BLACK:
 		return atk&b.Position.BlackKing > 0
+	case BLACK:
+		return atk&b.Position.WhiteKing > 0
 	}
 
 	return false
-	// Trying a new bitboard version...
-	////////////////////////////
-	////////////////////////////////
-	//attacking := GetAttacking(b, -1*c)
-	//for _, s := range attacking {
-	//	occupant := b.Squares[s]
-	// If our king is under attack, it's check.
-	//	if occupant != nil && occupant.Type() == KING && occupant.Color() == c {
-	//		return true
-	//	}
-	//	}
-	//	return false
-}
-
-// Returns all attacked squares by c's pieces.
-// TODO(slisenberger): this is the slow routine making move gen slow!
-func GetAttacking(b *Board, c Color) []Square {
-	results := []Square{}
-	for piece, s := range b.PieceSet {
-		if piece == nil {
-			b.Print()
-			panic(fmt.Sprintf("have nil piece in piece set: square %v", s))
-		}
-		// If it's our piece, we don't care.
-		if piece.Color() != c {
-			continue
-		}
-		results = append(results, piece.Attacking()...)
-	}
-	return results
 }
 
 // Returns a bitboard of all squares currently being attacked by c.
@@ -342,7 +311,6 @@ func GetAttackBitboard(b *Board, c Color) uint64 {
 	var res uint64
 	res = 0
 	for piece, s := range b.PieceSet {
-		// If it's our piece, we don't care.
 		if piece.Color() != c {
 			continue
 		}

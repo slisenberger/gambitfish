@@ -3,6 +3,7 @@ package player
 import "errors"
 import "fmt"
 import "math"
+import "time"
 import "../game"
 import "../engine/evaluate"
 import "../engine/search"
@@ -19,7 +20,10 @@ type AIPlayer struct {
 }
 
 func (p *AIPlayer) MakeMove(b *game.Board) error {
+	start := time.Now()
 	eval, move := search.AlphaBetaSearch(b, p.Evaluator, p.Depth, math.Inf(-1), math.Inf(1))
+	t := time.Since(start)
+	fmt.Println(fmt.Sprintf("evaluation over in: %v", t))
 	if move == nil {
 		return errors.New("no move could be made")
 	}

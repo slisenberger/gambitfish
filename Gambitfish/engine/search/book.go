@@ -27,11 +27,5 @@ func BookMove(b *game.Board) *game.Move {
 		move := game.NewMove(b.Squares[game.D7], game.D5, game.D7)
 		return &move
 	}
-	// TESTING EN PASSANT RELATED NONSENSE
-	if b.Move == 3 && b.Active == game.WHITE {
-		// 3.c5
-		move := game.NewMove(b.Squares[game.C4], game.C5, game.C4)
-		return &move
-	}
 	return nil
 }
