@@ -233,25 +233,24 @@ func KnightMoves(p Piece, cur Square) []Move {
 
 func KingMoves(p Piece, cur Square) []Move {
 	moves := []Move{}
-	// try all knight squares
-	squares := []Square{
-		GetSquare(cur.Row()+1, cur.Col()-1),
-		GetSquare(cur.Row()+1, cur.Col()),
-		GetSquare(cur.Row()+1, cur.Col()+1),
-		GetSquare(cur.Row()+-1, cur.Col()-1),
-		GetSquare(cur.Row()+-1, cur.Col()),
-		GetSquare(cur.Row()+-1, cur.Col()+1),
-		GetSquare(cur.Row(), cur.Col()-1),
-		GetSquare(cur.Row(), cur.Col()+1),
+	pos := p.Board().Position
+	km := LEGALKINGMOVES[cur]
+	// Iterate through legal non captures
+	for _, s := range SquaresFromBitBoard(km &^ pos.Occupied) {
+		moves = append(moves, NewMove(p, s, cur))
 	}
-	for _, s := range squares {
-		if l, capture := TargetLegal(p, s, true); l {
-			move := NewMove(p, s, cur)
-			if capture != nil {
-				move.Capture = &Capture{Piece: capture, Square: s}
-			}
-			moves = append(moves, move)
-		}
+	// Iterate through legal captures
+	var opp uint64
+	switch p.Color() {
+	case WHITE:
+		opp = pos.BlackPieces
+	case BLACK:
+		opp = pos.WhitePieces
+	}
+	for _, s := range SquaresFromBitBoard(km & opp) {
+		move := NewMove(p, s, cur)
+		move.Capture = &Capture{Piece: p.Board().Squares[s], Square: s}
+		moves = append(moves, move)
 	}
 	return moves
 

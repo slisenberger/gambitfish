@@ -129,4 +129,16 @@ func UnSetBitOnBoard(board uint64, s Square) uint64 {
 // SquaresFromBitBoard returns a list of squares represented by the bits
 // in a bitboard.
 func SquaresFromBitBoard(board uint64) []Square {
+	s := []Square{}
+	i := 0
+	// Count the bits, as long as they exist.
+	for board > 0 {
+		// And the board with 1, if so rsb is set, get the square.
+		if board&uint64(1) > 0 {
+			s = append(s, Square(i))
+		}
+		i++
+		board = board >> 1
+	}
+	return s
 }

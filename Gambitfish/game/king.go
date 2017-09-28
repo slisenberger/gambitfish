@@ -45,11 +45,13 @@ func (p *King) Type() PieceType {
 // LegalKingMovesDict returns a 64-indexed set of bitboards
 // for the legal moves a king can make. This is intended to be used
 // as a precomputed index for constructing valid king moves.
-func LegalKingMovesDict() []uint64 {
+func LegalKingMovesDict() [64]uint64 {
 	var legalMoves [64]uint64
 	// For each square on the board, prepopulate the legal moves.
-	for i := 0; i < 64; i++ {
-		bb := 0
+	var i uint64
+	for i = 0; i < 64; i++ {
+		var bb uint64
+		bb = 0
 		s := Square(i)
 		// Check for going off the left side
 		if s.Col() != 1 {

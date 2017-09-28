@@ -1,8 +1,11 @@
 package game
 
+import "fmt"
 import "testing"
+import "time"
 
 func TestPerft(t *testing.T) {
+	InitInternalData()
 	testCases := []struct {
 		name  string
 		fen   string
@@ -36,10 +39,13 @@ func TestPerft(t *testing.T) {
 
 		for i, want := range tc.moves {
 			depth := i + 1
+			start := time.Now()
 			got := PerftHelper(b, depth)
+			total := time.Since(start)
 			if got != want {
 				t.Errorf("%v got wrong result for depth %v: got %v, want %v", tc.name, depth, got, want)
 			}
+			fmt.Println(fmt.Sprintf("calculated perft for depth %v in time %v", depth, total))
 
 		}
 	}

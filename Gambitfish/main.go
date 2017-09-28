@@ -11,6 +11,7 @@ import "time"
 
 func main() {
 	rand.Seed(time.Now().Unix())
+	game.InitInternalData()
 	b := game.DefaultBoard()
 	e := evaluate.CompoundEvaluator{
 		Evaluators: []evaluate.Evaluator{
