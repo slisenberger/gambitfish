@@ -108,6 +108,7 @@ func ApplyMove(b *Board, m Move) {
 	if m.Capture != nil {
 		delete(b.PieceSet, m.Capture.Piece)
 		b.Squares[m.Capture.Square] = nil
+		b.Position = UnSetPiece(b.Position, m.Capture.Piece, m.Capture.Square)
 	}
 	// Then, move the piece to its new square.
 	// Check for promotion of a pawn.
@@ -139,7 +140,7 @@ func ApplyMove(b *Board, m Move) {
 		b.Squares[newRookSquare] = rook
 		b.Position = SetPiece(b.Position, rook, newRookSquare)
 		b.Squares[oldRookSquare] = nil
-		b.Position = UnSetPiece(b.Position, rook, newRookSquare)
+		b.Position = UnSetPiece(b.Position, rook, oldRookSquare)
 	}
 	// Then, remove the piece from its old square.
 	b.Position = UnSetPiece(b.Position, p, m.Old)
@@ -198,7 +199,11 @@ func UndoMove(b *Board, m Move) {
 	b.Position = SetPiece(b.Position, p, o)
 	// Return the square we were on to its old state.
 	b.Squares[s] = nil
-	b.Position = UnSetPiece(b.Position, p, s)
+	if m.Promotion != nil {
+		b.Position = UnSetPiece(b.Position, m.Promotion, s)
+	} else {
+		b.Position = UnSetPiece(b.Position, p, s)
+	}
 	// Return a captured piece.
 	if m.Capture != nil {
 		b.PieceSet[m.Capture.Piece] = m.Capture.Square
@@ -211,7 +216,7 @@ func UndoMove(b *Board, m Move) {
 		var newRookSquare Square
 		var oldRookSquare Square
 		if m.QSCastle {
-			newRookSquare = GetSquare(o.Row(), o.Col()+-1)
+			newRookSquare = GetSquare(o.Row(), o.Col()-1)
 			oldRookSquare = GetSquare(o.Row(), 1)
 		}
 		if m.KSCastle {
@@ -224,7 +229,6 @@ func UndoMove(b *Board, m Move) {
 		b.Squares[oldRookSquare] = rook
 		b.PieceSet[rook] = oldRookSquare
 		b.Position = SetPiece(b.Position, rook, oldRookSquare)
-
 	}
 
 	// Reapply original castling rights.

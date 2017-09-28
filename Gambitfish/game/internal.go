@@ -3,10 +3,12 @@
 // move positions.
 package game
 
-// LEGALKINGMOVES is an array of bitboards for all the legal king
-// moves for each square on the board.
+// The preprocessed set of squares a piece can move to for a given
+// index.
 var LEGALKINGMOVES [64]uint64
+var LEGALKNIGHTMOVES [64]uint64
 
 func InitInternalData() {
 	LEGALKINGMOVES = LegalKingMovesDict()
+	LEGALKNIGHTMOVES = LegalKnightMovesDict()
 }

@@ -49,19 +49,22 @@ func LegalKingMovesDict() [64]uint64 {
 	var legalMoves [64]uint64
 	// For each square on the board, prepopulate the legal moves.
 	var i uint64
+	var bb uint64
+	var kp uint64
 	for i = 0; i < 64; i++ {
-		var bb uint64
+		// king position
+		kp = 1 << i
 		bb = 0
 		s := Square(i)
 		// Check for going off the left side
 		if s.Col() != 1 {
-			bb = bb | i>>7 | i>>9 | i>>1
+			bb = bb | (kp << 7) | (kp >> 9) | (kp >> 1)
 		}
 		// Check for going off the right side
 		if s.Col() != 8 {
-			bb = bb | i<<7 | i<<9 | i<<1
+			bb = bb | (kp >> 7) | (kp << 9) | (kp << 1)
 		}
-		bb = bb | i>>8 | i<<8
+		bb = bb | (kp >> 8) | (kp << 8)
 		legalMoves[i] = bb
 	}
 	return legalMoves

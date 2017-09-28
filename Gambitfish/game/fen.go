@@ -56,7 +56,12 @@ func BoardFromFen(s string) (*Board, error) {
 	// TODO(slisenberger): Add En-passant square
 	b.EPSquare = OFFBOARD_SQUARE
 	// TODO(slisenberger): add move count!
+	// Basic board initialization.
 	b.InitPieceSet()
+	for p, s := range b.PieceSet {
+		b.Position = SetPiece(b.Position, p, s)
+	}
+	b.Position = UpdateBitboards(b.Position)
 	return b, nil
 }
 
