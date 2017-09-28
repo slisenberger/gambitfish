@@ -142,3 +142,39 @@ func SquaresFromBitBoard(board uint64) []Square {
 	}
 	return s
 }
+
+// BitScan returns the first square encountered in a bitscan. If
+// forward is true, we start at the LSB. Else, we start at the MSB.
+func BitScan(board uint64, forward bool) Square {
+	if forward {
+		return BitScanForward(board)
+	} else {
+		return BitScanReverse(board)
+	}
+}
+
+func BitScanForward(board uint64) Square {
+	i := 0
+	// Count the bits, as long as they exist.
+	for board > 0 {
+		// And the board with 1, if so rsb is set, get the square.
+		if board&uint64(1) > 0 {
+			break
+		}
+		i++
+		board = board >> 1
+	}
+	return Square(i)
+}
+
+func BitScanReverse(board uint64) Square {
+	i := 63
+	for board > 0 {
+		if board&uint64(0xFFFFFFFFFFFFFFFF) > 0 {
+			break
+		}
+		i--
+		board = board << 1
+	}
+	return Square(i)
+}

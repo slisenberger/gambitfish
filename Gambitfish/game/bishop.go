@@ -6,7 +6,14 @@ type Bishop struct {
 }
 
 func (p *Bishop) LegalMoves() []Move {
-	return DiagonalMoves(p, p.Board().PieceSet[p])
+	moves := []Move{}
+	dirs := []Direction{NE, NW, SE, SW}
+	for _, dir := range dirs {
+		moves = append(moves, RayMoves(p, p.Board().PieceSet[p], dir)...)
+	}
+	return moves
+	// TESTING A NEW WAY OF IMPLEMENTING THIS.
+	// return DiagonalMoves(p, p.Board().PieceSet[p])
 }
 
 func (p *Bishop) Attacking() []Square {

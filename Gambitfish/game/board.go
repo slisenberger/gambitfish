@@ -293,15 +293,6 @@ func (b *Board) CalculateGameOver() (bool, Color) {
 	return false, 0
 }
 
-// Returns a copy of this Board with different references.
-func CopyBoard(b *Board) *Board {
-	var s [64]Piece
-	copy(s[:], b.Squares[:])
-	newB := &Board{Squares: s, Active: b.Active, Winner: b.Winner}
-	newB.InitPieceSet()
-	return newB
-}
-
 // Returns true if the board state results in the Color c's king being in check.
 func IsCheck(b *Board, c Color) bool {
 	attacking := GetAttacking(b, -1*c)

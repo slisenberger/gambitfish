@@ -36,6 +36,7 @@ func TestPerft(t *testing.T) {
 			t.Errorf("error reading fen string %v: %v", tc.fen, err)
 		}
 		b.Print()
+		fmt.Println(b.AllLegalMoves())
 
 		for i, want := range tc.moves {
 			depth := i + 1

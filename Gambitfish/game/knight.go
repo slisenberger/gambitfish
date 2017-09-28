@@ -50,7 +50,7 @@ func LegalKnightMovesDict() [64]uint64 {
 	var bb uint64
 	var kp uint64
 	for i = 0; i < 64; i++ {
-		// king position
+		// knight position
 		kp = 1 << i
 		bb = 0
 		s := Square(i)
@@ -58,11 +58,11 @@ func LegalKnightMovesDict() [64]uint64 {
 		if s.Col() != 1 {
 			bb = bb | (kp << 15) | (kp >> 17)
 		}
-		if s.Col() >= 2 {
+		if s.Col() > 2 {
 			bb = bb | (kp << 6) | (kp >> 10)
 		}
 		// Check for going off the right side
-		if s.Col() <= 7 {
+		if s.Col() < 7 {
 			bb = bb | (kp >> 6) | (kp << 10)
 		}
 		if s.Col() != 8 {

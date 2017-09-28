@@ -235,6 +235,41 @@ func KnightMoves(p Piece, cur Square) []Move {
 	return moves
 }
 
+func RayMoves(p Piece, cur Square, dir Direction) []Move {
+	moves := []Move{}
+	pos := p.Board().Position
+	// Get the ray attacks in a direction for this square.
+	ra := RAY_ATTACKS[dir][cur]
+	blocker := ra & pos.Occupied
+	if blocker > 1 {
+		blockSquare := BitScan(blocker, dir > 0)
+		ra = ra ^ RAY_ATTACKS[dir][blockSquare]
+	}
+	// TODO(slisenberger)
+	// THIS IS ALL COPIED BOILERPLATE.. FACTOR THIS OUT.
+	// Iterate through legal non captures
+	for _, s := range SquaresFromBitBoard(ra &^ pos.Occupied) {
+		moves = append(moves, NewMove(p, s, cur))
+	}
+	// Iterate through legal captures
+	var opp uint64
+	switch p.Color() {
+	case WHITE:
+		opp = pos.BlackPieces
+	case BLACK:
+		opp = pos.WhitePieces
+	}
+	for _, s := range SquaresFromBitBoard(ra & opp) {
+		move := NewMove(p, s, cur)
+		move.Capture = &Capture{Piece: p.Board().Squares[s], Square: s}
+		if p.Board().Squares[s] == nil {
+			panic("some bishop capture is nil. abort! " + s.String())
+
+		}
+		moves = append(moves, move)
+	}
+	return moves
+}
 func KingMoves(p Piece, cur Square) []Move {
 	moves := []Move{}
 	pos := p.Board().Position
