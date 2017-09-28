@@ -13,6 +13,11 @@ func (p *Pawn) Attacking() []Square {
 	return PawnAttackingSquares(p, p.Board().PieceSet[p])
 }
 
+func (p *Pawn) AttackBitboard(cur Square) uint64 {
+	//TODO(slisenberger): THIS IS NOT IMPLEMENTED.
+	return 0
+}
+
 func (p *Pawn) String() string {
 	return "P"
 }

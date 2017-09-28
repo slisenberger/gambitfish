@@ -18,6 +18,18 @@ func (p *Knight) Attacking() []Square {
 	return squares
 }
 
+// AttackBitboard returns the bitboard for the pieces under attack by this king.
+func (p *Knight) AttackBitboard(cur Square) uint64 {
+	km := LEGALKNIGHTMOVES[cur]
+	switch p.Color() {
+	case WHITE:
+		km = km & p.Board().Position.BlackPieces
+	case BLACK:
+		km = km & p.Board().Position.WhitePieces
+	}
+	return km
+}
+
 func (p *Knight) String() string {
 	return "N"
 }

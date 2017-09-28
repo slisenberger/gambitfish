@@ -38,6 +38,9 @@ type Piece interface {
 	// squares or squares containing opponent pieces are considered attacked.
 
 	Attacking() []Square
+	// Returns a bitboard of all squares with opponents pieces under
+	// attack by this piece.
+	AttackBitboard(Square) uint64
 	// Returns a string representation of this piece.
 	String() string
 	// Returns a unicode graphic representation of this piece.
@@ -207,7 +210,7 @@ func DiagonalMoves(p Piece, cur Square) []Move {
 }
 
 func KnightMoves(p Piece, cur Square) []Move {
-	moves := []Move{}
+	var moves []Move
 	pos := p.Board().Position
 	km := LEGALKNIGHTMOVES[cur]
 	// Iterate through legal non captures
@@ -236,7 +239,7 @@ func KnightMoves(p Piece, cur Square) []Move {
 }
 
 func RayMoves(p Piece, cur Square, dir Direction) []Move {
-	moves := []Move{}
+	var moves []Move
 	pos := p.Board().Position
 	// Get the ray attacks in a direction for this square.
 	ra := RAY_ATTACKS[dir][cur]

@@ -295,18 +295,31 @@ func (b *Board) CalculateGameOver() (bool, Color) {
 
 // Returns true if the board state results in the Color c's king being in check.
 func IsCheck(b *Board, c Color) bool {
-	attacking := GetAttacking(b, -1*c)
-	for _, s := range attacking {
-		occupant := b.Squares[s]
-		// If our king is under attack, it's check.
-		if occupant != nil && occupant.Type() == KING && occupant.Color() == c {
-			return true
-		}
+	atk := GetAttackBitboard(b, c)
+	switch c {
+	case WHITE:
+		return atk&b.Position.WhiteKing > 0
+	case BLACK:
+		return atk&b.Position.BlackKing > 0
 	}
+
 	return false
+	// Trying a new bitboard version...
+	////////////////////////////
+	////////////////////////////////
+	//attacking := GetAttacking(b, -1*c)
+	//for _, s := range attacking {
+	//	occupant := b.Squares[s]
+	// If our king is under attack, it's check.
+	//	if occupant != nil && occupant.Type() == KING && occupant.Color() == c {
+	//		return true
+	//	}
+	//	}
+	//	return false
 }
 
 // Returns all attacked squares by c's pieces.
+// TODO(slisenberger): this is the slow routine making move gen slow!
 func GetAttacking(b *Board, c Color) []Square {
 	results := []Square{}
 	for piece, s := range b.PieceSet {
@@ -321,4 +334,19 @@ func GetAttacking(b *Board, c Color) []Square {
 		results = append(results, piece.Attacking()...)
 	}
 	return results
+}
+
+// Returns a bitboard of all squares currently being attacked by c.
+// Attacked means a piece could be captured.
+func GetAttackBitboard(b *Board, c Color) uint64 {
+	var res uint64
+	res = 0
+	for piece, s := range b.PieceSet {
+		// If it's our piece, we don't care.
+		if piece.Color() != c {
+			continue
+		}
+		res = res | piece.AttackBitboard(s)
+	}
+	return res
 }
