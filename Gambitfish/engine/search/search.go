@@ -10,6 +10,10 @@ import "../evaluate"
 // another nodes.
 const MAX_QUIESCENCE_DEPTH = -1
 
+// The transposition table holding a list of previously seen positions and
+// their evaluation.
+var transpositionTable = map[uint64]game.TTEntry{}
+
 // An Alpha Beta Negamax implementation. Function stolen from here:
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning
 func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta float64) (float64, *game.Move) {
@@ -22,10 +26,30 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	//	if bm := BookMove(b); bm != nil {
 	//		return 0.0, bm
 	//	}
-	_ = alpha
-	_ = beta
+
+	// Store original values for transposition table.
+	alphaOrig := alpha
 	var best game.Move
 	var eval float64
+	// Check the transposition table for work we've already done, and either
+	// return or update our cutoffs.
+	if entry, ok := transpositionTable[game.ZobristHash(b)]; ok && entry.Depth >= depth {
+		switch entry.Precision {
+		case game.EvalExact:
+			return entry.Eval, &entry.BestMove
+		case game.EvalLowerBound:
+			if entry.Eval > alpha {
+				alpha = entry.Eval
+			}
+		case game.EvalUpperBound:
+			if entry.Eval < beta {
+				beta = entry.Eval
+			}
+		}
+		if alpha > beta {
+			return entry.Eval, &entry.BestMove
+		}
+	}
 
 	moves := game.OrderMoves(b.AllLegalMoves())
 	// If we are past our depth limit, we are only in quiescence search.
@@ -60,6 +84,17 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 			break
 		}
 	}
+	// Store values in transposition table.
+	hash := game.ZobristHash(b)
+	entry := game.TTEntry{Depth: depth, Eval: bestVal, BestMove: best}
+	if bestVal <= alphaOrig {
+		entry.Precision = game.EvalUpperBound
+	} else if bestVal >= beta {
+		entry.Precision = game.EvalLowerBound
+	} else {
+		entry.Precision = game.EvalExact
+	}
+	transpositionTable[hash] = entry
 	return bestVal, &best
 }
 
