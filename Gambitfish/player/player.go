@@ -21,7 +21,14 @@ type AIPlayer struct {
 
 func (p *AIPlayer) MakeMove(b *game.Board) error {
 	start := time.Now()
-	eval, move := search.AlphaBetaSearch(b, p.Evaluator, p.Depth, math.Inf(-1), math.Inf(1))
+	// Use iterative deepening to try and find good paths early. It's likely that
+	// the best move on ply 1 is the best on ply 2. This fills the transposition table
+	// to lead with the best move on future plies.
+	var eval float64
+	var move *game.Move
+	for d := 1; d <= p.Depth; d++ {
+		eval, move = search.AlphaBetaSearch(b, p.Evaluator, d, math.Inf(-1), math.Inf(1))
+	}
 	t := time.Since(start)
 	fmt.Println(fmt.Sprintf("evaluation over in: %v", t))
 	if move == nil {

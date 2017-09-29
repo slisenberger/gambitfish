@@ -327,7 +327,13 @@ func GetAttackBitboard(b *Board, c Color) uint64 {
 	}
 
 	for _, s := range SquaresFromBitBoard(pcs) {
-		res = res | b.Squares[s].AttackBitboard(b, s)
+		p := b.Squares[s]
+		if p == nil {
+			b.Print()
+			fmt.Println(fmt.Sprintf("pieces on %v", SquaresFromBitBoard(pcs)))
+			panic("nil piece on square " + s.String())
+		}
+		res = res | p.AttackBitboard(b, s)
 	}
 	return res
 }

@@ -238,14 +238,7 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 		}
 	}
 	// Check for side captures.
-	captures := []Square{
-		GetSquare(cur.Row()+direction, cur.Col()+1),
-		GetSquare(cur.Row()+direction, cur.Col()-1),
-	}
-	for _, s := range captures {
-		if s == OFFBOARD_SQUARE {
-			continue
-		}
+	for _, s := range PawnAttackingSquares(p, cur) {
 		occupant := b.Squares[s]
 		if occupant != nil && occupant.Color() != p.Color() {
 			if s.Row() == 1 || s.Row() == 8 {
