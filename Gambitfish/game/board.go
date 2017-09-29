@@ -145,24 +145,31 @@ func ApplyMove(b *Board, m Move) {
 	b.Position = UnSetPiece(b.Position, p, m.Old)
 	b.Squares[m.Old] = nil
 	// Modify castling state from rook and king moves.
-	if p.Type() == KING {
-		b.qsCastlingRights[p.Color()] = false
-		b.ksCastlingRights[p.Color()] = false
-	}
-	if p.Type() == ROOK {
-		if m.Old.Col() == 1 {
-			b.qsCastlingRights[p.Color()] = false
-		} else if m.Old.Col() == 8 {
-			b.ksCastlingRights[p.Color()] = false
-		}
+	// We know any piece moving from e8, e1, a8, h8, a1, or h8 must
+	// change castling rights.
+	switch m.Old {
+	case A8:
+		b.qsCastlingRights[BLACK] = false
+	case H8:
+		b.ksCastlingRights[BLACK] = false
+	case E8:
+		b.qsCastlingRights[BLACK] = false
+		b.ksCastlingRights[BLACK] = false
+	case A1:
+		b.qsCastlingRights[WHITE] = false
+	case H1:
+		b.ksCastlingRights[WHITE] = false
+	case E1:
+		b.qsCastlingRights[WHITE] = false
+		b.ksCastlingRights[WHITE] = false
 	}
 	// Affect castling state of captured rooks.
 	if m.Capture != nil {
-		if m.Capture.Piece != nil && m.Capture.Piece.Type() == ROOK {
+		if m.Capture.Piece.Type() == ROOK {
 			if m.Capture.Square.Col() == 1 {
-				b.qsCastlingRights[p.Color()] = false
+				b.qsCastlingRights[m.Capture.Piece.Color()] = false
 			} else if m.Capture.Square.Col() == 8 {
-				b.ksCastlingRights[p.Color()] = false
+				b.ksCastlingRights[m.Capture.Piece.Color()] = false
 			}
 		}
 	}
@@ -256,7 +263,7 @@ func (b *Board) SwitchActivePlayer() {
 // active player.
 func (b *Board) AllLegalMoves() []Move {
 	var moves []Move
-	for _, piece := range b.Squares {
+	for piece, _ := range b.PieceSet {
 		if piece == nil {
 			continue
 		}
