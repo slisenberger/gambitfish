@@ -33,17 +33,16 @@ func (c Color) String() string {
 
 type Piece interface {
 	// Returns an array of all the legal positions this piece can move to.
-	LegalMoves() []Move
+	LegalMoves(*Board) []Move
 	// Returns a bitboard of all squares under
 	// attack by this piece.
-	AttackBitboard(Square) uint64
+	AttackBitboard(*Board, Square) uint64
 	// Returns a string representation of this piece.
 	String() string
 	// Returns a unicode graphic representation of this piece.
 	Graphic() string
 	// Returns the Color of this piece.
 	Color() Color
-	Board() *Board
 	Value() float64
 	// Returns the type enum of this piece.
 	Type() PieceType
@@ -51,7 +50,6 @@ type Piece interface {
 
 type BasePiece struct {
 	C Color
-	B *Board
 }
 
 func (bp *BasePiece) Color() Color {
@@ -61,11 +59,11 @@ func (bp *BasePiece) Color() Color {
 // TargetLegal returns true if a candidate piece can move to the
 // desired square. It also optionally returns a piece that will
 // be captured.
-func TargetLegal(p Piece, s Square, capture bool) (bool, Piece) {
+func TargetLegal(b *Board, p Piece, s Square, capture bool) (bool, Piece) {
 	if s == OFFBOARD_SQUARE {
 		return false, nil
 	}
-	occupant := p.Board().Squares[s]
+	occupant := b.Squares[s]
 	if occupant == nil {
 		return true, nil
 	} else {
@@ -78,23 +76,23 @@ func TargetLegal(p Piece, s Square, capture bool) (bool, Piece) {
 
 // Returns true if we should stop searching along a ray, because a piece has
 // encountered a blockage.
-func Stop(p Piece, s Square) bool {
+func Stop(b *Board, p Piece, s Square) bool {
 	if s == OFFBOARD_SQUARE {
 		return true
 	}
-	if occupant := p.Board().Squares[s]; occupant != nil {
+	if occupant := b.Squares[s]; occupant != nil {
 		return true
 	}
 	return false
 }
 
-func KnightMoves(p Piece, cur Square) []Move {
+func KnightMoves(b *Board, p Piece, cur Square) []Move {
 	var moves []Move
-	pos := p.Board().Position
+	pos := b.Position
 	km := LEGALKNIGHTMOVES[cur]
 	// Iterate through legal non captures
 	for _, s := range SquaresFromBitBoard(km &^ pos.Occupied) {
-		moves = append(moves, NewMove(p, s, cur))
+		moves = append(moves, NewMove(p, s, cur, b))
 	}
 	// Iterate through legal captures
 	var opp uint64
@@ -105,10 +103,10 @@ func KnightMoves(p Piece, cur Square) []Move {
 		opp = pos.WhitePieces
 	}
 	for _, s := range SquaresFromBitBoard(km & opp) {
-		move := NewMove(p, s, cur)
-		move.Capture = &Capture{Piece: p.Board().Squares[s], Square: s}
-		if p.Board().Squares[s] == nil {
-			p.Board().Print()
+		move := NewMove(p, s, cur, b)
+		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
+		if b.Squares[s] == nil {
+			b.Print()
 			panic("some knight capture is nil. abort! " + s.String())
 
 		}
@@ -117,9 +115,9 @@ func KnightMoves(p Piece, cur Square) []Move {
 	return moves
 }
 
-func RayMoves(p Piece, cur Square, dir Direction) []Move {
+func RayMoves(b *Board, p Piece, cur Square, dir Direction) []Move {
 	var moves []Move
-	pos := p.Board().Position
+	pos := b.Position
 	// Get the ray attacks in a direction for this square.
 	ra := RAY_ATTACKS[dir][cur]
 	blocker := ra & pos.Occupied
@@ -131,7 +129,7 @@ func RayMoves(p Piece, cur Square, dir Direction) []Move {
 	// THIS IS ALL COPIED BOILERPLATE.. FACTOR THIS OUT.
 	// Iterate through legal non captures
 	for _, s := range SquaresFromBitBoard(ra &^ pos.Occupied) {
-		moves = append(moves, NewMove(p, s, cur))
+		moves = append(moves, NewMove(p, s, cur, b))
 	}
 	// Iterate through legal captures
 	var opp uint64
@@ -142,9 +140,9 @@ func RayMoves(p Piece, cur Square, dir Direction) []Move {
 		opp = pos.WhitePieces
 	}
 	for _, s := range SquaresFromBitBoard(ra & opp) {
-		move := NewMove(p, s, cur)
-		move.Capture = &Capture{Piece: p.Board().Squares[s], Square: s}
-		if p.Board().Squares[s] == nil {
+		move := NewMove(p, s, cur, b)
+		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
+		if b.Squares[s] == nil {
 			panic("some bishop capture is nil. abort! " + s.String())
 
 		}
@@ -152,13 +150,13 @@ func RayMoves(p Piece, cur Square, dir Direction) []Move {
 	}
 	return moves
 }
-func KingMoves(p Piece, cur Square) []Move {
+func KingMoves(b *Board, p Piece, cur Square) []Move {
 	moves := []Move{}
-	pos := p.Board().Position
+	pos := b.Position
 	km := LEGALKINGMOVES[cur]
 	// Iterate through legal non captures
 	for _, s := range SquaresFromBitBoard(km &^ pos.Occupied) {
-		moves = append(moves, NewMove(p, s, cur))
+		moves = append(moves, NewMove(p, s, cur, b))
 	}
 	// Iterate through legal captures
 	var opp uint64
@@ -169,9 +167,9 @@ func KingMoves(p Piece, cur Square) []Move {
 		opp = pos.WhitePieces
 	}
 	for _, s := range SquaresFromBitBoard(km & opp) {
-		move := NewMove(p, s, cur)
-		move.Capture = &Capture{Piece: p.Board().Squares[s], Square: s}
-		if p.Board().Squares[s] == nil {
+		move := NewMove(p, s, cur, b)
+		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
+		if b.Squares[s] == nil {
 			panic("some king capture is nil. abort! " + s.String())
 
 		}
@@ -194,7 +192,7 @@ func PawnAttackingSquares(p Piece, cur Square) []Square {
 	return SquaresFromBitBoard(res)
 }
 
-func PawnMoves(p Piece, cur Square) []Move {
+func PawnMoves(b *Board, p Piece, cur Square) []Move {
 	// Check if the piece can move two squares.
 	var isStartPawn bool
 	var direction int // Which way pawns move.
@@ -210,30 +208,30 @@ func PawnMoves(p Piece, cur Square) []Move {
 	}
 	moves := []Move{}
 	s := GetSquare(cur.Row()+direction, cur.Col())
-	if l, _ := TargetLegal(p, s, false); l {
+	if l, _ := TargetLegal(b, p, s, false); l {
 		// Check for promotion and add the promotions.
 		if s.Row() == 1 || s.Row() == 8 {
-			move := NewMove(p, s, cur)
-			move.Promotion = &Queen{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+			move := NewMove(p, s, cur, b)
+			move.Promotion = &Queen{BasePiece: &BasePiece{C: p.Color()}}
 			moves = append(moves, move)
-			move = NewMove(p, s, cur)
-			move.Promotion = &Bishop{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+			move = NewMove(p, s, cur, b)
+			move.Promotion = &Bishop{BasePiece: &BasePiece{C: p.Color()}}
 			moves = append(moves, move)
-			move = NewMove(p, s, cur)
-			move.Promotion = &Knight{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+			move = NewMove(p, s, cur, b)
+			move.Promotion = &Knight{BasePiece: &BasePiece{C: p.Color()}}
 			moves = append(moves, move)
-			move = NewMove(p, s, cur)
-			move.Promotion = &Rook{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+			move = NewMove(p, s, cur, b)
+			move.Promotion = &Rook{BasePiece: &BasePiece{C: p.Color()}}
 			moves = append(moves, move)
 
 		} else {
-			moves = append(moves, NewMove(p, s, cur))
+			moves = append(moves, NewMove(p, s, cur, b))
 		}
 		// We only can move forward two if we can also move forward one.
 		if isStartPawn {
 			s := GetSquare(cur.Row()+2*direction, cur.Col())
-			if l, _ := TargetLegal(p, s, false); l {
-				m := NewMove(p, s, cur)
+			if l, _ := TargetLegal(b, p, s, false); l {
+				m := NewMove(p, s, cur, b)
 				m.TwoPawnAdvance = true
 				moves = append(moves, m)
 			}
@@ -248,41 +246,41 @@ func PawnMoves(p Piece, cur Square) []Move {
 		if s == OFFBOARD_SQUARE {
 			continue
 		}
-		occupant := p.Board().Squares[s]
+		occupant := b.Squares[s]
 		if occupant != nil && occupant.Color() != p.Color() {
 			if s.Row() == 1 || s.Row() == 8 {
-				move := NewMove(p, s, cur)
+				move := NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
-				move.Promotion = &Queen{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+				move.Promotion = &Queen{BasePiece: &BasePiece{C: p.Color()}}
 				moves = append(moves, move)
-				move = NewMove(p, s, cur)
+				move = NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
-				move.Promotion = &Bishop{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+				move.Promotion = &Bishop{BasePiece: &BasePiece{C: p.Color()}}
 				moves = append(moves, move)
-				move = NewMove(p, s, cur)
+				move = NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
-				move.Promotion = &Knight{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+				move.Promotion = &Knight{BasePiece: &BasePiece{C: p.Color()}}
 				moves = append(moves, move)
-				move = NewMove(p, s, cur)
+				move = NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
-				move.Promotion = &Rook{BasePiece: &BasePiece{B: p.Board(), C: p.Color()}}
+				move.Promotion = &Rook{BasePiece: &BasePiece{C: p.Color()}}
 				moves = append(moves, move)
 
 			} else {
-				move := NewMove(p, s, cur)
+				move := NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
 				moves = append(moves, move)
 			}
 		}
 	}
 	// Check for en passants
-	epSquare := p.Board().EPSquare
+	epSquare := b.EPSquare
 	// If en passant is legal, we migh be able to capture.
 	if epSquare != OFFBOARD_SQUARE {
 		adjToEP := cur.Col()-1 == epSquare.Col() || cur.Col()+1 == epSquare.Col()
 		if p.Color() == WHITE && cur.Row() == 5 && adjToEP {
-			move := NewMove(p, GetSquare(6, epSquare.Col()), cur)
-			capturedPiece := p.Board().Squares[epSquare]
+			move := NewMove(p, GetSquare(6, epSquare.Col()), cur, b)
+			capturedPiece := b.Squares[epSquare]
 			if capturedPiece == nil {
 				panic(fmt.Sprintf("capture on %v is nil", epSquare))
 			}
@@ -290,8 +288,8 @@ func PawnMoves(p Piece, cur Square) []Move {
 			moves = append(moves, move)
 		}
 		if p.Color() == BLACK && cur.Row() == 4 && adjToEP {
-			move := NewMove(p, GetSquare(3, epSquare.Col()), cur)
-			capturedPiece := p.Board().Squares[epSquare]
+			move := NewMove(p, GetSquare(3, epSquare.Col()), cur, b)
+			capturedPiece := b.Squares[epSquare]
 			if capturedPiece == nil {
 				panic(fmt.Sprintf("capture on %v is nil", epSquare))
 			}
@@ -310,10 +308,6 @@ func (bp *BasePiece) LegalMoves() []Move {
 // The nil piece.
 func (bp *BasePiece) String() string {
 	return "x"
-}
-
-func (bp *BasePiece) Board() *Board {
-	return bp.B
 }
 
 func (bp *BasePiece) Value() float64 {

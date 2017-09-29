@@ -79,25 +79,25 @@ func HandleFenBoardRow(row string, b *Board, rowNum int) error {
 		square := GetSquare(rowNum, colNum)
 		switch char {
 		case 'p':
-			b.Squares[square] = &Pawn{&BasePiece{C: BLACK, B: b}}
+			b.Squares[square] = &Pawn{&BasePiece{C: BLACK}}
 		case 'P':
-			b.Squares[square] = &Pawn{&BasePiece{C: WHITE, B: b}}
+			b.Squares[square] = &Pawn{&BasePiece{C: WHITE}}
 		case 'b':
-			b.Squares[square] = &Bishop{&BasePiece{C: BLACK, B: b}}
+			b.Squares[square] = &Bishop{&BasePiece{C: BLACK}}
 		case 'B':
-			b.Squares[square] = &Bishop{&BasePiece{C: WHITE, B: b}}
+			b.Squares[square] = &Bishop{&BasePiece{C: WHITE}}
 		case 'n':
-			b.Squares[square] = &Knight{&BasePiece{C: BLACK, B: b}}
+			b.Squares[square] = &Knight{&BasePiece{C: BLACK}}
 		case 'N':
-			b.Squares[square] = &Knight{&BasePiece{C: WHITE, B: b}}
+			b.Squares[square] = &Knight{&BasePiece{C: WHITE}}
 		case 'q':
-			b.Squares[square] = &Queen{&BasePiece{C: BLACK, B: b}}
+			b.Squares[square] = &Queen{&BasePiece{C: BLACK}}
 		case 'Q':
-			b.Squares[square] = &Queen{&BasePiece{C: WHITE, B: b}}
+			b.Squares[square] = &Queen{&BasePiece{C: WHITE}}
 		case 'k':
-			b.Squares[square] = &King{&BasePiece{C: BLACK, B: b}}
+			b.Squares[square] = &King{&BasePiece{C: BLACK}}
 		case 'K':
-			b.Squares[square] = &King{&BasePiece{C: WHITE, B: b}}
+			b.Squares[square] = &King{&BasePiece{C: WHITE}}
 		case 'r':
 			ks := false
 			qs := false
@@ -107,7 +107,7 @@ func HandleFenBoardRow(row string, b *Board, rowNum int) error {
 			if square.Col() == 8 {
 				ks = true
 			}
-			b.Squares[square] = &Rook{&BasePiece{C: BLACK, B: b}, qs, ks}
+			b.Squares[square] = &Rook{&BasePiece{C: BLACK}, qs, ks}
 		case 'R':
 			ks := false
 			qs := false
@@ -117,7 +117,7 @@ func HandleFenBoardRow(row string, b *Board, rowNum int) error {
 			if square.Col() == 8 {
 				ks = true
 			}
-			b.Squares[square] = &Rook{&BasePiece{C: WHITE, B: b}, qs, ks}
+			b.Squares[square] = &Rook{&BasePiece{C: WHITE}, qs, ks}
 		default:
 			return fmt.Errorf("fen notation has unrecognized char: %v", string(char))
 		}

@@ -5,14 +5,14 @@ type King struct {
 	*BasePiece
 }
 
-func (p *King) LegalMoves() []Move {
-	moves := KingMoves(p, p.Board().PieceSet[p])
-	moves = append(moves, CastlingMoves(p, p.Board().PieceSet[p])...)
+func (p *King) LegalMoves(b *Board) []Move {
+	moves := KingMoves(b, p, b.PieceSet[p])
+	moves = append(moves, CastlingMoves(b, p, b.PieceSet[p])...)
 	return moves
 }
 
 // AttackBitboard returns the bitboard for the pieces under attack by this king.
-func (p *King) AttackBitboard(cur Square) uint64 {
+func (p *King) AttackBitboard(b *Board, cur Square) uint64 {
 	km := LEGALKINGMOVES[cur]
 	return km
 }

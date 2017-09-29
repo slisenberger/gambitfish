@@ -30,31 +30,31 @@ func DefaultBoard() *Board {
 	for i := 1; i <= 8; i++ {
 		blackPawnSquare := GetSquare(7, i)
 		whitePawnSquare := GetSquare(2, i)
-		b.Squares[blackPawnSquare] = &Pawn{&BasePiece{C: BLACK, B: b}}
+		b.Squares[blackPawnSquare] = &Pawn{&BasePiece{C: BLACK}}
 
-		b.Squares[whitePawnSquare] = &Pawn{&BasePiece{C: WHITE, B: b}}
+		b.Squares[whitePawnSquare] = &Pawn{&BasePiece{C: WHITE}}
 	}
 	// Add rooks.
-	b.Squares[0] = &Rook{&BasePiece{C: WHITE, B: b}, false, true}
-	b.Squares[7] = &Rook{&BasePiece{C: WHITE, B: b}, true, false}
-	b.Squares[56] = &Rook{&BasePiece{C: BLACK, B: b}, false, true}
-	b.Squares[63] = &Rook{&BasePiece{C: BLACK, B: b}, true, false}
+	b.Squares[0] = &Rook{&BasePiece{C: WHITE}, false, true}
+	b.Squares[7] = &Rook{&BasePiece{C: WHITE}, true, false}
+	b.Squares[56] = &Rook{&BasePiece{C: BLACK}, false, true}
+	b.Squares[63] = &Rook{&BasePiece{C: BLACK}, true, false}
 	// Add &Knights.
-	b.Squares[1] = &Knight{&BasePiece{C: WHITE, B: b}}
-	b.Squares[6] = &Knight{&BasePiece{C: WHITE, B: b}}
-	b.Squares[57] = &Knight{&BasePiece{C: BLACK, B: b}}
-	b.Squares[62] = &Knight{&BasePiece{C: BLACK, B: b}}
+	b.Squares[1] = &Knight{&BasePiece{C: WHITE}}
+	b.Squares[6] = &Knight{&BasePiece{C: WHITE}}
+	b.Squares[57] = &Knight{&BasePiece{C: BLACK}}
+	b.Squares[62] = &Knight{&BasePiece{C: BLACK}}
 	// Add &Bishops.
-	b.Squares[2] = &Bishop{&BasePiece{C: WHITE, B: b}}
-	b.Squares[5] = &Bishop{&BasePiece{C: WHITE, B: b}}
-	b.Squares[58] = &Bishop{&BasePiece{C: BLACK, B: b}}
-	b.Squares[61] = &Bishop{&BasePiece{C: BLACK, B: b}}
+	b.Squares[2] = &Bishop{&BasePiece{C: WHITE}}
+	b.Squares[5] = &Bishop{&BasePiece{C: WHITE}}
+	b.Squares[58] = &Bishop{&BasePiece{C: BLACK}}
+	b.Squares[61] = &Bishop{&BasePiece{C: BLACK}}
 	// Add queens
-	b.Squares[3] = &Queen{&BasePiece{C: WHITE, B: b}}
-	b.Squares[59] = &Queen{&BasePiece{C: BLACK, B: b}}
+	b.Squares[3] = &Queen{&BasePiece{C: WHITE}}
+	b.Squares[59] = &Queen{&BasePiece{C: BLACK}}
 	// Add Kings
-	b.Squares[4] = &King{&BasePiece{C: WHITE, B: b}}
-	b.Squares[60] = &King{&BasePiece{C: BLACK, B: b}}
+	b.Squares[4] = &King{&BasePiece{C: WHITE}}
+	b.Squares[60] = &King{&BasePiece{C: BLACK}}
 	b.InitPieceSet()
 	b.Position = Position{}
 	for p, s := range b.PieceSet {
@@ -268,13 +268,10 @@ func (b *Board) SwitchActivePlayer() {
 func (b *Board) AllLegalMoves() []Move {
 	var moves []Move
 	for piece, _ := range b.PieceSet {
-		if piece == nil {
-			continue
-		}
 		if piece.Color() != b.Active {
 			continue
 		}
-		m := piece.LegalMoves()
+		m := piece.LegalMoves(b)
 		for _, move := range m {
 			ApplyMove(b, move)
 			if !IsCheck(b, b.Active) {
@@ -321,11 +318,16 @@ func IsCheck(b *Board, c Color) bool {
 func GetAttackBitboard(b *Board, c Color) uint64 {
 	var res uint64
 	res = 0
-	for piece, s := range b.PieceSet {
-		if piece.Color() != c {
-			continue
-		}
-		res = res | piece.AttackBitboard(s)
+	var pcs uint64
+	switch c {
+	case WHITE:
+		pcs = b.Position.WhitePieces
+	case BLACK:
+		pcs = b.Position.BlackPieces
+	}
+
+	for _, s := range SquaresFromBitBoard(pcs) {
+		res = res | b.Squares[s].AttackBitboard(b, s)
 	}
 	return res
 }

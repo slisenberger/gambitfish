@@ -14,7 +14,7 @@ func TestPerft(t *testing.T) {
 		{
 			name:  "starting board",
 			fen:   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-			moves: []int{20, 400, 8902, 197281},
+			moves: []int{20, 400, 8902, 197281, 4865609},
 		}, {
 			name:  "kiwipete",
 			fen:   "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0",

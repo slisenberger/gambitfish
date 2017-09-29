@@ -5,12 +5,12 @@ type Knight struct {
 	*BasePiece
 }
 
-func (p *Knight) LegalMoves() []Move {
-	return KnightMoves(p, p.Board().PieceSet[p])
+func (p *Knight) LegalMoves(b *Board) []Move {
+	return KnightMoves(b, p, b.PieceSet[p])
 }
 
 // AttackBitboard returns the bitboard for the pieces under attack by this king.
-func (p *Knight) AttackBitboard(cur Square) uint64 {
+func (p *Knight) AttackBitboard(b *Board, cur Square) uint64 {
 	km := LEGALKNIGHTMOVES[cur]
 	return km
 }

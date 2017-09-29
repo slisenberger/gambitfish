@@ -1,6 +1,5 @@
 package search
 
-import "fmt"
 import "math"
 import "../../game"
 import "../evaluate"
@@ -9,7 +8,7 @@ import "../evaluate"
 // We reach depth 0 with pending captures.
 // This should eventually be controlled, but for now we max quiescence search
 // another nodes.
-const MAX_QUIESCENCE_DEPTH = -3
+const MAX_QUIESCENCE_DEPTH = -2
 
 // An Alpha Beta Negamax implementation. Function stolen from here:
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning
@@ -41,11 +40,11 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	if over || depth == MAX_QUIESCENCE_DEPTH || (depth <= 0 && IsQuiet(b)) {
 		return e.Evaluate(b), nil
 	}
-	// TODO(slisenberger): ignoring book moves, seeing if we can do decent
+	// TODO(slisenberger): I'd like to eventually ignore book moves, seeing if we can do decent
 	// from the opening.
-	//	if bm := BookMove(b); bm != nil {
-	//		return 0.0, bm
-	//	}
+	if bm := BookMove(b); bm != nil {
+		return 0.0, bm
+	}
 
 	var best game.Move
 	var eval float64

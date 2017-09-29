@@ -9,19 +9,19 @@ type Rook struct {
 
 var ROOK_DIRS = []Direction{N, S, E, W}
 
-func (p *Rook) LegalMoves() []Move {
+func (p *Rook) LegalMoves(b *Board) []Move {
 	moves := []Move{}
 	for _, dir := range ROOK_DIRS {
-		m := RayMoves(p, p.Board().PieceSet[p], dir)
+		m := RayMoves(b, p, b.PieceSet[p], dir)
 		moves = append(moves, m...)
 	}
 	return moves
 }
 
-func (p *Rook) AttackBitboard(cur Square) uint64 {
+func (p *Rook) AttackBitboard(b *Board, cur Square) uint64 {
 	var res uint64
 	res = 0
-	pos := p.Board().Position
+	pos := b.Position
 	for _, dir := range ROOK_DIRS {
 		// Get the ray attacks in a direction for this square.
 		ra := RAY_ATTACKS[dir][cur]

@@ -43,9 +43,9 @@ func (m Move) String() string {
 	return mv
 }
 
-func NewMove(p Piece, square Square, old Square) Move {
-	qr := p.Board().qsCastlingRights
-	kr := p.Board().ksCastlingRights
+func NewMove(p Piece, square Square, old Square, b *Board) Move {
+	qr := b.qsCastlingRights
+	kr := b.ksCastlingRights
 	return Move{
 		Piece:     p,
 		Square:    square,
@@ -62,7 +62,7 @@ func NewMove(p Piece, square Square, old Square) Move {
 			WHITE: kr[WHITE],
 			BLACK: kr[BLACK],
 		},
-		PrevEPSquare:   p.Board().EPSquare,
+		PrevEPSquare:   b.EPSquare,
 		TwoPawnAdvance: false,
 	}
 }

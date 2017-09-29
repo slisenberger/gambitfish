@@ -7,10 +7,10 @@ type Queen struct {
 
 var QUEEN_DIRS = []Direction{N, S, E, W, NW, NE, SW, SE}
 
-func (p *Queen) LegalMoves() []Move {
+func (p *Queen) LegalMoves(b *Board) []Move {
 	moves := []Move{}
 	for _, dir := range QUEEN_DIRS {
-		m := RayMoves(p, p.Board().PieceSet[p], dir)
+		m := RayMoves(b, p, b.PieceSet[p], dir)
 		moves = append(moves, m...)
 	}
 	return moves
@@ -21,10 +21,10 @@ func (p *Queen) LegalMoves() []Move {
 	//return append(moves, columnMoves...)
 }
 
-func (p *Queen) AttackBitboard(cur Square) uint64 {
+func (p *Queen) AttackBitboard(b *Board, cur Square) uint64 {
 	var res uint64
 	res = 0
-	pos := p.Board().Position
+	pos := b.Position
 	for _, dir := range QUEEN_DIRS {
 		// Get the ray attacks in a direction for this square.
 		ra := RAY_ATTACKS[dir][cur]

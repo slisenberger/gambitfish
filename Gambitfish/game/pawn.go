@@ -5,11 +5,11 @@ type Pawn struct {
 	*BasePiece
 }
 
-func (p *Pawn) LegalMoves() []Move {
-	return PawnMoves(p, p.Board().PieceSet[p])
+func (p *Pawn) LegalMoves(b *Board) []Move {
+	return PawnMoves(b, p, b.PieceSet[p])
 }
 
-func (p *Pawn) AttackBitboard(cur Square) uint64 {
+func (p *Pawn) AttackBitboard(b *Board, cur Square) uint64 {
 	var res uint64
 	res = 0
 	switch p.Color() {
