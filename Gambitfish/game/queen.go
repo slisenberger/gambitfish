@@ -2,7 +2,7 @@
 package game
 
 type Queen struct {
-	*BasePiece
+	C Color
 }
 
 var QUEEN_DIRS = []Direction{N, S, E, W, NW, NE, SW, SE}

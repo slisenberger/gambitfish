@@ -30,31 +30,31 @@ func DefaultBoard() *Board {
 	for i := 1; i <= 8; i++ {
 		blackPawnSquare := GetSquare(7, i)
 		whitePawnSquare := GetSquare(2, i)
-		b.Squares[blackPawnSquare] = &Pawn{&BasePiece{C: BLACK}}
+		b.Squares[blackPawnSquare] = &Pawn{C: BLACK}
 
-		b.Squares[whitePawnSquare] = &Pawn{&BasePiece{C: WHITE}}
+		b.Squares[whitePawnSquare] = &Pawn{C: WHITE}
 	}
 	// Add rooks.
-	b.Squares[0] = &Rook{&BasePiece{C: WHITE}, false, true}
-	b.Squares[7] = &Rook{&BasePiece{C: WHITE}, true, false}
-	b.Squares[56] = &Rook{&BasePiece{C: BLACK}, false, true}
-	b.Squares[63] = &Rook{&BasePiece{C: BLACK}, true, false}
+	b.Squares[0] = &Rook{WHITE, false, true}
+	b.Squares[7] = &Rook{WHITE, true, false}
+	b.Squares[56] = &Rook{BLACK, false, true}
+	b.Squares[63] = &Rook{BLACK, true, false}
 	// Add &Knights.
-	b.Squares[1] = &Knight{&BasePiece{C: WHITE}}
-	b.Squares[6] = &Knight{&BasePiece{C: WHITE}}
-	b.Squares[57] = &Knight{&BasePiece{C: BLACK}}
-	b.Squares[62] = &Knight{&BasePiece{C: BLACK}}
+	b.Squares[1] = &Knight{C: WHITE}
+	b.Squares[6] = &Knight{C: WHITE}
+	b.Squares[57] = &Knight{C: BLACK}
+	b.Squares[62] = &Knight{C: BLACK}
 	// Add &Bishops.
-	b.Squares[2] = &Bishop{&BasePiece{C: WHITE}}
-	b.Squares[5] = &Bishop{&BasePiece{C: WHITE}}
-	b.Squares[58] = &Bishop{&BasePiece{C: BLACK}}
-	b.Squares[61] = &Bishop{&BasePiece{C: BLACK}}
+	b.Squares[2] = &Bishop{C: WHITE}
+	b.Squares[5] = &Bishop{C: WHITE}
+	b.Squares[58] = &Bishop{C: BLACK}
+	b.Squares[61] = &Bishop{C: BLACK}
 	// Add queens
-	b.Squares[3] = &Queen{&BasePiece{C: WHITE}}
-	b.Squares[59] = &Queen{&BasePiece{C: BLACK}}
+	b.Squares[3] = &Queen{C: WHITE}
+	b.Squares[59] = &Queen{C: BLACK}
 	// Add Kings
-	b.Squares[4] = &King{&BasePiece{C: WHITE}}
-	b.Squares[60] = &King{&BasePiece{C: BLACK}}
+	b.Squares[4] = &King{C: WHITE}
+	b.Squares[60] = &King{C: BLACK}
 	b.InitPieceSet()
 	b.Position = Position{}
 	for p, s := range b.PieceSet {

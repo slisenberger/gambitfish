@@ -2,7 +2,7 @@
 package game
 
 type Knight struct {
-	*BasePiece
+	C Color
 }
 
 func (p *Knight) LegalMoves(b *Board) []Move {

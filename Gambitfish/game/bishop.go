@@ -2,7 +2,7 @@
 package game
 
 type Bishop struct {
-	*BasePiece
+	C Color
 }
 
 var BISHOP_DIRS = []Direction{NE, NW, SE, SW}

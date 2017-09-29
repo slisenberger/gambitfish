@@ -79,25 +79,25 @@ func HandleFenBoardRow(row string, b *Board, rowNum int) error {
 		square := GetSquare(rowNum, colNum)
 		switch char {
 		case 'p':
-			b.Squares[square] = &Pawn{&BasePiece{C: BLACK}}
+			b.Squares[square] = &Pawn{C: BLACK}
 		case 'P':
-			b.Squares[square] = &Pawn{&BasePiece{C: WHITE}}
+			b.Squares[square] = &Pawn{C: WHITE}
 		case 'b':
-			b.Squares[square] = &Bishop{&BasePiece{C: BLACK}}
+			b.Squares[square] = &Bishop{C: BLACK}
 		case 'B':
-			b.Squares[square] = &Bishop{&BasePiece{C: WHITE}}
+			b.Squares[square] = &Bishop{C: WHITE}
 		case 'n':
-			b.Squares[square] = &Knight{&BasePiece{C: BLACK}}
+			b.Squares[square] = &Knight{C: BLACK}
 		case 'N':
-			b.Squares[square] = &Knight{&BasePiece{C: WHITE}}
+			b.Squares[square] = &Knight{C: WHITE}
 		case 'q':
-			b.Squares[square] = &Queen{&BasePiece{C: BLACK}}
+			b.Squares[square] = &Queen{C: BLACK}
 		case 'Q':
-			b.Squares[square] = &Queen{&BasePiece{C: WHITE}}
+			b.Squares[square] = &Queen{C: WHITE}
 		case 'k':
-			b.Squares[square] = &King{&BasePiece{C: BLACK}}
+			b.Squares[square] = &King{C: BLACK}
 		case 'K':
-			b.Squares[square] = &King{&BasePiece{C: WHITE}}
+			b.Squares[square] = &King{C: WHITE}
 		case 'r':
 			ks := false
 			qs := false
@@ -107,7 +107,7 @@ func HandleFenBoardRow(row string, b *Board, rowNum int) error {
 			if square.Col() == 8 {
 				ks = true
 			}
-			b.Squares[square] = &Rook{&BasePiece{C: BLACK}, qs, ks}
+			b.Squares[square] = &Rook{BLACK, qs, ks}
 		case 'R':
 			ks := false
 			qs := false
@@ -117,7 +117,7 @@ func HandleFenBoardRow(row string, b *Board, rowNum int) error {
 			if square.Col() == 8 {
 				ks = true
 			}
-			b.Squares[square] = &Rook{&BasePiece{C: WHITE}, qs, ks}
+			b.Squares[square] = &Rook{WHITE, qs, ks}
 		default:
 			return fmt.Errorf("fen notation has unrecognized char: %v", string(char))
 		}

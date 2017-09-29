@@ -42,9 +42,9 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	}
 	// TODO(slisenberger): I'd like to eventually ignore book moves, seeing if we can do decent
 	// from the opening.
-	if bm := BookMove(b); bm != nil {
-		return 0.0, bm
-	}
+	//	if bm := BookMove(b); bm != nil {
+	//		return 0.0, bm
+	//	}
 
 	var best game.Move
 	var eval float64

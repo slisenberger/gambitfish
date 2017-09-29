@@ -2,7 +2,7 @@
 package game
 
 type Rook struct {
-	*BasePiece
+	C  Color
 	KS bool
 	QS bool
 }

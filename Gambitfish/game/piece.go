@@ -48,14 +48,6 @@ type Piece interface {
 	Type() PieceType
 }
 
-type BasePiece struct {
-	C Color
-}
-
-func (bp *BasePiece) Color() Color {
-	return bp.C
-}
-
 // TargetLegal returns true if a candidate piece can move to the
 // desired square. It also optionally returns a piece that will
 // be captured.
@@ -212,16 +204,16 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 		// Check for promotion and add the promotions.
 		if s.Row() == 1 || s.Row() == 8 {
 			move := NewMove(p, s, cur, b)
-			move.Promotion = &Queen{BasePiece: &BasePiece{C: p.Color()}}
+			move.Promotion = &Queen{C: p.Color()}
 			moves = append(moves, move)
 			move = NewMove(p, s, cur, b)
-			move.Promotion = &Bishop{BasePiece: &BasePiece{C: p.Color()}}
+			move.Promotion = &Bishop{C: p.Color()}
 			moves = append(moves, move)
 			move = NewMove(p, s, cur, b)
-			move.Promotion = &Knight{BasePiece: &BasePiece{C: p.Color()}}
+			move.Promotion = &Knight{C: p.Color()}
 			moves = append(moves, move)
 			move = NewMove(p, s, cur, b)
-			move.Promotion = &Rook{BasePiece: &BasePiece{C: p.Color()}}
+			move.Promotion = &Rook{C: p.Color()}
 			moves = append(moves, move)
 
 		} else {
@@ -244,19 +236,19 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 			if s.Row() == 1 || s.Row() == 8 {
 				move := NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
-				move.Promotion = &Queen{BasePiece: &BasePiece{C: p.Color()}}
+				move.Promotion = &Queen{C: p.Color()}
 				moves = append(moves, move)
 				move = NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
-				move.Promotion = &Bishop{BasePiece: &BasePiece{C: p.Color()}}
+				move.Promotion = &Bishop{C: p.Color()}
 				moves = append(moves, move)
 				move = NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
-				move.Promotion = &Knight{BasePiece: &BasePiece{C: p.Color()}}
+				move.Promotion = &Knight{C: p.Color()}
 				moves = append(moves, move)
 				move = NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
-				move.Promotion = &Rook{BasePiece: &BasePiece{C: p.Color()}}
+				move.Promotion = &Rook{C: p.Color()}
 				moves = append(moves, move)
 
 			} else {
@@ -293,22 +285,22 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 	return moves
 }
 
-// The nil piece can't move.
-func (bp *BasePiece) LegalMoves() []Move {
-	return []Move{}
+// TEMPORARY BOILERPLATE TO REMOVE BASEPIECE, will eventually make better.
+func (p *King) Color() Color {
+	return p.C
 }
-
-// The nil piece.
-func (bp *BasePiece) String() string {
-	return "x"
+func (p *Knight) Color() Color {
+	return p.C
 }
-
-func (bp *BasePiece) Value() float64 {
-	return 0.0
+func (p *Bishop) Color() Color {
+	return p.C
 }
-func (bp *BasePiece) Graphic() string {
-	return ""
+func (p *Rook) Color() Color {
+	return p.C
 }
-func (bp *BasePiece) Type() PieceType {
-	return NULLPIECE
+func (p *Queen) Color() Color {
+	return p.C
+}
+func (p *Pawn) Color() Color {
+	return p.C
 }

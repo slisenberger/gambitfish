@@ -2,7 +2,7 @@
 package game
 
 type Pawn struct {
-	*BasePiece
+	C Color
 }
 
 func (p *Pawn) LegalMoves(b *Board) []Move {

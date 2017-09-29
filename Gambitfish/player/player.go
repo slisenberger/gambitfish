@@ -28,6 +28,7 @@ func (p *AIPlayer) MakeMove(b *game.Board) error {
 	var move *game.Move
 	for d := 1; d <= p.Depth; d++ {
 		eval, move = search.AlphaBetaSearch(b, p.Evaluator, d, math.Inf(-1), math.Inf(1))
+		fmt.Println(fmt.Sprintf("iteration %v: best move is %v", d, move))
 	}
 	t := time.Since(start)
 	fmt.Println(fmt.Sprintf("evaluation over in: %v", t))
