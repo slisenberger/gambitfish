@@ -107,11 +107,11 @@ func InitPawnAttacks() {
 		s := Square(i)
 		if s.Col() > 1 {
 			wbb = wbb | (pos << 7)
-			bbb = wbb | (pos << 9)
+			bbb = bbb | (pos >> 9)
 		}
 		if s.Col() < 8 {
 			wbb = wbb | (pos << 9)
-			bbb = wbb | (pos << 7)
+			bbb = bbb | (pos >> 7)
 		}
 		WHITEPAWNATTACKS[i] = wbb
 		BLACKPAWNATTACKS[i] = bbb
