@@ -3,6 +3,10 @@ package game
 
 type EvalPrecision int
 
+// The transposition table holding a list of previously seen positions and
+// their evaluation.
+var TranspositionTable = map[uint64]TTEntry{}
+
 const (
 	EvalExact = EvalPrecision(iota)
 	EvalLowerBound

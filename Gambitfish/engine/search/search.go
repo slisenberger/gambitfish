@@ -1,5 +1,6 @@
 package search
 
+import "fmt"
 import "math"
 import "../../game"
 import "../evaluate"
@@ -8,32 +9,16 @@ import "../evaluate"
 // We reach depth 0 with pending captures.
 // This should eventually be controlled, but for now we max quiescence search
 // another nodes.
-const MAX_QUIESCENCE_DEPTH = -1
-
-// The transposition table holding a list of previously seen positions and
-// their evaluation.
-var transpositionTable = map[uint64]game.TTEntry{}
+const MAX_QUIESCENCE_DEPTH = -3
 
 // An Alpha Beta Negamax implementation. Function stolen from here:
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning
 func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta float64) (float64, *game.Move) {
-	over, _ := b.CalculateGameOver()
-	if over || depth == MAX_QUIESCENCE_DEPTH || (depth <= 0 && IsQuiet(b)) {
-		return e.Evaluate(b), nil
-	}
-	// TODO(slisenberger): ignoring book moves, seeing if we can do decent
-	// from the opening.
-	//	if bm := BookMove(b); bm != nil {
-	//		return 0.0, bm
-	//	}
-
 	// Store original values for transposition table.
 	alphaOrig := alpha
-	var best game.Move
-	var eval float64
 	// Check the transposition table for work we've already done, and either
 	// return or update our cutoffs.
-	if entry, ok := transpositionTable[game.ZobristHash(b)]; ok && entry.Depth >= depth {
+	if entry, ok := game.TranspositionTable[game.ZobristHash(b)]; ok && entry.Depth >= depth {
 		switch entry.Precision {
 		case game.EvalExact:
 			return entry.Eval, &entry.BestMove
@@ -46,12 +31,26 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 				beta = entry.Eval
 			}
 		}
-		if alpha > beta {
+		if alpha >= beta {
 			return entry.Eval, &entry.BestMove
 		}
 	}
+	over, _ := b.CalculateGameOver()
 
-	moves := game.OrderMoves(b.AllLegalMoves())
+	// Evaluate any leaf nodes.
+	if over || depth == MAX_QUIESCENCE_DEPTH || (depth <= 0 && IsQuiet(b)) {
+		return e.Evaluate(b), nil
+	}
+	// TODO(slisenberger): ignoring book moves, seeing if we can do decent
+	// from the opening.
+	//	if bm := BookMove(b); bm != nil {
+	//		return 0.0, bm
+	//	}
+
+	var best game.Move
+	var eval float64
+
+	moves := game.OrderMoves(b, b.AllLegalMoves())
 	// If we are past our depth limit, we are only in quiescence search.
 	// In quiescence search, only search remaining captures.
 	if depth <= 0 {
@@ -94,7 +93,7 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	} else {
 		entry.Precision = game.EvalExact
 	}
-	transpositionTable[hash] = entry
+	game.TranspositionTable[hash] = entry
 	return bestVal, &best
 }
 

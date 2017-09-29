@@ -68,7 +68,7 @@ func NewMove(p Piece, square Square, old Square) Move {
 }
 
 // Order the moves in an intelligent way for alpha beta pruning.
-func OrderMoves(moves []Move) []Move {
+func OrderMoves(b *Board, moves []Move) []Move {
 	// Just to get things off the ground, we'll shuffle the moves, just to get some variety
 	// in the AI vs AI games.
 	for i := range moves {
@@ -78,9 +78,21 @@ func OrderMoves(moves []Move) []Move {
 	// This is our result array and map of seen moves
 	res := make([]Move, len(moves))
 	seen := make(map[string]bool, len(moves))
-	// Loop through the move list n times
-	for i := 0; i < len(moves); i++ {
 
+	i := 0
+
+	// Start with what we already believe the best move is.
+	if entry, ok := TranspositionTable[ZobristHash(b)]; ok {
+		res[0] = entry.BestMove
+		seen[entry.BestMove.String()] = true
+		i = 1
+	}
+
+	// Loop through the move list the rest of the times for other orderings.
+	for {
+		if i >= len(moves) {
+			break
+		}
 		// Find MVV/LVA captures
 		mvv := 0.0    // Most valuable victim
 		lva := 1000.0 // least valuable attacker seeing that victim so far.
@@ -112,6 +124,7 @@ func OrderMoves(moves []Move) []Move {
 			res[i] = bestNonCapture
 			seen[bestNonCapture.String()] = true
 		}
+		i++
 	}
 	return res
 }
