@@ -69,24 +69,49 @@ func NewMove(p Piece, square Square, old Square) Move {
 
 // Order the moves in an intelligent way for alpha beta pruning.
 func OrderMoves(moves []Move) []Move {
-	// We now want to return the moves in a smart order (e.g., try checks and captures.)
 	// Just to get things off the ground, we'll shuffle the moves, just to get some variety
 	// in the AI vs AI games.
 	for i := range moves {
 		j := rand.Intn(i + 1)
 		moves[i], moves[j] = moves[j], moves[i]
 	}
-	captures := []Move{}
-	nonCaptures := []Move{}
-	for _, m := range moves {
-		if m.Capture != nil {
-			captures = append(captures, m)
+	// This is our result array and map of seen moves
+	res := make([]Move, len(moves))
+	seen := make(map[string]bool, len(moves))
+	// Loop through the move list n times
+	for i := 0; i < len(moves); i++ {
+
+		// Find MVV/LVA captures
+		mvv := 0.0   // Most valuable victim
+		lva := 100.0 // least valuable attacker seeing that victim so far.
+		var best Move
+		var bestNonCapture Move
+		for _, m := range moves {
+			// Skip moves we've already ordered
+			if seen[m.String()] {
+				continue
+			}
+			if m.Capture != nil {
+				// If it's our new best mvv, and also least valuable attacker,
+				// it's the best move so far.
+				if m.Capture.Piece.Value() >= mvv && m.Piece.Value() < lva {
+					mvv = m.Capture.Piece.Value()
+					lva = m.Piece.Value()
+					best = m
+				}
+			} else {
+				bestNonCapture = m
+			}
+		}
+		// Add to results, and don't loop through this move again.
+		// If we found a victim at all.
+		if mvv > 0.0 {
+			res[i] = best
+			seen[best.String()] = true
 		} else {
-			nonCaptures = append(nonCaptures, m)
+			res[i] = bestNonCapture
+			seen[bestNonCapture.String()] = true
 		}
 	}
-	results := []Move{}
-	results = append(results, captures...)
-	results = append(results, nonCaptures...)
-	return results
+	return res
 }
