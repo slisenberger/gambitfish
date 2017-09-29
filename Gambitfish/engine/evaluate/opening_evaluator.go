@@ -12,8 +12,8 @@ var centerAttackingWeights = []float64{
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, .1, .1, 0, 0, 0,
-	0, 0, .1, .2, .2, .1, 0, 0,
-	0, 0, .1, .2, .2, .1, 0, 0,
+	0, 0, .1, .3, .3, .1, 0, 0,
+	0, 0, .1, .3, .3, .1, 0, 0,
 	0, 0, 0, .1, .1, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -42,23 +42,38 @@ func (m OpeningEvaluator) Evaluate(b *game.Board) float64 {
 		}
 	}
 	// Penalize knights and bishops on starting squares.
-	var startPenalty = .15
+	var startPenalty = .25
 	switch b.Active {
 	case game.WHITE:
 		if wStartBishops&b.Position.WhiteBishops > 0 {
 			res -= startPenalty * float64(len(game.SquaresFromBitBoard(wStartBishops&b.Position.WhiteBishops)))
 
 		}
+		if wStartKnights&b.Position.WhiteKnights > 0 {
+			res -= startPenalty * float64(len(game.SquaresFromBitBoard(wStartKnights&b.Position.WhiteKnights)))
+
+		}
 		if bStartBishops&b.Position.BlackBishops > 0 {
-			res += startPenalty * float64(len(game.SquaresFromBitBoard(wStartBishops&b.Position.WhiteBishops)))
+			res += startPenalty * float64(len(game.SquaresFromBitBoard(bStartBishops&b.Position.BlackBishops)))
+		}
+		if bStartKnights&b.Position.BlackKnights > 0 {
+			res += startPenalty * float64(len(game.SquaresFromBitBoard(bStartKnights&b.Position.BlackKnights)))
 		}
 
 	case game.BLACK:
 		if wStartBishops&b.Position.WhiteBishops > 0 {
 			res += startPenalty * float64(len(game.SquaresFromBitBoard(wStartBishops&b.Position.WhiteBishops)))
+
+		}
+		if wStartKnights&b.Position.WhiteKnights > 0 {
+			res += startPenalty * float64(len(game.SquaresFromBitBoard(wStartKnights&b.Position.WhiteKnights)))
+
 		}
 		if bStartBishops&b.Position.BlackBishops > 0 {
-			res -= startPenalty * float64(len(game.SquaresFromBitBoard(wStartBishops&b.Position.WhiteBishops)))
+			res -= startPenalty * float64(len(game.SquaresFromBitBoard(bStartBishops&b.Position.BlackBishops)))
+		}
+		if bStartKnights&b.Position.BlackKnights > 0 {
+			res -= startPenalty * float64(len(game.SquaresFromBitBoard(bStartKnights&b.Position.BlackKnights)))
 		}
 	}
 	return res
