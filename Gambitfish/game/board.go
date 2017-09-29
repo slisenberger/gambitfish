@@ -329,3 +329,28 @@ func GetAttackBitboard(b *Board, c Color) uint64 {
 	}
 	return res
 }
+
+// Returns the hash value for this board.
+func ZobristHash(b *Board) uint64 {
+	var hash uint64
+	hash = 0
+	for p, s := range b.PieceSet {
+		hash = hash ^ ZOBRISTPIECES[p.Color()][p.Type()][s]
+	}
+	if b.Active == WHITE {
+		hash = hash ^ ZOBRISTTURN
+	}
+	if b.qsCastlingRights[WHITE] {
+		hash = hash ^ ZOBRISTWQS
+	}
+	if b.qsCastlingRights[BLACK] {
+		hash = hash ^ ZOBRISTBQS
+	}
+	if b.ksCastlingRights[WHITE] {
+		hash = hash ^ ZOBRISTWKS
+	}
+	if b.ksCastlingRights[BLACK] {
+		hash = hash ^ ZOBRISTBKS
+	}
+	return hash
+}

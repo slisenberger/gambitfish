@@ -3,6 +3,8 @@
 // move positions.
 package game
 
+import "math/rand"
+
 // The preprocessed set of squares a piece can move to for a given
 // index.
 var LEGALKINGMOVES [64]uint64
@@ -31,11 +33,27 @@ var RAY_ATTACKS map[Direction][64]uint64
 var WHITEPAWNATTACKS [64]uint64
 var BLACKPAWNATTACKS [64]uint64
 
+// The preprocessed random numbers to be used for zobrist hash keys.
+// It is a map of color-> piece -> square
+var ZOBRISTPIECES map[int]map[int][64]uint64
+
+// A random number indicating turn to move.
+var ZOBRISTTURN uint64
+
+// Random numbers for castling rights.
+var ZOBRISTWKS uint64
+var ZOBRISTWQS uint64
+var ZOBRISTBKS uint64
+var ZOBRISTBQS uint64
+
+// TODO(slisenberger): include en passant. I just want to try something.
+
 func InitInternalData() {
 	LEGALKINGMOVES = LegalKingMovesDict()
 	LEGALKNIGHTMOVES = LegalKnightMovesDict()
 	InitRayAttacks()
 	InitPawnAttacks()
+	InitZobristNumbers()
 }
 
 // InitRayAttacks initializes the set of bitboards for ray movements
@@ -116,4 +134,30 @@ func InitPawnAttacks() {
 		WHITEPAWNATTACKS[i] = wbb
 		BLACKPAWNATTACKS[i] = bbb
 	}
+}
+
+// Initializes the set of random numbers necessary to hash positions.
+// See https://chessprogramming.wikispaces.com/Zobrist+Hashing
+func InitZobristNumbers() {
+	rand.Seed(time.Now().UTC().UnixNano())
+	ZOBRISTPIECES = map[int]map[int][64]uint64{}
+	colors := []Color{WHITE, BLACK}
+	pieces := []int{PAWN, BISHOP, KNIGHT, ROOK, QUEEN, KING}
+	for _, c := range colors {
+		piecemap := map[int][64]uint64{}
+		for _, p := range pieces {
+			squares := make([]uint64, 64)
+			for i := 0; i < 63; i++ {
+				squares[i] = rand.Uint64()
+
+			}
+			piecemap[p] = squares
+		}
+		ZOBRISTPIECES[colors] = piecemap
+	}
+	ZOBRISTTURN = rand.Uint64()
+	ZOBRISTWKS = rand.Uint64()
+	ZOBRISTWQS = rand.Uint64()
+	ZOBRISTBKS = rand.Uint64()
+	ZOBRISTBQS = rand.Uint64()
 }
