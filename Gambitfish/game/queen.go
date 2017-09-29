@@ -35,12 +35,6 @@ func (p *Queen) AttackBitboard(cur Square) uint64 {
 		}
 		res = res | ra
 	}
-	switch p.Color() {
-	case WHITE:
-		res = res & pos.BlackPieces
-	case BLACK:
-		res = res & pos.WhitePieces
-	}
 	return res
 }
 

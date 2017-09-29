@@ -16,9 +16,6 @@ func (p *Rook) LegalMoves() []Move {
 		moves = append(moves, m...)
 	}
 	return moves
-	// TODO(slisenberger): trying something new with bitboards,
-	// clean this up or revert..
-	// return ColumnAndRowMoves(p, p.Board().PieceSet[p])
 }
 
 func (p *Rook) AttackBitboard(cur Square) uint64 {
@@ -34,12 +31,6 @@ func (p *Rook) AttackBitboard(cur Square) uint64 {
 			ra = ra ^ RAY_ATTACKS[dir][blockSquare]
 		}
 		res = res | ra
-	}
-	switch p.Color() {
-	case WHITE:
-		res = res & pos.BlackPieces
-	case BLACK:
-		res = res & pos.WhitePieces
 	}
 	return res
 }

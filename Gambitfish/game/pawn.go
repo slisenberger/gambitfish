@@ -15,10 +15,8 @@ func (p *Pawn) AttackBitboard(cur Square) uint64 {
 	switch p.Color() {
 	case WHITE:
 		res = WHITEPAWNATTACKS[cur]
-		res = res & p.Board().Position.BlackPieces
 	case BLACK:
 		res = BLACKPAWNATTACKS[cur]
-		res = res & p.Board().Position.WhitePieces
 	}
 	return res
 }

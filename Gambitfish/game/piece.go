@@ -34,11 +34,9 @@ func (c Color) String() string {
 type Piece interface {
 	// Returns an array of all the legal positions this piece can move to.
 	LegalMoves() []Move
-	// Returns a bitboard of all squares with opponents pieces under
+	// Returns a bitboard of all squares under
 	// attack by this piece.
 	AttackBitboard(Square) uint64
-	// Returns a bitboard of all squares with all squares, even unoccupied, under attack by this piece.
-	FullAttackBitboard(Square) uint64
 	// Returns a string representation of this piece.
 	String() string
 	// Returns a unicode graphic representation of this piece.

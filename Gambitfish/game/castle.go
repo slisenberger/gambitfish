@@ -1,37 +1,34 @@
 // Castle.go provides utilities for managing castling.
 package game
 
-var whiteQueensideSquares = []Square{
-	GetSquare(1, 4), GetSquare(1, 3), GetSquare(1, 2),
-}
-var blackQueensideSquares = []Square{
-	GetSquare(8, 4), GetSquare(8, 3), GetSquare(8, 2),
-}
-var whiteKingsideSquares = []Square{
-	GetSquare(1, 6), GetSquare(1, 7),
-}
-var blackKingsideSquares = []Square{
-	GetSquare(8, 6), GetSquare(8, 7),
-}
+// bitboards representing squares relevant to castling decisions.
+var wksMustBeUnoccupied = uint64(0x0000000000000060) // bit for bishop and knight
+var wqsMustBeUnoccupied = uint64(0x000000000000000E) // bit for bishop, knight, queen
+var bksMustBeUnoccupied = uint64(0x6000000000000000)
+var bqsMustBeUnoccupied = uint64(0x0E00000000000000) // bit for bishop, knight, queen
+var wksCantBeAttacked = uint64(0x0000000000000070)   // bit for king, bishop, knight
+var bksCantBeAttacked = uint64(0x7000000000000000)   // bit for king, bishop, knight
+var wqsCantBeAttacked = uint64(0x000000000000001C)   // bit for king, queen, bishop
+var bqsCantBeAttacked = uint64(0x1C00000000000000)   // bit for bishop, queen, king
 
 func CanCastleQueenside(b *Board, c Color) bool {
 	if !b.qsCastlingRights[c] {
 		return false
 	}
-	if IsCheck(b, c) {
-		return false
-	}
-	var castleSquares []Square
+	var unoccupied uint64
+	var kingSlide uint64
 	var rookSquare Square
 	switch c {
 	case 1:
-		castleSquares = whiteQueensideSquares
+		unoccupied = wqsMustBeUnoccupied
+		kingSlide = wqsCantBeAttacked
 		rookSquare = GetSquare(1, 1)
 	case -1:
-		castleSquares = blackQueensideSquares
+		unoccupied = bqsMustBeUnoccupied
+		kingSlide = bqsCantBeAttacked
 		rookSquare = GetSquare(8, 1)
 	}
-	if !CanCastleGeneric(b, c, castleSquares, rookSquare) {
+	if !CanCastleGeneric(b, c, unoccupied, kingSlide, rookSquare) {
 		return false
 	}
 	return true
@@ -44,28 +41,30 @@ func CanCastleKingside(b *Board, c Color) bool {
 	if IsCheck(b, c) {
 		return false
 	}
-	var castleSquares []Square
 	var rookSquare Square
+	var unoccupied uint64
+	var kingSlide uint64
 	switch c {
-	case 1:
-		castleSquares = whiteKingsideSquares
+	case WHITE:
+		unoccupied = wksMustBeUnoccupied
+		kingSlide = wksCantBeAttacked
 		rookSquare = GetSquare(1, 8)
-	case -1:
-		castleSquares = blackKingsideSquares
+	case BLACK:
+		unoccupied = bksMustBeUnoccupied
+		kingSlide = bksCantBeAttacked
 		rookSquare = GetSquare(8, 8)
 	}
-	if !CanCastleGeneric(b, c, castleSquares, rookSquare) {
+	if !CanCastleGeneric(b, c, unoccupied, kingSlide, rookSquare) {
 		return false
 	}
 	return true
 }
 
-func CanCastleGeneric(b *Board, c Color, castleSquares []Square, rookSquare Square) bool {
+func CanCastleGeneric(b *Board, c Color, castleOccupancy uint64, kingSlide uint64, rookSquare Square) bool {
+	atk := GetAttackBitboard(b, -1*c)
 	// Don't castle if there are pieces between.
-	for _, cs := range castleSquares {
-		if b.Squares[cs] != nil {
-			return false
-		}
+	if b.Position.Occupied&castleOccupancy > 0 {
+		return false
 	}
 	// Make sure there's a rook on our target square.
 	r := b.Squares[rookSquare]
@@ -75,20 +74,9 @@ func CanCastleGeneric(b *Board, c Color, castleSquares []Square, rookSquare Squa
 	if r.Type() != ROOK {
 		return false
 	}
-
-	attacking := GetAttacking(b, -1*c)
-	for _, s := range attacking {
-		for i, cs := range castleSquares {
-			// If checking the queenside knight square, stop.
-			if i >= 2 {
-				break
-			}
-			// If any attacked square is our forbidden squares, return false.
-			if s == cs {
-				return false
-			}
-
-		}
+	// Don't castle if any king square is under attack.
+	if atk&kingSlide > 0 {
+		return false
 	}
 
 	return true
