@@ -82,8 +82,8 @@ func OrderMoves(moves []Move) []Move {
 	for i := 0; i < len(moves); i++ {
 
 		// Find MVV/LVA captures
-		mvv := 0.0   // Most valuable victim
-		lva := 100.0 // least valuable attacker seeing that victim so far.
+		mvv := 0.0    // Most valuable victim
+		lva := 1000.0 // least valuable attacker seeing that victim so far.
 		var best Move
 		var bestNonCapture Move
 		for _, m := range moves {

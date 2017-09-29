@@ -7,6 +7,10 @@ func initBlockedPawnBoard() *Board {
 	b.Squares[8] = &Pawn{&BasePiece{C: WHITE, B: b}}
 	b.Squares[16] = &Pawn{&BasePiece{C: WHITE, B: b}}
 	b.InitPieceSet()
+	for p, s := range b.PieceSet {
+		b.Position = SetPiece(b.Position, p, s)
+	}
+	b.Position = UpdateBitboards(b.Position)
 	return b
 }
 
@@ -14,6 +18,10 @@ func initLonePawnThirdRank() *Board {
 	b := &Board{Active: WHITE}
 	b.Squares[16] = &Pawn{&BasePiece{C: WHITE, B: b}}
 	b.InitPieceSet()
+	for p, s := range b.PieceSet {
+		b.Position = SetPiece(b.Position, p, s)
+	}
+	b.Position = UpdateBitboards(b.Position)
 	return b
 }
 
@@ -23,6 +31,10 @@ func initFullPawnCaptures() *Board {
 	b.Squares[16] = &Pawn{&BasePiece{C: BLACK, B: b}}
 	b.Squares[18] = &Pawn{&BasePiece{C: BLACK, B: b}}
 	b.InitPieceSet()
+	for p, s := range b.PieceSet {
+		b.Position = SetPiece(b.Position, p, s)
+	}
+	b.Position = UpdateBitboards(b.Position)
 	return b
 }
 func initPawnBlockedByOtherTeam() *Board {
@@ -30,10 +42,15 @@ func initPawnBlockedByOtherTeam() *Board {
 	b.Squares[8] = &Pawn{&BasePiece{C: WHITE, B: b}}
 	b.Squares[16] = &Pawn{&BasePiece{C: BLACK, B: b}}
 	b.InitPieceSet()
+	for p, s := range b.PieceSet {
+		b.Position = SetPiece(b.Position, p, s)
+	}
+	b.Position = UpdateBitboards(b.Position)
 	return b
 }
 
 func TestLegalPawnMoves(t *testing.T) {
+	InitInternalData()
 	testCases := []struct {
 		name       string
 		board      *Board

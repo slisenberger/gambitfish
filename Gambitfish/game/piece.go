@@ -88,123 +88,6 @@ func Stop(p Piece, s Square) bool {
 	return false
 }
 
-func ColumnAndRowMoves(p Piece, cur Square) []Move {
-	moves := []Move{}
-	// Move in each direction, checking for blocking pieces.
-	// Left in Row.
-	for i := 1; i <= 7; i++ {
-		s := GetSquare(cur.Row(), cur.Col()-i)
-		if l, capture := TargetLegal(p, s, true); l {
-			move := NewMove(p, s, cur)
-			if capture != nil {
-				move.Capture = &Capture{Piece: capture, Square: s}
-			}
-			moves = append(moves, move)
-		}
-		if Stop(p, s) {
-			break
-		}
-	}
-	for i := 1; i <= 7; i++ {
-		s := GetSquare(cur.Row(), cur.Col()+i)
-		if l, capture := TargetLegal(p, s, true); l {
-			move := NewMove(p, s, cur)
-			if capture != nil {
-				move.Capture = &Capture{Piece: capture, Square: s}
-			}
-			moves = append(moves, move)
-		}
-		if Stop(p, s) {
-			break
-		}
-	}
-	for i := 1; i <= 7; i++ {
-		s := GetSquare(cur.Row()+i, cur.Col())
-		if l, capture := TargetLegal(p, s, true); l {
-			move := NewMove(p, s, cur)
-			if capture != nil {
-				move.Capture = &Capture{Piece: capture, Square: s}
-			}
-			moves = append(moves, move)
-		}
-		if Stop(p, s) {
-			break
-		}
-	}
-	for i := 1; i <= 7; i++ {
-		s := GetSquare(cur.Row()-i, cur.Col())
-		if l, capture := TargetLegal(p, s, true); l {
-			move := NewMove(p, s, cur)
-			if capture != nil {
-				move.Capture = &Capture{Piece: capture, Square: s}
-			}
-			moves = append(moves, move)
-		}
-		if Stop(p, s) {
-			break
-		}
-	}
-	return moves
-}
-
-func DiagonalMoves(p Piece, cur Square) []Move {
-	moves := []Move{}
-	// Move in a diagonal, checking for blocking pieces.
-	for i := 1; i <= 7; i++ {
-		s := GetSquare(cur.Row()+i, cur.Col()+i)
-		if l, capture := TargetLegal(p, s, true); l {
-			move := NewMove(p, s, cur)
-			if capture != nil {
-				move.Capture = &Capture{Piece: capture, Square: s}
-			}
-			moves = append(moves, move)
-		}
-		if Stop(p, s) {
-			break
-		}
-	}
-	for i := 1; i <= 7; i++ {
-		s := GetSquare(cur.Row()-i, cur.Col()+i)
-		if l, capture := TargetLegal(p, s, true); l {
-			move := NewMove(p, s, cur)
-			if capture != nil {
-				move.Capture = &Capture{Piece: capture, Square: s}
-			}
-			moves = append(moves, move)
-		}
-		if Stop(p, s) {
-			break
-		}
-	}
-	for i := 1; i <= 7; i++ {
-		s := GetSquare(cur.Row()-i, cur.Col()-i)
-		if l, capture := TargetLegal(p, s, true); l {
-			move := NewMove(p, s, cur)
-			if capture != nil {
-				move.Capture = &Capture{Piece: capture, Square: s}
-			}
-			moves = append(moves, move)
-		}
-		if Stop(p, s) {
-			break
-		}
-	}
-	for i := 1; i <= 7; i++ {
-		s := GetSquare(cur.Row()+i, cur.Col()-i)
-		if l, capture := TargetLegal(p, s, true); l {
-			move := NewMove(p, s, cur)
-			if capture != nil {
-				move.Capture = &Capture{Piece: capture, Square: s}
-			}
-			moves = append(moves, move)
-		}
-		if Stop(p, s) {
-			break
-		}
-	}
-	return moves
-}
-
 func KnightMoves(p Piece, cur Square) []Move {
 	var moves []Move
 	pos := p.Board().Position
@@ -300,36 +183,15 @@ func KingMoves(p Piece, cur Square) []Move {
 
 // Returns the set of squares a pawn is attacking.
 func PawnAttackingSquares(p Piece, cur Square) []Square {
-	var direction int // Which way pawns move.
+	var res uint64
+	res = 0
 	switch p.Color() {
-	case BLACK:
-		direction = -1
-		break
 	case WHITE:
-		direction = 1
-		break
+		res = WHITEPAWNATTACKS[cur]
+	case BLACK:
+		res = BLACKPAWNATTACKS[cur]
 	}
-
-	// Check for side attacks.
-	attacks := []Square{
-		GetSquare(cur.Row()+direction, cur.Col()+1),
-		GetSquare(cur.Row()+direction, cur.Col()-1),
-	}
-	var results []Square
-	for _, attack := range attacks {
-		// If it's not legal to move there, we aren't attacking it.
-		if attack == OFFBOARD_SQUARE {
-			continue
-		}
-		// We aren't attacking if it is our own piece.
-		occupant := p.Board().Squares[attack]
-		if occupant != nil && occupant.Color() == p.Color() {
-			continue
-		}
-		// Else, it's fine.
-		results = append(results, attack)
-	}
-	return results
+	return SquaresFromBitBoard(res)
 }
 
 func PawnMoves(p Piece, cur Square) []Move {
