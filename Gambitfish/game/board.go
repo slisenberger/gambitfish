@@ -294,12 +294,12 @@ func (b *Board) CalculateGameOver() (bool, Color) {
 
 // Returns true if the board state results in the Color c's king being in check.
 func IsCheck(b *Board, c Color) bool {
-	atk := GetAttackBitboard(b, c)
+	atk := GetAttackBitboard(b, -1*c)
 	switch c {
 	case WHITE:
-		return atk&b.Position.BlackKing > 0
-	case BLACK:
 		return atk&b.Position.WhiteKing > 0
+	case BLACK:
+		return atk&b.Position.BlackKing > 0
 	}
 
 	return false

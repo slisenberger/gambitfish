@@ -27,6 +27,10 @@ func TestPerft(t *testing.T) {
 			name:  "promotion-antics",
 			fen:   "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
 			moves: []int{44, 1486, 62379, 2103487},
+		}, {
+			name:  "most legal moves",
+			fen:   "R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1",
+			moves: []int{218},
 		},
 	}
 
