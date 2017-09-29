@@ -12,8 +12,8 @@ var centerAttackingWeights = []float64{
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, .1, .1, 0, 0, 0,
-	0, 0, .1, .3, .3, .1, 0, 0,
-	0, 0, .1, .3, .3, .1, 0, 0,
+	0, 0, .1, .35, .35, .1, 0, 0,
+	0, 0, .1, .35, .35, .1, 0, 0,
 	0, 0, 0, .1, .1, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -42,7 +42,7 @@ func (m OpeningEvaluator) Evaluate(b *game.Board) float64 {
 		}
 	}
 	// Penalize knights and bishops on starting squares.
-	var startPenalty = .25
+	var startPenalty = .3
 	switch b.Active {
 	case game.WHITE:
 		if wStartBishops&b.Position.WhiteBishops > 0 {

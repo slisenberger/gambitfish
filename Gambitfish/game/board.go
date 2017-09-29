@@ -169,12 +169,15 @@ func ApplyMove(b *Board, m Move) {
 	}
 	// Affect castling state of captured rooks.
 	if m.Capture != nil {
-		if m.Capture.Piece.Type() == ROOK {
-			if m.Capture.Square.Col() == 1 {
-				b.qsCastlingRights[m.Capture.Piece.Color()] = false
-			} else if m.Capture.Square.Col() == 8 {
-				b.ksCastlingRights[m.Capture.Piece.Color()] = false
-			}
+		switch m.Capture.Square {
+		case A8:
+			b.qsCastlingRights[BLACK] = false
+		case H8:
+			b.ksCastlingRights[BLACK] = false
+		case A1:
+			b.qsCastlingRights[WHITE] = false
+		case H1:
+			b.ksCastlingRights[WHITE] = false
 		}
 	}
 	// Apply En Passant state
@@ -242,8 +245,10 @@ func UndoMove(b *Board, m Move) {
 	}
 
 	// Reapply original castling rights.
-	b.qsCastlingRights = m.PrevQSCastlingRights
-	b.ksCastlingRights = m.PrevKSCastlingRights
+	b.qsCastlingRights[WHITE] = m.PrevQSCastlingRights[WHITE]
+	b.qsCastlingRights[BLACK] = m.PrevQSCastlingRights[BLACK]
+	b.ksCastlingRights[WHITE] = m.PrevKSCastlingRights[WHITE]
+	b.ksCastlingRights[BLACK] = m.PrevKSCastlingRights[BLACK]
 
 	// Reapply original en passant column.
 	b.EPSquare = m.PrevEPSquare
