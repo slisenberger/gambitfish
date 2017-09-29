@@ -17,6 +17,7 @@ func main() {
 		Evaluators: []evaluate.Evaluator{
 			evaluate.MaterialEvaluator{},
 			evaluate.MobilityEvaluator{},
+			evaluate.OpeningEvaluator{},
 		},
 	}
 	p1 := player.AIPlayer{Evaluator: e, Depth: 3, Color: game.WHITE}

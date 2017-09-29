@@ -17,9 +17,11 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	if over || depth == MAX_QUIESCENCE_DEPTH || (depth <= 0 && IsQuiet(b)) {
 		return e.Evaluate(b), nil
 	}
-	if bm := BookMove(b); bm != nil {
-		return 0.0, bm
-	}
+	// TODO(slisenberger): ignoring book moves, seeing if we can do decent
+	// from the opening.
+	//	if bm := BookMove(b); bm != nil {
+	//		return 0.0, bm
+	//	}
 	_ = alpha
 	_ = beta
 	var best game.Move
