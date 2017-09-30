@@ -49,17 +49,15 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	var best game.Move
 	var eval float64
 
-	moves := game.OrderMoves(b, b.AllLegalMoves())
+	var moves []game.Move
 	// If we are past our depth limit, we are only in quiescence search.
 	// In quiescence search, only search remaining captures.
+	// TODO(slisenberger): write a separate LegalCaptures routine.
+	// This very well may save time in generating quiescence depth.
 	if depth <= 0 {
-		captures := []game.Move{}
-		for _, move := range moves {
-			if move.Capture != nil {
-				captures = append(captures, move)
-			}
-		}
-		moves = captures
+		moves = game.OrderMoves(b, b.AllLegalCaptures())
+	} else {
+		moves = game.OrderMoves(b, b.AllLegalMoves())
 	}
 	bestVal := math.Inf(-1)
 	for _, move := range moves {
@@ -97,10 +95,5 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 }
 
 func IsQuiet(b *game.Board) bool {
-	for _, m := range b.AllLegalMoves() {
-		if m.Capture != nil {
-			return false
-		}
-	}
-	return true
+	return len(b.AllLegalCaptures()) == 0
 }

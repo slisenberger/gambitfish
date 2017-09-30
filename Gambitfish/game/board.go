@@ -94,6 +94,11 @@ func ApplyMove(b *Board, m Move) {
 	p := m.Piece
 	o := m.Old
 	s := m.Square
+	if p == NULLPIECE {
+		b.Print()
+		fmt.Println(b.AllLegalMoves())
+		panic("nil piece: " + m.String())
+	}
 	// If there's a capture: remove the captured piece.
 	if m.Capture != nil {
 		b.Squares[m.Capture.Square] = NULLPIECE
@@ -259,6 +264,29 @@ func (b *Board) AllLegalMoves() []Move {
 			continue
 		}
 		m := LegalMoves(b, p, Square(s))
+		for _, move := range m {
+			ApplyMove(b, move)
+			if !IsCheck(b, b.Active) {
+				moves = append(moves, move)
+			}
+			UndoMove(b, move)
+		}
+	}
+	return moves
+}
+
+// AllLegalCaptures enumerates all of the legal moves currently available to the
+// active player.
+func (b *Board) AllLegalCaptures() []Move {
+	var moves []Move
+	for s, p := range b.Squares {
+		if p == NULLPIECE {
+			continue
+		}
+		if p.Color() != b.Active {
+			continue
+		}
+		m := LegalCaptures(b, p, Square(s))
 		for _, move := range m {
 			ApplyMove(b, move)
 			if !IsCheck(b, b.Active) {

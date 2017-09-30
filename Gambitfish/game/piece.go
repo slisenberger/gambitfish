@@ -474,6 +474,79 @@ func LegalMoves(b *Board, p Piece, cur Square) []Move {
 	return []Move{}
 }
 
+func LegalCaptures(b *Board, p Piece, cur Square) []Move {
+	moves := []Move{}
+	atk := AttackBitboard(b, p, cur)
+	var opp uint64
+	switch p.Color() {
+	case WHITE:
+		opp = b.Position.BlackPieces
+	case BLACK:
+		opp = b.Position.WhitePieces
+	}
+
+	for _, s := range SquaresFromBitBoard(atk & opp) {
+		isPromotion := p.Type() == PAWN && (s.Row() == 1 || s.Row() == 8)
+		if !isPromotion {
+			move := NewMove(p, s, cur, b)
+			move.Capture = &Capture{Piece: b.Squares[s], Square: s}
+			moves = append(moves, move)
+		} else {
+			move := NewMove(p, s, cur, b)
+			switch p.Color() {
+			case WHITE:
+				move.Promotion = WHITEQUEEN
+			case BLACK:
+				move.Promotion = BLACKQUEEN
+			}
+			moves = append(moves, move)
+			move = NewMove(p, s, cur, b)
+			switch p.Color() {
+			case WHITE:
+				move.Promotion = WHITEBISHOP
+			case BLACK:
+				move.Promotion = BLACKBISHOP
+			}
+			moves = append(moves, move)
+			move = NewMove(p, s, cur, b)
+			switch p.Color() {
+			case WHITE:
+				move.Promotion = WHITEKNIGHT
+			case BLACK:
+				move.Promotion = BLACKKNIGHT
+			}
+			moves = append(moves, move)
+			move = NewMove(p, s, cur, b)
+			switch p.Color() {
+			case WHITE:
+				move.Promotion = WHITEROOK
+			case BLACK:
+				move.Promotion = BLACKROOK
+			}
+			moves = append(moves, move)
+		}
+	}
+	// Do En Passant captures for pawns.
+	if p.Type() == PAWN {
+		// If attacking the en passant square, we can capture there.
+		for _, s := range SquaresFromBitBoard(atk) {
+			if s == b.EPSquare {
+				var move Move
+				switch p.Color() {
+				case WHITE:
+					move = NewMove(p, GetSquare(6, b.EPSquare.Col()), cur, b)
+				case BLACK:
+					move = NewMove(p, GetSquare(3, b.EPSquare.Col()), cur, b)
+				}
+				capturedPiece := b.Squares[b.EPSquare]
+				move.Capture = &Capture{capturedPiece, b.EPSquare}
+				moves = append(moves, move)
+			}
+		}
+	}
+	return moves
+}
+
 // Returns a list of squares under attack by piece p on square cur.
 func AttackBitboard(b *Board, p Piece, cur Square) uint64 {
 	switch p {
