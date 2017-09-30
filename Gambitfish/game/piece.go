@@ -123,11 +123,11 @@ func RayMoves(b *Board, p Piece, cur Square, dir Direction) []Move {
 	var moves []Move
 	pos := b.Position
 	// Get the ray attacks in a direction for this square.
-	ra := RAY_ATTACKS[dir][cur]
+	ra := RayAttacks(dir, cur)
 	blocker := ra & pos.Occupied
 	if blocker > 1 {
 		blockSquare := BitScan(blocker, dir > 0)
-		ra = ra ^ RAY_ATTACKS[dir][blockSquare]
+		ra = ra ^ RayAttacks(dir, blockSquare)
 	}
 	// TODO(slisenberger)
 	// THIS IS ALL COPIED BOILERPLATE.. FACTOR THIS OUT.

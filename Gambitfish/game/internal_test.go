@@ -108,7 +108,7 @@ func TestRayAttacksDict(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		got := SquaresFromBitBoard(RAY_ATTACKS[tc.dir][tc.s])
+		got := SquaresFromBitBoard(RayAttacks(tc.dir, tc.s))
 		if !reflect.DeepEqual(got, tc.want) {
 			t.Errorf("wrong legal ray moves in initialized dict for %v in dir %v: got %v, want %v", tc.s, tc.dir, got, tc.want)
 		}

@@ -28,7 +28,14 @@ const (
 // The preprocessed bitboard of squares a ray piece can move to
 // in a given direction. Each of the 64 squares for each direction
 // has a bitboard of attacking squares.
-var RAY_ATTACKS map[Direction][64]uint64
+var RAY_ATTACKS_N [64]uint64
+var RAY_ATTACKS_NW [64]uint64
+var RAY_ATTACKS_NE [64]uint64
+var RAY_ATTACKS_E [64]uint64
+var RAY_ATTACKS_W [64]uint64
+var RAY_ATTACKS_SE [64]uint64
+var RAY_ATTACKS_S [64]uint64
+var RAY_ATTACKS_SW [64]uint64
 
 // The preprocessed set of squares a pawn can move to in a capture.
 var WHITEPAWNATTACKS [64]uint64
@@ -121,16 +128,15 @@ func LegalKnightMovesDict() [64]uint64 {
 // InitRayAttacks initializes the set of bitboards for ray movements
 // in directions.
 func InitRayAttacks() {
-	RAY_ATTACKS = map[Direction][64]uint64{}
+	var ra [64]uint64
 	dirs := []Direction{NE, N, NW, E, W, SE, S, SW}
 	for _, dir := range dirs {
-		RAY_ATTACKS[dir] = [64]uint64{}
+		ra = [64]uint64{}
 		// Create an entry for each square.
 		var bb uint64
 		var cur uint64
 		var i uint64
 		var j uint64
-		vectors := [64]uint64{}
 		for i = 0; i < 64; i++ {
 			bb = 0
 			cur = 1 << i
@@ -169,9 +175,26 @@ func InitRayAttacks() {
 				}
 				bb = bb | cur
 			}
-			vectors[i] = bb
+			ra[i] = bb
 		}
-		RAY_ATTACKS[dir] = vectors
+		switch dir {
+		case N:
+			RAY_ATTACKS_N = ra
+		case NE:
+			RAY_ATTACKS_NE = ra
+		case NW:
+			RAY_ATTACKS_NW = ra
+		case S:
+			RAY_ATTACKS_S = ra
+		case SE:
+			RAY_ATTACKS_SE = ra
+		case SW:
+			RAY_ATTACKS_SW = ra
+		case E:
+			RAY_ATTACKS_E = ra
+		case W:
+			RAY_ATTACKS_W = ra
+		}
 	}
 }
 
@@ -225,5 +248,29 @@ func InitZobristNumbers() {
 	ZOBRISTBKS = uint64(rand.Uint32())<<32 + uint64(rand.Uint32())
 
 	ZOBRISTBQS = uint64(rand.Uint32())<<32 + uint64(rand.Uint32())
+
+}
+
+// Returns the ray attack bitboard for a given direction and square
+func RayAttacks(d Direction, s Square) uint64 {
+	switch d {
+	case N:
+		return RAY_ATTACKS_N[s]
+	case NE:
+		return RAY_ATTACKS_NE[s]
+	case NW:
+		return RAY_ATTACKS_NW[s]
+	case S:
+		return RAY_ATTACKS_S[s]
+	case SE:
+		return RAY_ATTACKS_SE[s]
+	case SW:
+		return RAY_ATTACKS_SW[s]
+	case W:
+		return RAY_ATTACKS_W[s]
+	case E:
+		return RAY_ATTACKS_E[s]
+	}
+	return 0
 
 }

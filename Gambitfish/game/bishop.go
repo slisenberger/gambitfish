@@ -22,11 +22,11 @@ func BishopAttackBitboard(b *Board, cur Square) uint64 {
 	pos := b.Position
 	for _, dir := range BISHOP_DIRS {
 		// Get the ray attacks in a direction for this square.
-		ra := RAY_ATTACKS[dir][cur]
+		ra := RayAttacks(dir, cur)
 		blocker := ra & pos.Occupied
 		if blocker > 1 {
 			blockSquare := BitScan(blocker, dir > 0)
-			ra = ra ^ RAY_ATTACKS[dir][blockSquare]
+			ra = ra ^ RayAttacks(dir, blockSquare)
 		}
 		res = res | ra
 	}
