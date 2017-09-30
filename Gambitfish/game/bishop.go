@@ -7,18 +7,16 @@ type Bishop struct {
 
 var BISHOP_DIRS = []Direction{NE, NW, SE, SW}
 
-func (p *Bishop) LegalMoves(b *Board) []Move {
+func BishopMoves(b *Board, p Piece, s Square) []Move {
 	var moves []Move
 	for _, dir := range BISHOP_DIRS {
-		m := RayMoves(b, p, b.PieceSet[p], dir)
+		m := RayMoves(b, p, s, dir)
 		moves = append(moves, m...)
 	}
 	return moves
-	// TESTING A NEW WAY OF IMPLEMENTING THIS.
-	//return DiagonalMoves(p, p.Board().PieceSet[p])
 }
 
-func (p *Bishop) AttackBitboard(b *Board, cur Square) uint64 {
+func BishopAttackBitboard(b *Board, cur Square) uint64 {
 	var res uint64
 	res = 0
 	pos := b.Position
@@ -34,25 +32,6 @@ func (p *Bishop) AttackBitboard(b *Board, cur Square) uint64 {
 	}
 	return res
 }
-
-func (p *Bishop) String() string {
-	return "B"
-}
-
-func (p *Bishop) Graphic() string {
-	switch p.Color() {
-	case BLACK:
-		return "♗"
-	case WHITE:
-		return "♝"
-	}
-	return ""
-}
-
 func (p *Bishop) Value() float64 {
 	return 3.0
-}
-
-func (p *Bishop) Type() PieceType {
-	return BISHOP
 }

@@ -37,7 +37,7 @@ func (m Move) String() string {
 		mv += "-"
 	}
 	mv += m.Square.String()
-	if m.Promotion != nil {
+	if m.Promotion != NULLPIECE {
 		mv = fmt.Sprintf("%v=%v", mv, m.Promotion)
 	}
 	return mv
@@ -53,7 +53,7 @@ func NewMove(p Piece, square Square, old Square, b *Board) Move {
 		EnPassant: false,
 		KSCastle:  false,
 		QSCastle:  false,
-		Promotion: nil,
+		Promotion: NULLPIECE,
 		PrevQSCastlingRights: map[Color]bool{
 			WHITE: qr[WHITE],
 			BLACK: qr[BLACK],

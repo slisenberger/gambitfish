@@ -68,7 +68,7 @@ func CanCastleGeneric(b *Board, c Color, castleOccupancy uint64, kingSlide uint6
 	}
 	// Make sure there's a rook on our target square.
 	r := b.Squares[rookSquare]
-	if r == nil {
+	if r == NULLPIECE {
 		return false
 	}
 	if r.Type() != ROOK {
@@ -84,7 +84,7 @@ func CanCastleGeneric(b *Board, c Color, castleOccupancy uint64, kingSlide uint6
 }
 
 // Calculates legal castle moves in the game. Should only be called on kings.
-func CastlingMoves(b *Board, p *King, cur Square) []Move {
+func CastlingMoves(b *Board, p Piece, cur Square) []Move {
 	moves := []Move{}
 	if CanCastleQueenside(b, p.Color()) {
 		s := GetSquare(cur.Row(), cur.Col()-2)

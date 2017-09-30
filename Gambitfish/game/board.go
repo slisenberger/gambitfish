@@ -8,20 +8,10 @@ type Board struct {
 	Position         Position
 	Active           Color
 	Winner           Color
-	PieceSet         map[Piece]Square
 	ksCastlingRights map[Color]bool
 	qsCastlingRights map[Color]bool
 	Move             int
 	EPSquare         Square // The square a pawn was just pushed two forward.
-}
-
-func (b *Board) InitPieceSet() {
-	b.PieceSet = make(map[Piece]Square, 32)
-	for i, piece := range b.Squares {
-		if piece != nil {
-			b.PieceSet[piece] = Square(i)
-		}
-	}
 }
 
 func DefaultBoard() *Board {
@@ -30,35 +20,36 @@ func DefaultBoard() *Board {
 	for i := 1; i <= 8; i++ {
 		blackPawnSquare := GetSquare(7, i)
 		whitePawnSquare := GetSquare(2, i)
-		b.Squares[blackPawnSquare] = &Pawn{C: BLACK}
+		b.Squares[blackPawnSquare] = BLACKPAWN
 
-		b.Squares[whitePawnSquare] = &Pawn{C: WHITE}
+		b.Squares[whitePawnSquare] = WHITEPAWN
 	}
 	// Add rooks.
-	b.Squares[0] = &Rook{WHITE, false, true}
-	b.Squares[7] = &Rook{WHITE, true, false}
-	b.Squares[56] = &Rook{BLACK, false, true}
-	b.Squares[63] = &Rook{BLACK, true, false}
+	b.Squares[0] = WHITEROOK
+	b.Squares[7] = WHITEROOK
+	b.Squares[56] = BLACKROOK
+	b.Squares[63] = BLACKROOK
 	// Add &Knights.
-	b.Squares[1] = &Knight{C: WHITE}
-	b.Squares[6] = &Knight{C: WHITE}
-	b.Squares[57] = &Knight{C: BLACK}
-	b.Squares[62] = &Knight{C: BLACK}
+	b.Squares[1] = WHITEKNIGHT
+	b.Squares[6] = WHITEKNIGHT
+	b.Squares[57] = BLACKKNIGHT
+	b.Squares[62] = BLACKKNIGHT
 	// Add &Bishops.
-	b.Squares[2] = &Bishop{C: WHITE}
-	b.Squares[5] = &Bishop{C: WHITE}
-	b.Squares[58] = &Bishop{C: BLACK}
-	b.Squares[61] = &Bishop{C: BLACK}
+	b.Squares[2] = WHITEBISHOP
+	b.Squares[5] = WHITEBISHOP
+	b.Squares[58] = BLACKBISHOP
+	b.Squares[61] = BLACKBISHOP
 	// Add queens
-	b.Squares[3] = &Queen{C: WHITE}
-	b.Squares[59] = &Queen{C: BLACK}
+	b.Squares[3] = WHITEQUEEN
+	b.Squares[59] = BLACKQUEEN
 	// Add Kings
-	b.Squares[4] = &King{C: WHITE}
-	b.Squares[60] = &King{C: BLACK}
-	b.InitPieceSet()
+	b.Squares[4] = WHITEKING
+	b.Squares[60] = BLACKKING
 	b.Position = Position{}
-	for p, s := range b.PieceSet {
-		b.Position = SetPiece(b.Position, p, s)
+	for s, p := range b.Squares {
+		if p != NULLPIECE {
+			b.Position = SetPiece(b.Position, p, Square(s))
+		}
 	}
 	b.Position = UpdateBitboards(b.Position)
 	b.ksCastlingRights = map[Color]bool{WHITE: true, BLACK: true}
@@ -80,7 +71,7 @@ func (b *Board) Print() {
 		// Get 8 consecutive Squares
 		squares := b.Squares[8*row : 8*row+8]
 		for i, piece := range squares {
-			if piece == nil {
+			if piece == NULLPIECE {
 				newline += "·"
 			} else {
 				newline += piece.Graphic()
@@ -105,21 +96,17 @@ func ApplyMove(b *Board, m Move) {
 	s := m.Square
 	// If there's a capture: remove the captured piece.
 	if m.Capture != nil {
-		delete(b.PieceSet, m.Capture.Piece)
-		b.Squares[m.Capture.Square] = nil
+		b.Squares[m.Capture.Square] = NULLPIECE
 		b.Position = UnSetPiece(b.Position, m.Capture.Piece, m.Capture.Square)
 	}
 	// Then, move the piece to its new square.
 	// Check for promotion of a pawn.
-	if m.Promotion != nil {
-		b.PieceSet[m.Promotion] = s
+	if m.Promotion != NULLPIECE {
 		b.Squares[s] = m.Promotion
 		b.Position = SetPiece(b.Position, m.Promotion, s)
-		delete(b.PieceSet, p)
 	} else {
-		b.PieceSet[p] = s
 		b.Squares[s] = p
-		if p == nil {
+		if p == NULLPIECE {
 			b.Print()
 			panic("nil piece: " + m.String())
 		}
@@ -139,15 +126,14 @@ func ApplyMove(b *Board, m Move) {
 			oldRookSquare = GetSquare(o.Row(), 8)
 		}
 		rook := b.Squares[oldRookSquare]
-		b.PieceSet[rook] = newRookSquare
 		b.Squares[newRookSquare] = rook
 		b.Position = SetPiece(b.Position, rook, newRookSquare)
-		b.Squares[oldRookSquare] = nil
+		b.Squares[oldRookSquare] = NULLPIECE
 		b.Position = UnSetPiece(b.Position, rook, oldRookSquare)
 	}
 	// Then, remove the piece from its old square.
 	b.Position = UnSetPiece(b.Position, p, m.Old)
-	b.Squares[m.Old] = nil
+	b.Squares[m.Old] = NULLPIECE
 	// Modify castling state from rook and king moves.
 	// We know any piece moving from e8, e1, a8, h8, a1, or h8 must
 	// change castling rights.
@@ -202,24 +188,18 @@ func UndoMove(b *Board, m Move) {
 	p := m.Piece
 	o := m.Old
 	s := m.Square
-	// Return the piece to its old square, and undo promotion.
-	if m.Promotion != nil {
-		delete(b.PieceSet, m.Promotion)
-	}
 
 	b.Squares[o] = p
-	b.PieceSet[p] = o
 	b.Position = SetPiece(b.Position, p, o)
 	// Return the square we were on to its old state.
-	b.Squares[s] = nil
-	if m.Promotion != nil {
+	b.Squares[s] = NULLPIECE
+	if m.Promotion != NULLPIECE {
 		b.Position = UnSetPiece(b.Position, m.Promotion, s)
 	} else {
 		b.Position = UnSetPiece(b.Position, p, s)
 	}
 	// Return a captured piece.
 	if m.Capture != nil {
-		b.PieceSet[m.Capture.Piece] = m.Capture.Square
 		b.Squares[m.Capture.Square] = m.Capture.Piece
 		b.Position = SetPiece(b.Position, m.Capture.Piece, m.Capture.Square)
 	}
@@ -237,10 +217,9 @@ func UndoMove(b *Board, m Move) {
 			oldRookSquare = GetSquare(o.Row(), 8)
 		}
 		rook := b.Squares[newRookSquare]
-		b.Squares[newRookSquare] = nil
+		b.Squares[newRookSquare] = NULLPIECE
 		b.Position = UnSetPiece(b.Position, rook, newRookSquare)
 		b.Squares[oldRookSquare] = rook
-		b.PieceSet[rook] = oldRookSquare
 		b.Position = SetPiece(b.Position, rook, oldRookSquare)
 	}
 
@@ -272,11 +251,14 @@ func (b *Board) SwitchActivePlayer() {
 // active player.
 func (b *Board) AllLegalMoves() []Move {
 	var moves []Move
-	for piece, _ := range b.PieceSet {
-		if piece.Color() != b.Active {
+	for s, p := range b.Squares {
+		if p == NULLPIECE {
 			continue
 		}
-		m := piece.LegalMoves(b)
+		if p.Color() != b.Active {
+			continue
+		}
+		m := LegalMoves(b, p, Square(s))
 		for _, move := range m {
 			ApplyMove(b, move)
 			if !IsCheck(b, b.Active) {
@@ -333,12 +315,12 @@ func GetAttackBitboard(b *Board, c Color) uint64 {
 
 	for _, s := range SquaresFromBitBoard(pcs) {
 		p := b.Squares[s]
-		if p == nil {
+		if p == NULLPIECE {
 			b.Print()
 			fmt.Println(fmt.Sprintf("pieces on %v", SquaresFromBitBoard(pcs)))
 			panic("nil piece on square " + s.String())
 		}
-		res = res | p.AttackBitboard(b, s)
+		res = res | AttackBitboard(b, p, s)
 	}
 	return res
 }
@@ -347,8 +329,10 @@ func GetAttackBitboard(b *Board, c Color) uint64 {
 func ZobristHash(b *Board) uint64 {
 	var hash uint64
 	hash = 0
-	for p, s := range b.PieceSet {
-		hash = hash ^ ZOBRISTPIECES[p.Color()][p.Type()][s]
+	for s, p := range b.Squares {
+		if p != NULLPIECE {
+			hash = hash ^ ZOBRISTPIECES[p.Color()][p.Type()][s]
+		}
 	}
 	if b.Active == WHITE {
 		hash = hash ^ ZOBRISTTURN

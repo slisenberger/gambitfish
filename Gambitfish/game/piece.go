@@ -7,14 +7,35 @@ import "fmt"
 type Color int
 
 const (
-	WHITE Color = 1
-	BLACK Color = -1
+	WHITE     Color = 1
+	NULLCOLOR Color = 0
+	BLACK     Color = -1
 )
 
+// Piece represents the color and value combinations of pieces.
+type Piece int
+
+const (
+	NULLPIECE = Piece(iota)
+	WHITEPAWN
+	WHITEKNIGHT
+	WHITEBISHOP
+	WHITEROOK
+	WHITEQUEEN
+	WHITEKING
+	BLACKPAWN
+	BLACKKNIGHT
+	BLACKBISHOP
+	BLACKROOK
+	BLACKQUEEN
+	BLACKKING
+)
+
+// PieceType represents the color-agnostic classification for a piece.
 type PieceType int
 
 const (
-	NULLPIECE = PieceType(iota)
+	NULLPIECETYPE = PieceType(iota)
 	PAWN
 	BISHOP
 	KNIGHT
@@ -31,21 +52,12 @@ func (c Color) String() string {
 	}
 }
 
-type Piece interface {
+type OldPiece interface {
 	// Returns an array of all the legal positions this piece can move to.
 	LegalMoves(*Board) []Move
 	// Returns a bitboard of all squares under
 	// attack by this piece.
 	AttackBitboard(*Board, Square) uint64
-	// Returns a string representation of this piece.
-	String() string
-	// Returns a unicode graphic representation of this piece.
-	Graphic() string
-	// Returns the Color of this piece.
-	Color() Color
-	Value() float64
-	// Returns the type enum of this piece.
-	Type() PieceType
 }
 
 // TargetLegal returns true if a candidate piece can move to the
@@ -53,17 +65,17 @@ type Piece interface {
 // be captured.
 func TargetLegal(b *Board, p Piece, s Square, capture bool) (bool, Piece) {
 	if s == OFFBOARD_SQUARE {
-		return false, nil
+		return false, NULLPIECE
 	}
 	occupant := b.Squares[s]
-	if occupant == nil {
-		return true, nil
+	if occupant == NULLPIECE {
+		return true, NULLPIECE
 	} else {
 		if capture && p.Color() != occupant.Color() {
 			return true, occupant
 		}
 	}
-	return false, nil
+	return false, NULLPIECE
 }
 
 // Returns true if we should stop searching along a ray, because a piece has
@@ -72,13 +84,13 @@ func Stop(b *Board, p Piece, s Square) bool {
 	if s == OFFBOARD_SQUARE {
 		return true
 	}
-	if occupant := b.Squares[s]; occupant != nil {
+	if occupant := b.Squares[s]; occupant != NULLPIECE {
 		return true
 	}
 	return false
 }
 
-func KnightMoves(b *Board, p Piece, cur Square) []Move {
+func LegalKnightMoves(b *Board, p Piece, cur Square) []Move {
 	var moves []Move
 	pos := b.Position
 	km := LEGALKNIGHTMOVES[cur]
@@ -97,7 +109,7 @@ func KnightMoves(b *Board, p Piece, cur Square) []Move {
 	for _, s := range SquaresFromBitBoard(km & opp) {
 		move := NewMove(p, s, cur, b)
 		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
-		if b.Squares[s] == nil {
+		if b.Squares[s] == NULLPIECE {
 			b.Print()
 			panic("some knight capture is nil. abort! " + s.String())
 
@@ -134,7 +146,7 @@ func RayMoves(b *Board, p Piece, cur Square, dir Direction) []Move {
 	for _, s := range SquaresFromBitBoard(ra & opp) {
 		move := NewMove(p, s, cur, b)
 		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
-		if b.Squares[s] == nil {
+		if b.Squares[s] == NULLPIECE {
 			panic("some bishop capture is nil. abort! " + s.String())
 
 		}
@@ -142,7 +154,7 @@ func RayMoves(b *Board, p Piece, cur Square, dir Direction) []Move {
 	}
 	return moves
 }
-func KingMoves(b *Board, p Piece, cur Square) []Move {
+func LegalKingMoves(b *Board, p Piece, cur Square) []Move {
 	moves := []Move{}
 	pos := b.Position
 	km := LEGALKINGMOVES[cur]
@@ -161,7 +173,7 @@ func KingMoves(b *Board, p Piece, cur Square) []Move {
 	for _, s := range SquaresFromBitBoard(km & opp) {
 		move := NewMove(p, s, cur, b)
 		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
-		if b.Squares[s] == nil {
+		if b.Squares[s] == NULLPIECE {
 			panic("some king capture is nil. abort! " + s.String())
 
 		}
@@ -204,16 +216,36 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 		// Check for promotion and add the promotions.
 		if s.Row() == 1 || s.Row() == 8 {
 			move := NewMove(p, s, cur, b)
-			move.Promotion = &Queen{C: p.Color()}
+			switch p.Color() {
+			case WHITE:
+				move.Promotion = WHITEQUEEN
+			case BLACK:
+				move.Promotion = BLACKQUEEN
+			}
 			moves = append(moves, move)
 			move = NewMove(p, s, cur, b)
-			move.Promotion = &Bishop{C: p.Color()}
+			switch p.Color() {
+			case WHITE:
+				move.Promotion = WHITEBISHOP
+			case BLACK:
+				move.Promotion = BLACKBISHOP
+			}
 			moves = append(moves, move)
 			move = NewMove(p, s, cur, b)
-			move.Promotion = &Knight{C: p.Color()}
+			switch p.Color() {
+			case WHITE:
+				move.Promotion = WHITEKNIGHT
+			case BLACK:
+				move.Promotion = BLACKKNIGHT
+			}
 			moves = append(moves, move)
 			move = NewMove(p, s, cur, b)
-			move.Promotion = &Rook{C: p.Color()}
+			switch p.Color() {
+			case WHITE:
+				move.Promotion = WHITEROOK
+			case BLACK:
+				move.Promotion = BLACKROOK
+			}
 			moves = append(moves, move)
 
 		} else {
@@ -232,23 +264,43 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 	// Check for side captures.
 	for _, s := range PawnAttackingSquares(p, cur) {
 		occupant := b.Squares[s]
-		if occupant != nil && occupant.Color() != p.Color() {
+		if occupant != NULLPIECE && occupant.Color() != p.Color() {
 			if s.Row() == 1 || s.Row() == 8 {
 				move := NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
-				move.Promotion = &Queen{C: p.Color()}
+				switch p.Color() {
+				case WHITE:
+					move.Promotion = WHITEQUEEN
+				case BLACK:
+					move.Promotion = BLACKQUEEN
+				}
 				moves = append(moves, move)
 				move = NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
-				move.Promotion = &Bishop{C: p.Color()}
+				switch p.Color() {
+				case WHITE:
+					move.Promotion = WHITEKNIGHT
+				case BLACK:
+					move.Promotion = BLACKKNIGHT
+				}
 				moves = append(moves, move)
 				move = NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
-				move.Promotion = &Knight{C: p.Color()}
+				switch p.Color() {
+				case WHITE:
+					move.Promotion = WHITEBISHOP
+				case BLACK:
+					move.Promotion = BLACKBISHOP
+				}
 				moves = append(moves, move)
 				move = NewMove(p, s, cur, b)
 				move.Capture = &Capture{occupant, s}
-				move.Promotion = &Rook{C: p.Color()}
+				switch p.Color() {
+				case WHITE:
+					move.Promotion = WHITEROOK
+				case BLACK:
+					move.Promotion = BLACKROOK
+				}
 				moves = append(moves, move)
 
 			} else {
@@ -266,7 +318,7 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 		if p.Color() == WHITE && cur.Row() == 5 && adjToEP {
 			move := NewMove(p, GetSquare(6, epSquare.Col()), cur, b)
 			capturedPiece := b.Squares[epSquare]
-			if capturedPiece == nil {
+			if capturedPiece == NULLPIECE {
 				panic(fmt.Sprintf("capture on %v is nil", epSquare))
 			}
 			move.Capture = &Capture{capturedPiece, epSquare}
@@ -275,7 +327,7 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 		if p.Color() == BLACK && cur.Row() == 4 && adjToEP {
 			move := NewMove(p, GetSquare(3, epSquare.Col()), cur, b)
 			capturedPiece := b.Squares[epSquare]
-			if capturedPiece == nil {
+			if capturedPiece == NULLPIECE {
 				panic(fmt.Sprintf("capture on %v is nil", epSquare))
 			}
 			move.Capture = &Capture{capturedPiece, epSquare}
@@ -285,22 +337,138 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 	return moves
 }
 
-// TEMPORARY BOILERPLATE TO REMOVE BASEPIECE, will eventually make better.
-func (p *King) Color() Color {
-	return p.C
+func (p Piece) Color() Color {
+	switch p {
+	case WHITEPAWN, WHITEKNIGHT, WHITEBISHOP, WHITEROOK, WHITEQUEEN, WHITEKING:
+		return WHITE
+	case BLACKPAWN, BLACKKNIGHT, BLACKBISHOP, BLACKROOK, BLACKQUEEN, BLACKKING:
+		return BLACK
+	}
+	return NULLCOLOR
 }
-func (p *Knight) Color() Color {
-	return p.C
+
+func (p Piece) Type() PieceType {
+	switch p {
+	case WHITEPAWN, BLACKPAWN:
+		return PAWN
+	case WHITEKNIGHT, BLACKKNIGHT:
+		return KNIGHT
+	case WHITEBISHOP, BLACKBISHOP:
+		return BISHOP
+	case WHITEROOK, BLACKROOK:
+		return ROOK
+	case WHITEQUEEN, BLACKQUEEN:
+		return QUEEN
+	case WHITEKING, BLACKKING:
+		return KING
+	}
+	return NULLPIECETYPE
 }
-func (p *Bishop) Color() Color {
-	return p.C
+
+func (p Piece) Graphic() string {
+	switch p {
+	case BLACKPAWN:
+		return "♙"
+	case WHITEPAWN:
+		return "♟"
+	case BLACKBISHOP:
+		return "♗"
+	case WHITEBISHOP:
+		return "♝"
+	case BLACKKNIGHT:
+		return "♘"
+	case WHITEKNIGHT:
+		return "♞"
+	case BLACKROOK:
+		return "♖"
+	case WHITEROOK:
+		return "♜"
+	case BLACKQUEEN:
+		return "♕"
+	case WHITEQUEEN:
+		return "♛"
+	case BLACKKING:
+		return "♔"
+	case WHITEKING:
+		return "♚"
+	}
+	return ""
 }
-func (p *Rook) Color() Color {
-	return p.C
+
+func (p Piece) String() string {
+	switch p {
+	case BLACKPAWN, WHITEPAWN:
+		return "P"
+	case BLACKBISHOP, WHITEBISHOP:
+		return "B"
+	case BLACKKNIGHT, WHITEKNIGHT:
+		return "N"
+	case BLACKROOK, WHITEROOK:
+		return "R"
+	case BLACKQUEEN, WHITEQUEEN:
+		return "Q"
+	case BLACKKING, WHITEKING:
+		return "K"
+	}
+	return ""
 }
-func (p *Queen) Color() Color {
-	return p.C
+
+func (p Piece) Value() float64 {
+	switch p {
+	case BLACKPAWN, WHITEPAWN:
+		return 1.0
+	case BLACKBISHOP, WHITEBISHOP:
+		return 3.0
+	case BLACKKNIGHT, WHITEKNIGHT:
+		return 3.0
+	case BLACKROOK, WHITEROOK:
+		return 5.0
+	case BLACKQUEEN, WHITEQUEEN:
+		return 9.0
+	case BLACKKING, WHITEKING:
+		return 100.0
+	}
+	return 0.0
 }
-func (p *Pawn) Color() Color {
-	return p.C
+
+// Legal moves returns the legal moves for a given piece on a
+// board on the starting square cur.
+func LegalMoves(b *Board, p Piece, cur Square) []Move {
+	switch p {
+	case WHITEKNIGHT, BLACKKNIGHT:
+		return KnightMoves(b, p, cur)
+	case WHITEBISHOP, BLACKBISHOP:
+		return BishopMoves(b, p, cur)
+	case WHITEROOK, BLACKROOK:
+		return RookMoves(b, p, cur)
+	case WHITEPAWN, BLACKPAWN:
+		return PawnMoves(b, p, cur)
+	case WHITEKING, BLACKKING:
+		return KingMoves(b, p, cur)
+	case WHITEQUEEN, BLACKQUEEN:
+		return QueenMoves(b, p, cur)
+	}
+	return []Move{}
+}
+
+// Returns a list of squares under attack by piece p on square cur.
+func AttackBitboard(b *Board, p Piece, cur Square) uint64 {
+	switch p {
+	case WHITEPAWN:
+		return WHITEPAWNATTACKS[cur]
+	case BLACKPAWN:
+		return BLACKPAWNATTACKS[cur]
+	case WHITEKNIGHT, BLACKKNIGHT:
+		return LEGALKNIGHTMOVES[cur]
+	case WHITEBISHOP, BLACKBISHOP:
+		return BishopAttackBitboard(b, cur)
+	case WHITEROOK, BLACKROOK:
+		return RookAttackBitboard(b, cur)
+	case WHITEQUEEN, BLACKQUEEN:
+		return QueenAttackBitboard(b, cur)
+	case WHITEKING, BLACKKING:
+		return LEGALKINGMOVES[cur]
+	}
+
+	return 0
 }

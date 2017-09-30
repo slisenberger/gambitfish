@@ -22,8 +22,8 @@ func main() {
 			evaluate.OpeningEvaluator{},
 		},
 	}
-	p1 := player.AIPlayer{Evaluator: e, Depth: 2, Color: game.WHITE}
-	p2 := player.AIPlayer{Evaluator: e, Depth: 2, Color: game.BLACK}
+	p1 := player.AIPlayer{Evaluator: e, Depth: 4, Color: game.WHITE}
+	p2 := player.AIPlayer{Evaluator: e, Depth: 4, Color: game.BLACK}
 	b.Print()
 	for i := 0; i < 300; i++ {
 		time.Sleep(1 * time.Second)

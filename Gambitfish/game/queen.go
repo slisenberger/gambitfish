@@ -7,21 +7,16 @@ type Queen struct {
 
 var QUEEN_DIRS = []Direction{N, S, E, W, NW, NE, SW, SE}
 
-func (p *Queen) LegalMoves(b *Board) []Move {
+func QueenMoves(b *Board, p Piece, s Square) []Move {
 	moves := []Move{}
 	for _, dir := range QUEEN_DIRS {
-		m := RayMoves(b, p, b.PieceSet[p], dir)
+		m := RayMoves(b, p, s, dir)
 		moves = append(moves, m...)
 	}
 	return moves
-	// TODO(slisenberger): testing bitboard, clean this up if it works.
-	// TESTING SOMETHING NEW...
-	//moves := DiagonalMoves(p, p.Board().PieceSet[p])
-	//columnMoves := ColumnAndRowMoves(p, p.Board().PieceSet[p])
-	//return append(moves, columnMoves...)
 }
 
-func (p *Queen) AttackBitboard(b *Board, cur Square) uint64 {
+func QueenAttackBitboard(b *Board, cur Square) uint64 {
 	var res uint64
 	res = 0
 	pos := b.Position
@@ -36,26 +31,4 @@ func (p *Queen) AttackBitboard(b *Board, cur Square) uint64 {
 		res = res | ra
 	}
 	return res
-}
-
-func (p *Queen) String() string {
-	return "Q"
-}
-
-func (p *Queen) Graphic() string {
-	switch p.Color() {
-	case BLACK:
-		return "♕"
-	case WHITE:
-		return "♛"
-	}
-	return ""
-}
-
-func (p *Queen) Value() float64 {
-	return 9.0
-}
-
-func (p *Queen) Type() PieceType {
-	return QUEEN
 }

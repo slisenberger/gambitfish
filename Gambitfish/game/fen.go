@@ -56,10 +56,10 @@ func BoardFromFen(s string) (*Board, error) {
 	// TODO(slisenberger): Add En-passant square
 	b.EPSquare = OFFBOARD_SQUARE
 	// TODO(slisenberger): add move count!
-	// Basic board initialization.
-	b.InitPieceSet()
-	for p, s := range b.PieceSet {
-		b.Position = SetPiece(b.Position, p, s)
+	for s, p := range b.Squares {
+		if p != NULLPIECE {
+			b.Position = SetPiece(b.Position, p, Square(s))
+		}
 	}
 	b.Position = UpdateBitboards(b.Position)
 	return b, nil
@@ -79,45 +79,29 @@ func HandleFenBoardRow(row string, b *Board, rowNum int) error {
 		square := GetSquare(rowNum, colNum)
 		switch char {
 		case 'p':
-			b.Squares[square] = &Pawn{C: BLACK}
+			b.Squares[square] = BLACKPAWN
 		case 'P':
-			b.Squares[square] = &Pawn{C: WHITE}
+			b.Squares[square] = WHITEPAWN
 		case 'b':
-			b.Squares[square] = &Bishop{C: BLACK}
+			b.Squares[square] = BLACKBISHOP
 		case 'B':
-			b.Squares[square] = &Bishop{C: WHITE}
+			b.Squares[square] = WHITEBISHOP
 		case 'n':
-			b.Squares[square] = &Knight{C: BLACK}
+			b.Squares[square] = BLACKKNIGHT
 		case 'N':
-			b.Squares[square] = &Knight{C: WHITE}
+			b.Squares[square] = WHITEKNIGHT
 		case 'q':
-			b.Squares[square] = &Queen{C: BLACK}
+			b.Squares[square] = BLACKQUEEN
 		case 'Q':
-			b.Squares[square] = &Queen{C: WHITE}
+			b.Squares[square] = WHITEQUEEN
 		case 'k':
-			b.Squares[square] = &King{C: BLACK}
+			b.Squares[square] = BLACKKING
 		case 'K':
-			b.Squares[square] = &King{C: WHITE}
+			b.Squares[square] = WHITEKING
 		case 'r':
-			ks := false
-			qs := false
-			if square.Col() == 1 {
-				qs = true
-			}
-			if square.Col() == 8 {
-				ks = true
-			}
-			b.Squares[square] = &Rook{BLACK, qs, ks}
+			b.Squares[square] = BLACKROOK
 		case 'R':
-			ks := false
-			qs := false
-			if square.Col() == 1 {
-				qs = true
-			}
-			if square.Col() == 8 {
-				ks = true
-			}
-			b.Squares[square] = &Rook{WHITE, qs, ks}
+			b.Squares[square] = WHITEROOK
 		default:
 			return fmt.Errorf("fen notation has unrecognized char: %v", string(char))
 		}
