@@ -26,11 +26,14 @@ func (m MaterialEvaluator) Evaluate(b *game.Board) float64 {
 			return 0.0
 		}
 	}
-	for piece, _ := range b.PieceSet {
-		if piece.Color() == b.Active {
-			eval += piece.Value()
+	for _, p := range b.Squares {
+		if p == game.NULLPIECE {
+			continue
+		}
+		if p.Color() == b.Active {
+			eval += p.Value()
 		} else {
-			eval -= piece.Value()
+			eval -= p.Value()
 		}
 	}
 	return eval

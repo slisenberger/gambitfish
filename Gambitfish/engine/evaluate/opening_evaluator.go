@@ -32,8 +32,11 @@ var bStartKnights = uint64(0x0000000000000024)
 func (m OpeningEvaluator) Evaluate(b *game.Board) float64 {
 	res := 0.0
 	// For every piece, calculate its attacks, and add the values.
-	for p, cur := range b.PieceSet {
-		for _, s := range game.SquaresFromBitBoard(p.AttackBitboard(b, cur)) {
+	for cur, p := range b.Squares {
+		if p == game.NULLPIECE {
+			continue
+		}
+		for _, s := range game.SquaresFromBitBoard(game.AttackBitboard(b, p, game.Square(cur))) {
 			if p.Color() == b.Active {
 				res += centerAttackingWeights[s]
 			} else {

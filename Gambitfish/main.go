@@ -41,17 +41,6 @@ func main() {
 			p2.MakeMove(b)
 		}
 		b.SwitchActivePlayer()
-		numInPieceSet := len(b.PieceSet)
-		numInSquares := 0
-		for _, piece := range b.Squares {
-			if piece != nil {
-				numInSquares += 1
-			}
-		}
-		if numInPieceSet != numInSquares {
-			fmt.Println(fmt.Sprintf("error in representation of board. Pieceset and square array don't match: pieceset %v, squarearray %v", numInPieceSet, numInSquares))
-
-		}
 
 		fmt.Println("new board: ")
 		b.Print()
