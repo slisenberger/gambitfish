@@ -119,20 +119,25 @@ func LegalKnightMoves(b *Board, p Piece, cur Square) []Move {
 	return moves
 }
 
-func RayMoves(b *Board, p Piece, cur Square, dir Direction) []Move {
+func RayMoves(b *Board, p Piece, cur Square, dirs []Direction) []Move {
 	var moves []Move
 	pos := b.Position
-	// Get the ray attacks in a direction for this square.
-	ra := RayAttacks(dir, cur)
-	blocker := ra & pos.Occupied
-	if blocker > 1 {
-		blockSquare := BitScan(blocker, dir > 0)
-		ra = ra ^ RayAttacks(dir, blockSquare)
+	var allAtk uint64
+	allAtk = 0
+	for _, dir := range dirs {
+		// Get the ray attacks in a direction for this square.
+		ra := RayAttacks(dir, cur)
+		blocker := ra & pos.Occupied
+		if blocker > 1 {
+			blockSquare := BitScan(blocker, dir > 0)
+			ra = ra ^ RayAttacks(dir, blockSquare)
+		}
+		allAtk = allAtk | ra
 	}
 	// TODO(slisenberger)
 	// THIS IS ALL COPIED BOILERPLATE.. FACTOR THIS OUT.
 	// Iterate through legal non captures
-	for _, s := range SquaresFromBitBoard(ra &^ pos.Occupied) {
+	for _, s := range SquaresFromBitBoard(allAtk &^ pos.Occupied) {
 		moves = append(moves, NewMove(p, s, cur, b))
 	}
 	// Iterate through legal captures
@@ -143,7 +148,7 @@ func RayMoves(b *Board, p Piece, cur Square, dir Direction) []Move {
 	case BLACK:
 		opp = pos.WhitePieces
 	}
-	for _, s := range SquaresFromBitBoard(ra & opp) {
+	for _, s := range SquaresFromBitBoard(allAtk & opp) {
 		move := NewMove(p, s, cur, b)
 		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
 		if b.Squares[s] == NULLPIECE {
@@ -154,6 +159,24 @@ func RayMoves(b *Board, p Piece, cur Square, dir Direction) []Move {
 	}
 	return moves
 }
+
+func RayAttackBitboard(b *Board, cur Square, dirs []Direction) uint64 {
+	var res uint64
+	res = 0
+	pos := b.Position
+	for _, dir := range dirs {
+		// Get the ray attacks in a direction for this square.
+		ra := RayAttacks(dir, cur)
+		blocker := ra & pos.Occupied
+		if blocker > 1 {
+			blockSquare := BitScan(blocker, dir > 0)
+			ra = ra ^ RayAttacks(dir, blockSquare)
+		}
+		res = res | ra
+	}
+	return res
+}
+
 func LegalKingMoves(b *Board, p Piece, cur Square) []Move {
 	moves := []Move{}
 	pos := b.Position
