@@ -493,6 +493,7 @@ func LegalCaptures(b *Board, p Piece, cur Square) []Move {
 			moves = append(moves, move)
 		} else {
 			move := NewMove(p, s, cur, b)
+			move.Capture = &Capture{Piece: b.Squares[s], Square: s}
 			switch p.Color() {
 			case WHITE:
 				move.Promotion = WHITEQUEEN
@@ -501,6 +502,7 @@ func LegalCaptures(b *Board, p Piece, cur Square) []Move {
 			}
 			moves = append(moves, move)
 			move = NewMove(p, s, cur, b)
+			move.Capture = &Capture{Piece: b.Squares[s], Square: s}
 			switch p.Color() {
 			case WHITE:
 				move.Promotion = WHITEBISHOP
@@ -509,6 +511,7 @@ func LegalCaptures(b *Board, p Piece, cur Square) []Move {
 			}
 			moves = append(moves, move)
 			move = NewMove(p, s, cur, b)
+			move.Capture = &Capture{Piece: b.Squares[s], Square: s}
 			switch p.Color() {
 			case WHITE:
 				move.Promotion = WHITEKNIGHT
@@ -517,6 +520,7 @@ func LegalCaptures(b *Board, p Piece, cur Square) []Move {
 			}
 			moves = append(moves, move)
 			move = NewMove(p, s, cur, b)
+			move.Capture = &Capture{Piece: b.Squares[s], Square: s}
 			switch p.Color() {
 			case WHITE:
 				move.Promotion = WHITEROOK

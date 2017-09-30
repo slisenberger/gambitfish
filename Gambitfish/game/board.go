@@ -111,10 +111,6 @@ func ApplyMove(b *Board, m Move) {
 		b.Position = SetPiece(b.Position, m.Promotion, s)
 	} else {
 		b.Squares[s] = p
-		if p == NULLPIECE {
-			b.Print()
-			panic("nil piece: " + m.String())
-		}
 		b.Position = SetPiece(b.Position, p, s)
 	}
 	// Check for castling and modify rook state if so.
