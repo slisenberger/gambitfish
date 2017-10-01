@@ -8,7 +8,7 @@ import "../evaluate"
 // We reach depth 0 with pending captures.
 // This should eventually be controlled, but for now we max quiescence search
 // another nodes.
-const MAX_QUIESCENCE_DEPTH = -2
+const MAX_QUIESCENCE_DEPTH = -3
 
 // An Alpha Beta Negamax implementation. Function stolen from here:
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning
@@ -17,7 +17,8 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	alphaOrig := alpha
 	// Check the transposition table for work we've already done, and either
 	// return or update our cutoffs.
-	if entry, ok := game.TranspositionTable[game.ZobristHash(b)]; ok && entry.Depth >= depth {
+	// TODO(slisenberger): temporarily ignoring transposition tables, think it's buggy.
+	if entry, ok := game.TranspositionTable[game.ZobristHash(b)]; ok && entry.Depth >= depth && false {
 		switch entry.Precision {
 		case game.EvalExact:
 			return entry.Eval, &entry.BestMove
