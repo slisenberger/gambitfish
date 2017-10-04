@@ -1,6 +1,7 @@
 package game
 
 import "fmt"
+
 import "math/rand"
 
 type Capture struct {
@@ -71,11 +72,11 @@ func NewMove(p Piece, square Square, old Square, b *Board) Move {
 func OrderMoves(b *Board, moves []Move) []Move {
 	// Just to get things off the ground, we'll shuffle the moves, just to get some variety
 	// in the AI vs AI games.
-	for i := range moves {
-		j := rand.Intn(i + 1)
-		moves[i], moves[j] = moves[j], moves[i]
-	}
-	// This is our result array and map of seen moves
+		for i := range moves {
+			j := rand.Intn(i + 1)
+			moves[i], moves[j] = moves[j], moves[i]
+		}
+	 //This is our result array and map of seen moves
 	res := make([]Move, len(moves))
 	seen := make(map[string]bool, len(moves))
 

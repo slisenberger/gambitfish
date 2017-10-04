@@ -10,6 +10,8 @@ import "../evaluate"
 // another nodes.
 const MAX_QUIESCENCE_DEPTH = -3
 
+const NULL_MOVE_REDUCED_SEARCH_DEPTH = 2
+
 // An Alpha Beta Negamax implementation. Function stolen from here:
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning
 func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta float64) (float64, *game.Move) {
@@ -52,8 +54,6 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	var moves []game.Move
 	// If we are past our depth limit, we are only in quiescence search.
 	// In quiescence search, only search remaining captures.
-	// TODO(slisenberger): write a separate LegalCaptures routine.
-	// This very well may save time in generating quiescence depth.
 	if depth <= 0 {
 		moves = game.OrderMoves(b, b.AllLegalCaptures())
 	} else {
