@@ -37,7 +37,7 @@ func (m OpeningEvaluator) Evaluate(b *game.Board) float64 {
 			continue
 		}
 		for _, s := range game.SquaresFromBitBoard(game.AttackBitboard(b, p, game.Square(cur))) {
-			if p.Color() == b.Active {
+			if p.Color() == game.WHITE {
 				res += centerAttackingWeights[s]
 			} else {
 				res -= centerAttackingWeights[s]
@@ -60,9 +60,5 @@ func (m OpeningEvaluator) Evaluate(b *game.Board) float64 {
 	if bStartKnights&b.Position.BlackKnights > 0 {
 		res += startPenalty * float64(len(game.SquaresFromBitBoard(bStartKnights&b.Position.BlackKnights)))
 	}
-	if b.Active == game.BLACK {
-		res = -1.0 * res
-	}
-
-	return res
+	return float64(b.Active) * res
 }

@@ -136,7 +136,7 @@ func ApplyMove(b *Board, m Move) {
 	b.Position = UnSetPiece(b.Position, p, m.Old)
 	b.Squares[m.Old] = NULLPIECE
 	// Modify castling state from rook and king moves.
-	// We know any piece moving from e8, e1, a8, h8, a1, or h8 must
+	// We know any piece moving from e8, e1, a8, h8, a1, or h1 must
 	// change castling rights.
 	switch m.Old {
 	case A8:

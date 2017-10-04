@@ -20,6 +20,7 @@ func main() {
 			// evaluate.MobilityEvaluator{},
 
 			evaluate.OpeningEvaluator{},
+			evaluate.KingSafetyEvaluator{},
 		},
 	}
 	p1 := player.AIPlayer{Evaluator: e, Depth: 4, Color: game.WHITE}
