@@ -123,25 +123,33 @@ func SetBitOnBoard(board uint64, s Square) uint64 {
 
 // UnSetBitOnBoard updates a single 64 bit int, removing that bit from the board.
 func UnSetBitOnBoard(board uint64, s Square) uint64 {
-	return (board ^ (1 << uint64(s)))
+	return (board &^ (1 << uint64(s)))
 }
 
 // SquaresFromBitBoard returns a list of squares represented by the bits
 // in a bitboard.
 func SquaresFromBitBoard(board uint64) []Square {
 	s := []Square{}
-	i := 0
-	// Count the bits, as long as they exist.
 	for board > 0 {
-		// And the board with 1, if so rsb is set, get the square.
-		if board&uint64(1) > 0 {
-			s = append(s, Square(i))
-		}
-		i++
-		board = board >> 1
+		idx := BitScanForward(board)
+		s = append(s, idx)
+		board = board & (board - 1)
 	}
 	return s
 }
+
+// BITSCAN UTILITIES
+
+// The index for a De Bruijn sequence
+var dbIndex64 = [64]int{
+	0, 1, 48, 2, 57, 49, 28, 3,
+	61, 58, 50, 42, 38, 29, 17, 4,
+	62, 55, 59, 36, 53, 51, 43, 22,
+	45, 39, 33, 30, 24, 18, 12, 5,
+	63, 47, 56, 27, 60, 41, 37, 16,
+	54, 35, 52, 21, 44, 32, 23, 11,
+	46, 26, 40, 15, 34, 20, 31, 10,
+	25, 14, 19, 9, 13, 8, 7, 6}
 
 // BitScan returns the first square encountered in a bitscan. If
 // forward is true, we start at the LSB. Else, we start at the MSB.
@@ -154,27 +162,43 @@ func BitScan(board uint64, forward bool) Square {
 }
 
 func BitScanForward(board uint64) Square {
-	i := 0
+	debruijn64 := uint64(0x03F79D71B4CB0A89)
 	// Count the bits, as long as they exist.
-	for board > 0 {
-		// And the board with 1, if so rsb is set, get the square.
-		if board&uint64(1) > 0 {
-			break
-		}
-		i++
-		board = board >> 1
+	if board == 0 {
+		return Square(64)
 	}
-	return Square(i)
+	return Square(dbIndex64[((board&-board)*debruijn64)>>58])
 }
 
 func BitScanReverse(board uint64) Square {
-	i := 63
-	for board > 0 {
-		if board&uint64(0x8000000000000000) > 0 {
-			break
-		}
-		i--
-		board = board << 1
+	i := 0
+	if board > uint64(0xFFFFFFFF) {
+		board = board >> 32
+		i += 32
+	}
+	if board > uint64(0xFFFF) {
+		board = board >> 16
+		i += 16
+	}
+	if board > uint64(0xFF) {
+		board = board >> 8
+		i += 8
+	}
+	if board > uint64(0xF) {
+		board = board >> 4
+		i += 4
+	}
+	if board > uint64(0x3) {
+		board = board >> 2
+		i += 2
+	}
+	if board > uint64(0x3) {
+		board = board >> 2
+		i += 2
+	}
+	if board > uint64(1) {
+		board = board >> 1
+		i += 1
 	}
 	return Square(i)
 }

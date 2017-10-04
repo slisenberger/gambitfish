@@ -113,8 +113,7 @@ func ApplyMove(b *Board, m Move) {
 		b.Squares[s] = p
 		b.Position = SetPiece(b.Position, p, s)
 	}
-	// Check for castling and modify rook state if so.
-	// New rook squares are relative to king.
+	// Check for castling and modify rook state if so.  // New rook squares are relative to king.
 	if m.QSCastle || m.KSCastle {
 		var newRookSquare Square
 		var oldRookSquare Square
@@ -329,22 +328,10 @@ func IsCheck(b *Board, c Color) bool {
 func GetAttackBitboard(b *Board, c Color) uint64 {
 	var res uint64
 	res = 0
-	var pcs uint64
-	switch c {
-	case WHITE:
-		pcs = b.Position.WhitePieces
-	case BLACK:
-		pcs = b.Position.BlackPieces
-	}
-
-	for _, s := range SquaresFromBitBoard(pcs) {
-		p := b.Squares[s]
-		if p == NULLPIECE {
-			b.Print()
-			fmt.Println(fmt.Sprintf("pieces on %v", SquaresFromBitBoard(pcs)))
-			panic("nil piece on square " + s.String())
+	for s, p := range b.Squares {
+		if p != NULLPIECE && p.Color() == c {
+			res = res | AttackBitboard(b, p, Square(s))
 		}
-		res = res | AttackBitboard(b, p, s)
 	}
 	return res
 }

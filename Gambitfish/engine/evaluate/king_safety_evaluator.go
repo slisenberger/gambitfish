@@ -58,8 +58,8 @@ func (m KingSafetyEvaluator) Evaluate(b *game.Board) float64 {
 		bkShield = bkbb>>15 | bkbb>>16 | bkbb>>17
 	}
 	// Find and evaluate the pawns one rank in front of the king.
-	wp := game.SquaresFromBitBoard(wkShield & b.Position.WhitePawns)
-	bp := game.SquaresFromBitBoard(bkShield & b.Position.BlackPawns)
+	wp = game.SquaresFromBitBoard(wkShield & b.Position.WhitePawns)
+	bp = game.SquaresFromBitBoard(bkShield & b.Position.BlackPawns)
 
 	eval += SECOND_ROW_PAWN_SHIELD_VALUE * float64(len(wp))
 	eval -= SECOND_ROW_PAWN_SHIELD_VALUE * float64(len(bp))

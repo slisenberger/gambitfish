@@ -52,14 +52,6 @@ func (c Color) String() string {
 	}
 }
 
-type OldPiece interface {
-	// Returns an array of all the legal positions this piece can move to.
-	LegalMoves(*Board) []Move
-	// Returns a bitboard of all squares under
-	// attack by this piece.
-	AttackBitboard(*Board, Square) uint64
-}
-
 // TargetLegal returns true if a candidate piece can move to the
 // desired square. It also optionally returns a piece that will
 // be captured.
@@ -77,19 +69,6 @@ func TargetLegal(b *Board, p Piece, s Square, capture bool) (bool, Piece) {
 	}
 	return false, NULLPIECE
 }
-
-// Returns true if we should stop searching along a ray, because a piece has
-// encountered a blockage.
-func Stop(b *Board, p Piece, s Square) bool {
-	if s == OFFBOARD_SQUARE {
-		return true
-	}
-	if occupant := b.Squares[s]; occupant != NULLPIECE {
-		return true
-	}
-	return false
-}
-
 func LegalKnightMoves(b *Board, p Piece, cur Square) []Move {
 	var moves []Move
 	pos := b.Position

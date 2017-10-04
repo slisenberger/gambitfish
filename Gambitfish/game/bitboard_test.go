@@ -34,5 +34,33 @@ func TestSquaresFromBitboard(t *testing.T) {
 		}
 
 	}
+}
 
+func TestSetBitOnBoard(t *testing.T) {
+	testCases := []struct {
+		name     string
+		bitboard uint64
+		s        Square
+		want     uint64
+	}{
+		{
+			"successfully unsets square on h8",
+			uint64(0x8000000000000000),
+			H8,
+			uint64(0),
+		},
+	}
+
+	for _, tc := range testCases {
+		got := UnSetBitOnBoard(tc.bitboard, tc.s)
+		if got != tc.want {
+			t.Errorf("%v: got %v unsetting square %v, wanted %v", tc.name, got, tc.s, tc.want)
+
+		}
+		got = SetBitOnBoard(got, tc.s)
+		if got != tc.bitboard {
+			t.Errorf("%v: got %v setting square %v, wanted %v", tc.name, got, tc.s, tc.bitboard)
+
+		}
+	}
 }

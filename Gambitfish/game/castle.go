@@ -19,26 +19,20 @@ func CanCastleQueenside(b *Board, c Color) bool {
 	var kingSlide uint64
 	var rookSquare Square
 	switch c {
-	case 1:
+	case WHITE:
 		unoccupied = wqsMustBeUnoccupied
 		kingSlide = wqsCantBeAttacked
-		rookSquare = GetSquare(1, 1)
-	case -1:
+		rookSquare = A1
+	case BLACK:
 		unoccupied = bqsMustBeUnoccupied
 		kingSlide = bqsCantBeAttacked
-		rookSquare = GetSquare(8, 1)
+		rookSquare = A8
 	}
-	if !CanCastleGeneric(b, c, unoccupied, kingSlide, rookSquare) {
-		return false
-	}
-	return true
+	return CanCastleGeneric(b, c, unoccupied, kingSlide, rookSquare)
 }
 
 func CanCastleKingside(b *Board, c Color) bool {
 	if !b.ksCastlingRights[c] {
-		return false
-	}
-	if IsCheck(b, c) {
 		return false
 	}
 	var rookSquare Square
@@ -48,24 +42,17 @@ func CanCastleKingside(b *Board, c Color) bool {
 	case WHITE:
 		unoccupied = wksMustBeUnoccupied
 		kingSlide = wksCantBeAttacked
-		rookSquare = GetSquare(1, 8)
+		rookSquare = H1
 	case BLACK:
 		unoccupied = bksMustBeUnoccupied
 		kingSlide = bksCantBeAttacked
-		rookSquare = GetSquare(8, 8)
+		rookSquare = H8
 	}
-	if !CanCastleGeneric(b, c, unoccupied, kingSlide, rookSquare) {
-		return false
-	}
-	return true
+	return CanCastleGeneric(b, c, unoccupied, kingSlide, rookSquare)
+
 }
 
 func CanCastleGeneric(b *Board, c Color, castleOccupancy uint64, kingSlide uint64, rookSquare Square) bool {
-	atk := GetAttackBitboard(b, -1*c)
-	// Don't castle if there are pieces between.
-	if b.Position.Occupied&castleOccupancy > 0 {
-		return false
-	}
 	// Make sure there's a rook on our target square.
 	r := b.Squares[rookSquare]
 	if r == NULLPIECE {
@@ -74,6 +61,11 @@ func CanCastleGeneric(b *Board, c Color, castleOccupancy uint64, kingSlide uint6
 	if r.Type() != ROOK {
 		return false
 	}
+	// Don't castle if there are pieces between.
+	if b.Position.Occupied&castleOccupancy > 0 {
+		return false
+	}
+	atk := GetAttackBitboard(b, -1*c)
 	// Don't castle if any king square is under attack.
 	if atk&kingSlide > 0 {
 		return false
