@@ -131,7 +131,8 @@ func RayMoves(b *Board, p Piece, cur Square, dirs []Direction) []Move {
 		move := NewMove(p, s, cur, b)
 		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
 		if b.Squares[s] == NULLPIECE {
-			panic("some bishop capture is nil. abort! " + s.String())
+			b.Print()
+			panic("some ray capture is nil. abort! " + s.String())
 
 		}
 		moves = append(moves, move)

@@ -1,5 +1,6 @@
 package search
 
+import "fmt"
 import "math"
 import "../../game"
 import "../evaluate"
@@ -8,13 +9,13 @@ import "../evaluate"
 // We reach depth 0 with pending captures.
 // This should eventually be controlled, but for now we max quiescence search
 // another nodes.
-const MAX_QUIESCENCE_DEPTH = -3
+const MAX_QUIESCENCE_DEPTH = -5
 
 const NULL_MOVE_REDUCED_SEARCH_DEPTH = 2
 
 // An Alpha Beta Negamax implementation. Function stolen from here:
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning
-func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta float64) (float64, *game.Move) {
+func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta float64, nullMove bool) (float64, *game.Move) {
 	// Store original values for transposition table.
 	alphaOrig := alpha
 	// Check the transposition table for work we've already done, and either
@@ -49,7 +50,7 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	}
 
 	// Evaluate any leaf nodes.
-	if depth == MAX_QUIESCENCE_DEPTH || (depth <= 0 && IsQuiet(b)) {
+	if depth <= MAX_QUIESCENCE_DEPTH || (depth <= 0 && IsQuiet(b)) {
 		return e.Evaluate(b), nil
 	}
 	// TODO(slisenberger): I'd like to eventually ignore book moves, seeing if we can do decent
@@ -60,7 +61,6 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 
 	var best game.Move
 	var eval float64
-
 	var moves []game.Move
 	// If we are past our depth limit, we are only in quiescence search.
 	// In quiescence search, only search remaining captures.
@@ -69,11 +69,29 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	} else {
 		moves = game.OrderMoves(b, b.AllLegalMoves())
 	}
+
+	// Try a null move first. If we can prune the search tree without
+	// moving, we should.
+	if nullMove && !game.IsCheck(b, b.Active) {
+		b.SwitchActivePlayer()
+		eval, _ = AlphaBetaSearch(b, e, depth-1-NULL_MOVE_REDUCED_SEARCH_DEPTH, -beta, -alpha, false)
+		b.SwitchActivePlayer()
+		eval = -1.0 * eval
+		if eval >= beta {
+			return eval, nil
+		}
+	}
 	bestVal := math.Inf(-1)
 	for _, move := range moves {
+		if move.Piece == game.NULLPIECE {
+			b.Print()
+			fmt.Println(b.AllLegalCaptures())
+			fmt.Println(moves)
+			panic("somehow am making a null move..")
+		}
 		game.ApplyMove(b, move)
 		b.SwitchActivePlayer()
-		eval, _ = AlphaBetaSearch(b, e, depth-1, -beta, -alpha)
+		eval, _ = AlphaBetaSearch(b, e, depth-1, -beta, -alpha, true)
 		// Undo move and restore player.
 		b.SwitchActivePlayer()
 		game.UndoMove(b, move)
