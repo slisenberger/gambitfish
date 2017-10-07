@@ -171,6 +171,7 @@ func BitScanForward(board uint64) Square {
 }
 
 func BitScanReverse(board uint64) Square {
+
 	i := 0
 	if board > uint64(0xFFFFFFFF) {
 		board = board >> 32
