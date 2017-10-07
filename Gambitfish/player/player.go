@@ -5,6 +5,7 @@ import "errors"
 import "fmt"
 import "math"
 import "os"
+import "strings"
 import "time"
 import "../game"
 import "../engine/evaluate"
@@ -43,6 +44,7 @@ func (p *AIPlayer) MakeMove(b *game.Board) error {
 	}
 	fmt.Println(fmt.Sprintf("AI Player making best move with depth %v: %v, eval %v", p.Depth, move, eval))
 
+	PrintPrincipalVariation(b)
 	game.ApplyMove(b, *move)
 	return nil
 }
@@ -88,4 +90,36 @@ func (p *CommandLinePlayer) MakeMove(b *game.Board) error {
 	}
 	game.ApplyMove(b, move)
 	return nil
+}
+
+// Print principal variation prints the expected best continuation
+// from a given board.
+func PrintPrincipalVariation(b *game.Board) {
+	moves := []game.Move{}
+	// Get the principal variation, change board state.
+	for {
+		entry, ok := game.TranspositionTable[game.ZobristHash(b)]
+		if !ok {
+			break
+		}
+		if entry.Precision == game.EvalExact {
+			moves = append(moves, entry.BestMove)
+			game.ApplyMove(b, entry.BestMove)
+			b.SwitchActivePlayer()
+		} else {
+			break
+		}
+	}
+	// Print the principal variation.
+	fmt.Println("Principal Variation: ")
+	pvStrings := []string{}
+	for _, m := range moves {
+		pvStrings = append(pvStrings, m.String())
+	}
+	fmt.Println(strings.Join(pvStrings, " "))
+	// Undo board state.
+	for i := len(moves) - 1; i >= 0; i-- {
+		b.SwitchActivePlayer()
+		game.UndoMove(b, moves[i])
+	}
 }

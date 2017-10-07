@@ -220,14 +220,6 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 			move := NewMove(p, s, cur, b)
 			switch p.Color() {
 			case WHITE:
-				move.Promotion = WHITEQUEEN
-			case BLACK:
-				move.Promotion = BLACKQUEEN
-			}
-			moves = append(moves, move)
-			move = NewMove(p, s, cur, b)
-			switch p.Color() {
-			case WHITE:
 				move.Promotion = WHITEBISHOP
 			case BLACK:
 				move.Promotion = BLACKBISHOP
@@ -247,6 +239,14 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 				move.Promotion = WHITEROOK
 			case BLACK:
 				move.Promotion = BLACKROOK
+			}
+			moves = append(moves, move)
+			move = NewMove(p, s, cur, b)
+			switch p.Color() {
+			case WHITE:
+				move.Promotion = WHITEQUEEN
+			case BLACK:
+				move.Promotion = BLACKQUEEN
 			}
 			moves = append(moves, move)
 

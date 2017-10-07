@@ -36,10 +36,20 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 			return entry.Eval, &entry.BestMove
 		}
 	}
-	over, _ := b.CalculateGameOver()
+	// Return an eval if the game is over.
+	over, winner := b.CalculateGameOver()
+	if over {
+		if b.Active == winner {
+			return math.Inf(1), nil
+		} else if b.Active == -1*winner {
+			return math.Inf(-1), nil
+		} else {
+			return 0, nil
+		}
+	}
 
 	// Evaluate any leaf nodes.
-	if over || depth == MAX_QUIESCENCE_DEPTH || (depth <= 0 && IsQuiet(b)) {
+	if depth == MAX_QUIESCENCE_DEPTH || (depth <= 0 && IsQuiet(b)) {
 		return e.Evaluate(b), nil
 	}
 	// TODO(slisenberger): I'd like to eventually ignore book moves, seeing if we can do decent
