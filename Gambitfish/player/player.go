@@ -8,7 +8,6 @@ import "os"
 import "strings"
 import "time"
 import "../game"
-import "../engine/evaluate"
 import "../engine/search"
 
 type Player interface {
@@ -17,7 +16,7 @@ type Player interface {
 
 // AIPlayer is a player that makes moves according to AI.
 type AIPlayer struct {
-	Evaluator evaluate.Evaluator
+	Evaluator game.Evaluator
 	Depth     int
 	Color     game.Color
 }

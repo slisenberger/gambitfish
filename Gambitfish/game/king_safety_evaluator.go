@@ -1,6 +1,4 @@
-package evaluate
-
-import "../../game"
+package game
 
 const FIRST_ROW_PAWN_SHIELD_VALUE = .35
 const SECOND_ROW_PAWN_SHIELD_VALUE = .15
@@ -9,17 +7,17 @@ type KingSafetyEvaluator struct{}
 
 // Evaluate returns an estimate of the positional safety of a king
 // according to its pawns.
-func (k KingSafetyEvaluator) Evaluate(b *game.Board) float64 {
+func (k KingSafetyEvaluator) Evaluate(b *Board) float64 {
 	eval := 0.0
 	// Find the king.
 	wkbb := b.Position.WhiteKing
-	wkS := game.SquaresFromBitBoard(wkbb)[0]
+	wkS := SquaresFromBitBoard(wkbb)[0]
 	bkbb := b.Position.BlackKing
 	if bkbb == 0 {
 		b.Print()
 		panic("help")
 	}
-	bkS := game.SquaresFromBitBoard(bkbb)[0]
+	bkS := SquaresFromBitBoard(bkbb)[0]
 	var wkShield uint64
 	var bkShield uint64
 	// Identify the king's pawn shields.
@@ -40,8 +38,8 @@ func (k KingSafetyEvaluator) Evaluate(b *game.Board) float64 {
 	}
 
 	// Find and evaluate the pawns in the pawn shields.
-	wp := game.SquaresFromBitBoard(wkShield & b.Position.WhitePawns)
-	bp := game.SquaresFromBitBoard(bkShield & b.Position.BlackPawns)
+	wp := SquaresFromBitBoard(wkShield & b.Position.WhitePawns)
+	bp := SquaresFromBitBoard(bkShield & b.Position.BlackPawns)
 
 	eval += FIRST_ROW_PAWN_SHIELD_VALUE * float64(len(wp))
 	eval -= FIRST_ROW_PAWN_SHIELD_VALUE * float64(len(bp))
@@ -62,8 +60,8 @@ func (k KingSafetyEvaluator) Evaluate(b *game.Board) float64 {
 		bkShield = bkbb>>15 | bkbb>>16 | bkbb>>17
 	}
 	// Find and evaluate the pawns one rank in front of the king.
-	wp = game.SquaresFromBitBoard(wkShield & b.Position.WhitePawns)
-	bp = game.SquaresFromBitBoard(bkShield & b.Position.BlackPawns)
+	wp = SquaresFromBitBoard(wkShield & b.Position.WhitePawns)
+	bp = SquaresFromBitBoard(bkShield & b.Position.BlackPawns)
 
 	eval += SECOND_ROW_PAWN_SHIELD_VALUE * float64(len(wp))
 	eval -= SECOND_ROW_PAWN_SHIELD_VALUE * float64(len(bp))

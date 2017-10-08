@@ -3,6 +3,7 @@ package game
 import "fmt"
 
 import "math/rand"
+import "math"
 
 type Capture struct {
 	Piece  Piece
@@ -96,6 +97,8 @@ func OrderMoves(b *Board, moves []Move) []Move {
 		lva := 1000.0 // least valuable attacker seeing that victim so far.
 		var best Move
 		var bestNonCapture Move
+		bestNonCaptureEval := math.Inf(-1)
+		e := PieceSquareEvaluator{}
 		for _, m := range moves {
 			// Skip moves we've already ordered
 			if seen[m.String()] {
@@ -110,7 +113,14 @@ func OrderMoves(b *Board, moves []Move) []Move {
 					best = m
 				}
 			} else {
-				bestNonCapture = m
+				// Order non captures by piece value weights.
+				ApplyMove(b, m)
+				eval := e.Evaluate(b)
+				UndoMove(b, m)
+				if eval >= bestNonCaptureEval {
+					bestNonCaptureEval = eval
+					bestNonCapture = m
+				}
 			}
 		}
 		// Add to results, and don't loop through this move again.

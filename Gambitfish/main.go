@@ -3,7 +3,6 @@
 package main
 
 import "./game"
-import "./engine/evaluate"
 import "./player"
 import "fmt"
 import "log"
@@ -22,19 +21,19 @@ func main() {
 	rand.Seed(time.Now().Unix())
 	game.InitInternalData()
 	b := game.DefaultBoard()
-	e := evaluate.CompoundEvaluator{
-		Evaluators: []evaluate.Evaluator{
-			evaluate.MaterialEvaluator{},
-			evaluate.PieceSquareEvaluator{},
+	e := game.CompoundEvaluator{
+		Evaluators: []game.Evaluator{
+			game.MaterialEvaluator{},
+			game.PieceSquareEvaluator{},
 			// We'll turn this on when I like it
-			// evaluate.MobilityEvaluator{},
+			// MobilityEvaluator{},
 
-			evaluate.OpeningEvaluator{},
-			//evaluate.KingSafetyEvaluator{},
+			game.OpeningEvaluator{},
+			//game.KingSafetyEvaluator{},
 		},
 	}
-	p1 := player.AIPlayer{Evaluator: e, Depth: 5, Color: game.WHITE}
-	p2 := player.AIPlayer{Evaluator: e, Depth: 5, Color: game.BLACK}
+	p1 := player.CommandLinePlayer{Color: game.WHITE}
+	p2 := player.AIPlayer{Evaluator: e, Depth: 4, Color: game.BLACK}
 	b.Print()
 	for i := 0; i < 300; i++ {
 		time.Sleep(1 * time.Second)

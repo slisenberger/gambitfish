@@ -1,6 +1,4 @@
-package evaluate
-
-import "../../game"
+package game
 
 // PieceSquareEvaluator consults piece square tables
 type PieceSquareEvaluator struct{}
@@ -34,29 +32,29 @@ var KNIGHT_VALUE_TABLE = [64]float64{
 
 // Evaluates a board based on where pieces are located, as referenced
 // in the piece value tables.
-func (m PieceSquareEvaluator) Evaluate(b *game.Board) float64 {
+func (m PieceSquareEvaluator) Evaluate(b *Board) float64 {
 	eval := 0.0
 	for s, p := range b.Squares {
-		if p == game.NULLPIECE {
+		if p == NULLPIECE {
 			continue
 		}
-		sq := game.Square(s)
+		sq := Square(s)
 
 		c := p.Color()
 		// We need to change our index for black since their board
 		// is mirrored.
-		if c == game.BLACK {
-			sq = game.GetSquare(9-sq.Row(), sq.Col())
+		if c == BLACK {
+			sq = GetSquare(9-sq.Row(), sq.Col())
 		}
 		switch p.Type() {
-		case game.PAWN:
-			if c == game.WHITE {
+		case PAWN:
+			if c == WHITE {
 				eval += PAWN_VALUE_TABLE[sq]
 			} else {
 				eval -= PAWN_VALUE_TABLE[sq]
 			}
-		case game.KNIGHT:
-			if c == game.WHITE {
+		case KNIGHT:
+			if c == WHITE {
 				eval += KNIGHT_VALUE_TABLE[sq]
 			} else {
 				eval -= KNIGHT_VALUE_TABLE[sq]

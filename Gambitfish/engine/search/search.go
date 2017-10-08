@@ -3,7 +3,6 @@ package search
 import "fmt"
 import "math"
 import "../../game"
-import "../evaluate"
 
 // MAX_QUIESCENCE_DEPTH is the number of extra nodes to search if
 // We reach depth 0 with pending captures.
@@ -15,7 +14,7 @@ const NULL_MOVE_REDUCED_SEARCH_DEPTH = 2
 
 // An Alpha Beta Negamax implementation. Function stolen from here:
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning
-func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta float64, nullMove bool) (float64, *game.Move, int) {
+func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta float64, nullMove bool) (float64, *game.Move, int) {
 	// The number of nodes searched.
 	nodes := 0
 	// Store original values for transposition table.

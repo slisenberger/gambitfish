@@ -107,7 +107,7 @@ func RayMoves(b *Board, p Piece, cur Square, dirs []Direction) []Move {
 		// Get the ray attacks in a direction for this square.
 		ra := RayAttacks(dir, cur)
 		blocker := ra & pos.Occupied
-		if blocker > 1 {
+		if blocker >= 1 {
 			blockSquare := BitScan(blocker, dir > 0)
 			ra = ra ^ RayAttacks(dir, blockSquare)
 		}
@@ -148,7 +148,7 @@ func RayAttackBitboard(b *Board, cur Square, dirs []Direction) uint64 {
 		// Get the ray attacks in a direction for this square.
 		ra := RayAttacks(dir, cur)
 		blocker := ra & pos.Occupied
-		if blocker > 1 {
+		if blocker >= 1 {
 			blockSquare := BitScan(blocker, dir > 0)
 			ra = ra ^ RayAttacks(dir, blockSquare)
 		}

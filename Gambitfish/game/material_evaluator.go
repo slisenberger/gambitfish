@@ -1,11 +1,9 @@
-package evaluate
-
-import "../../game"
+package game
 
 type MaterialEvaluator struct{}
 
 // Utility for printing in debugging.
-func ColorToString(c game.Color) string {
+func ColorToString(c Color) string {
 	if c == 1 {
 		return "WHITE"
 	} else {
@@ -14,13 +12,13 @@ func ColorToString(c game.Color) string {
 }
 
 // Evaluates a board by counting the material weights for all remaining pieces.
-func (m MaterialEvaluator) Evaluate(b *game.Board) float64 {
+func (m MaterialEvaluator) Evaluate(b *Board) float64 {
 	eval := 0.0
 	for _, p := range b.Squares {
-		if p == game.NULLPIECE {
+		if p == NULLPIECE {
 			continue
 		}
-		if p.Color() == game.BLACK {
+		if p.Color() == BLACK {
 			eval -= p.Value()
 		} else {
 			eval += p.Value()

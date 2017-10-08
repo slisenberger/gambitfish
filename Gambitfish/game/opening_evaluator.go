@@ -1,8 +1,6 @@
 // Opening evaluator evaluates a position in a way that encourages
 // development in the opening.
-package evaluate
-
-import "../../game"
+package game
 
 type OpeningEvaluator struct{}
 
@@ -29,15 +27,15 @@ var wStartKnights = uint64(0x00000000000000FF)
 // 1. Gives a slight bonus for the number of pieces attacking the center.
 // 2. Gives a slight negative for the number of knights/bishops on their
 // starting squares.
-func (m OpeningEvaluator) Evaluate(b *game.Board) float64 {
+func (m OpeningEvaluator) Evaluate(b *Board) float64 {
 	res := 0.0
 	// For every piece, calculate its attacks, and add the values.
 	for cur, p := range b.Squares {
-		if p == game.NULLPIECE {
+		if p == NULLPIECE {
 			continue
 		}
-		for _, s := range game.SquaresFromBitBoard(game.AttackBitboard(b, p, game.Square(cur))) {
-			if p.Color() == game.WHITE {
+		for _, s := range SquaresFromBitBoard(AttackBitboard(b, p, Square(cur))) {
+			if p.Color() == WHITE {
 				res += centerAttackingWeights[s]
 			} else {
 				res -= centerAttackingWeights[s]
@@ -47,21 +45,21 @@ func (m OpeningEvaluator) Evaluate(b *game.Board) float64 {
 	// Penalize knights and bishops on starting squares.
 	var startPenalty = .35
 	if (wStartBishops & b.Position.WhiteBishops) > 0 {
-		res -= startPenalty * float64(len(game.SquaresFromBitBoard(wStartBishops&b.Position.WhiteBishops)))
+		res -= startPenalty * float64(len(SquaresFromBitBoard(wStartBishops&b.Position.WhiteBishops)))
 
 	}
 	// Right now, avoid double penalizing knights with the PS Tables.
 	if wStartKnights&b.Position.WhiteKnights > 0 && false {
-		res -= startPenalty * float64(len(game.SquaresFromBitBoard(wStartKnights&b.Position.WhiteKnights)))
+		res -= startPenalty * float64(len(SquaresFromBitBoard(wStartKnights&b.Position.WhiteKnights)))
 
 	}
 	if bStartBishops&b.Position.BlackBishops > 0 {
-		res += startPenalty * float64(len(game.SquaresFromBitBoard(bStartBishops&b.Position.BlackBishops)))
+		res += startPenalty * float64(len(SquaresFromBitBoard(bStartBishops&b.Position.BlackBishops)))
 	}
 
 	// Right now, avoid double penalizing knights with the PS Tables.
 	if bStartKnights&b.Position.BlackKnights > 0 && false {
-		res += startPenalty * float64(len(game.SquaresFromBitBoard(bStartKnights&b.Position.BlackKnights)))
+		res += startPenalty * float64(len(SquaresFromBitBoard(bStartKnights&b.Position.BlackKnights)))
 	}
 	return float64(b.Active) * res
 }
