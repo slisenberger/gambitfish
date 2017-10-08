@@ -4,14 +4,16 @@ package game
 import "fmt"
 
 type Board struct {
-	Squares          [64]Piece
-	Position         Position
-	Active           Color
-	Winner           Color
-	ksCastlingRights map[Color]bool
-	qsCastlingRights map[Color]bool
-	Move             int
-	EPSquare         Square // The square a pawn was just pushed two forward.
+	Squares     [64]Piece
+	Position    Position
+	Active      Color
+	Winner      Color
+	WKSCastling bool
+	WQSCastling bool
+	BKSCastling bool
+	BQSCastling bool
+	Move        int
+	EPSquare    Square // The square a pawn was just pushed two forward.
 }
 
 func DefaultBoard() *Board {
@@ -52,8 +54,10 @@ func DefaultBoard() *Board {
 		}
 	}
 	b.Position = UpdateBitboards(b.Position)
-	b.ksCastlingRights = map[Color]bool{WHITE: true, BLACK: true}
-	b.qsCastlingRights = map[Color]bool{WHITE: true, BLACK: true}
+	b.WKSCastling = true
+	b.WQSCastling = true
+	b.BKSCastling = true
+	b.BQSCastling = true
 	b.Move = 1
 	b.EPSquare = OFFBOARD_SQUARE
 	return b
@@ -61,7 +65,7 @@ func DefaultBoard() *Board {
 
 func (b *Board) Print() {
 	fmt.Println(fmt.Sprintf("Move %v: %v to play", b.Move, b.Active))
-	fmt.Println(fmt.Sprintf("Castling Rights:\n KINGSIDE: %v\n QUEENSIDE: %v", b.ksCastlingRights, b.qsCastlingRights))
+	fmt.Println(fmt.Sprintf("Castling Rights:\n KINGSIDE: %v %v\n QUEENSIDE: %v %v", b.WKSCastling, b.BKSCastling, b.WQSCastling, b.BQSCastling))
 	fmt.Println("")
 
 	// We want to print a row at a time, but in backwards order to how this is stored
@@ -139,31 +143,31 @@ func ApplyMove(b *Board, m Move) {
 	// change castling rights.
 	switch m.Old {
 	case A8:
-		b.qsCastlingRights[BLACK] = false
+		b.BQSCastling = false
 	case H8:
-		b.ksCastlingRights[BLACK] = false
+		b.BKSCastling = false
 	case E8:
-		b.qsCastlingRights[BLACK] = false
-		b.ksCastlingRights[BLACK] = false
+		b.BKSCastling = false
+		b.BQSCastling = false
 	case A1:
-		b.qsCastlingRights[WHITE] = false
+		b.WQSCastling = false
 	case H1:
-		b.ksCastlingRights[WHITE] = false
+		b.WKSCastling = false
 	case E1:
-		b.qsCastlingRights[WHITE] = false
-		b.ksCastlingRights[WHITE] = false
+		b.WKSCastling = false
+		b.WQSCastling = false
 	}
 	// Affect castling state of captured rooks.
 	if m.Capture != nil {
 		switch m.Capture.Square {
 		case A8:
-			b.qsCastlingRights[BLACK] = false
+			b.BQSCastling = false
 		case H8:
-			b.ksCastlingRights[BLACK] = false
+			b.BKSCastling = false
 		case A1:
-			b.qsCastlingRights[WHITE] = false
+			b.WQSCastling = false
 		case H1:
-			b.ksCastlingRights[WHITE] = false
+			b.WKSCastling = false
 		}
 	}
 	// Apply En Passant state
@@ -224,10 +228,10 @@ func UndoMove(b *Board, m Move) {
 	}
 
 	// Reapply original castling rights.
-	b.qsCastlingRights[WHITE] = m.PrevQSCastlingRights[WHITE]
-	b.qsCastlingRights[BLACK] = m.PrevQSCastlingRights[BLACK]
-	b.ksCastlingRights[WHITE] = m.PrevKSCastlingRights[WHITE]
-	b.ksCastlingRights[BLACK] = m.PrevKSCastlingRights[BLACK]
+	b.WQSCastling = m.PrevWQSCastling
+	b.BQSCastling = m.PrevBQSCastling
+	b.WKSCastling = m.PrevWKSCastling
+	b.BKSCastling = m.PrevBKSCastling
 
 	// Reapply original en passant column.
 	b.EPSquare = m.PrevEPSquare
@@ -348,16 +352,16 @@ func ZobristHash(b *Board) uint64 {
 	if b.Active == WHITE {
 		hash = hash ^ ZOBRISTTURN
 	}
-	if b.qsCastlingRights[WHITE] {
+	if b.WQSCastling {
 		hash = hash ^ ZOBRISTWQS
 	}
-	if b.qsCastlingRights[BLACK] {
+	if b.BQSCastling {
 		hash = hash ^ ZOBRISTBQS
 	}
-	if b.ksCastlingRights[WHITE] {
+	if b.WKSCastling {
 		hash = hash ^ ZOBRISTWKS
 	}
-	if b.ksCastlingRights[BLACK] {
+	if b.BKSCastling {
 		hash = hash ^ ZOBRISTBKS
 	}
 	return hash

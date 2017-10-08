@@ -102,13 +102,13 @@ func PrintPrincipalVariation(b *game.Board) {
 		if !ok {
 			break
 		}
-		if entry.Precision == game.EvalExact {
-			moves = append(moves, entry.BestMove)
-			game.ApplyMove(b, entry.BestMove)
-			b.SwitchActivePlayer()
-		} else {
-			break
-		}
+		//		if entry.Precision == game.EvalExact {
+		moves = append(moves, entry.BestMove)
+		game.ApplyMove(b, entry.BestMove)
+		b.SwitchActivePlayer()
+		//		} else {
+		//			break
+		//	}
 	}
 	// Print the principal variation.
 	fmt.Println("Principal Variation: ")

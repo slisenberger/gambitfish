@@ -38,18 +38,16 @@ func BoardFromFen(s string) (*Board, error) {
 	}
 
 	// Add castling rights
-	b.ksCastlingRights = map[Color]bool{WHITE: false, BLACK: false}
-	b.qsCastlingRights = map[Color]bool{WHITE: false, BLACK: false}
 	for _, char := range split[2] {
 		switch char {
 		case 'K':
-			b.ksCastlingRights[WHITE] = true
+			b.WKSCastling = true
 		case 'k':
-			b.ksCastlingRights[BLACK] = true
+			b.BKSCastling = true
 		case 'Q':
-			b.qsCastlingRights[WHITE] = true
+			b.WQSCastling = true
 		case 'q':
-			b.qsCastlingRights[BLACK] = true
+			b.BQSCastling = true
 		}
 	}
 

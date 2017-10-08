@@ -12,8 +12,15 @@ var wqsCantBeAttacked = uint64(0x000000000000001C)   // bit for king, queen, bis
 var bqsCantBeAttacked = uint64(0x1C00000000000000)   // bit for bishop, queen, king
 
 func CanCastleQueenside(b *Board, c Color) bool {
-	if !b.qsCastlingRights[c] {
-		return false
+	switch c {
+	case BLACK:
+		if !b.BQSCastling {
+			return false
+		}
+	case WHITE:
+		if !b.WQSCastling {
+			return false
+		}
 	}
 	var unoccupied uint64
 	var kingSlide uint64
@@ -32,8 +39,15 @@ func CanCastleQueenside(b *Board, c Color) bool {
 }
 
 func CanCastleKingside(b *Board, c Color) bool {
-	if !b.ksCastlingRights[c] {
-		return false
+	switch c {
+	case BLACK:
+		if !b.BKSCastling {
+			return false
+		}
+	case WHITE:
+		if !b.WKSCastling {
+			return false
+		}
 	}
 	var rookSquare Square
 	var unoccupied uint64

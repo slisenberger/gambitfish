@@ -74,7 +74,11 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	// moving, we should.
 	if nullMove && !game.IsCheck(b, b.Active) {
 		b.SwitchActivePlayer()
-		eval, _ = AlphaBetaSearch(b, e, depth-1-NULL_MOVE_REDUCED_SEARCH_DEPTH, -beta, -alpha, false)
+		// NullMoves affect en passant state, so we need to remember it.
+		epSquare := b.EPSquare
+		b.EPSquare = game.OFFBOARD_SQUARE
+		eval, _ := AlphaBetaSearch(b, e, depth-1-NULL_MOVE_REDUCED_SEARCH_DEPTH, -beta, -alpha, false)
+		b.EPSquare = epSquare
 		b.SwitchActivePlayer()
 		eval = -1.0 * eval
 		if eval >= beta {
@@ -85,7 +89,9 @@ func AlphaBetaSearch(b *game.Board, e evaluate.Evaluator, depth int, alpha, beta
 	for _, move := range moves {
 		if move.Piece == game.NULLPIECE {
 			b.Print()
+			fmt.Println(b.AllLegalMoves())
 			fmt.Println(b.AllLegalCaptures())
+			fmt.Println(depth)
 			fmt.Println(moves)
 			panic("somehow am making a null move..")
 		}

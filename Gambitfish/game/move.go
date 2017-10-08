@@ -11,18 +11,20 @@ type Capture struct {
 
 // Moves have Pieces and squares
 type Move struct {
-	Piece                Piece
-	Square               Square
-	Old                  Square
-	Capture              *Capture
-	EnPassant            bool
-	KSCastle             bool
-	QSCastle             bool
-	Promotion            Piece // Applicable for only Pawn moves
-	PrevQSCastlingRights map[Color]bool
-	PrevKSCastlingRights map[Color]bool
-	PrevEPSquare         Square
-	TwoPawnAdvance       bool // For En Passant Management.
+	Piece           Piece
+	Square          Square
+	Old             Square
+	Capture         *Capture
+	EnPassant       bool
+	KSCastle        bool
+	QSCastle        bool
+	Promotion       Piece // Applicable for only Pawn moves
+	PrevWQSCastling bool
+	PrevWKSCastling bool
+	PrevBQSCastling bool
+	PrevBKSCastling bool
+	PrevEPSquare    Square
+	TwoPawnAdvance  bool // For En Passant Management.
 }
 
 func (m Move) String() string {
@@ -45,26 +47,20 @@ func (m Move) String() string {
 }
 
 func NewMove(p Piece, square Square, old Square, b *Board) Move {
-	qr := b.qsCastlingRights
-	kr := b.ksCastlingRights
 	return Move{
-		Piece:     p,
-		Square:    square,
-		Old:       old,
-		EnPassant: false,
-		KSCastle:  false,
-		QSCastle:  false,
-		Promotion: NULLPIECE,
-		PrevQSCastlingRights: map[Color]bool{
-			WHITE: qr[WHITE],
-			BLACK: qr[BLACK],
-		},
-		PrevKSCastlingRights: map[Color]bool{
-			WHITE: kr[WHITE],
-			BLACK: kr[BLACK],
-		},
-		PrevEPSquare:   b.EPSquare,
-		TwoPawnAdvance: false,
+		Piece:           p,
+		Square:          square,
+		Old:             old,
+		EnPassant:       false,
+		KSCastle:        false,
+		QSCastle:        false,
+		PrevBQSCastling: b.BQSCastling,
+		PrevWQSCastling: b.WQSCastling,
+		PrevBKSCastling: b.BKSCastling,
+		PrevWKSCastling: b.WKSCastling,
+		Promotion:       NULLPIECE,
+		PrevEPSquare:    b.EPSquare,
+		TwoPawnAdvance:  false,
 	}
 }
 

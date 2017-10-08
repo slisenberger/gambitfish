@@ -20,11 +20,11 @@ func (m MaterialEvaluator) Evaluate(b *game.Board) float64 {
 		if p == game.NULLPIECE {
 			continue
 		}
-		if p.Color() == b.Active {
-			eval += p.Value()
-		} else {
+		if p.Color() == game.BLACK {
 			eval -= p.Value()
+		} else {
+			eval += p.Value()
 		}
 	}
-	return eval
+	return float64(b.Active) * eval
 }
