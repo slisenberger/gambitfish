@@ -239,6 +239,7 @@ func UndoMove(b *Board, m Move) {
 	if b.Active == BLACK {
 		b.Move--
 	}
+
 	b.Position = UpdateBitboards(b.Position)
 }
 

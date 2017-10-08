@@ -50,14 +50,17 @@ func (m OpeningEvaluator) Evaluate(b *game.Board) float64 {
 		res -= startPenalty * float64(len(game.SquaresFromBitBoard(wStartBishops&b.Position.WhiteBishops)))
 
 	}
-	if wStartKnights&b.Position.WhiteKnights > 0 {
+	// Right now, avoid double penalizing knights with the PS Tables.
+	if wStartKnights&b.Position.WhiteKnights > 0 && false {
 		res -= startPenalty * float64(len(game.SquaresFromBitBoard(wStartKnights&b.Position.WhiteKnights)))
 
 	}
 	if bStartBishops&b.Position.BlackBishops > 0 {
 		res += startPenalty * float64(len(game.SquaresFromBitBoard(bStartBishops&b.Position.BlackBishops)))
 	}
-	if bStartKnights&b.Position.BlackKnights > 0 {
+
+	// Right now, avoid double penalizing knights with the PS Tables.
+	if bStartKnights&b.Position.BlackKnights > 0 && false {
 		res += startPenalty * float64(len(game.SquaresFromBitBoard(bStartKnights&b.Position.BlackKnights)))
 	}
 	return float64(b.Active) * res

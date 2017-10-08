@@ -37,6 +37,13 @@ var RAY_ATTACKS_SE [64]uint64
 var RAY_ATTACKS_S [64]uint64
 var RAY_ATTACKS_SW [64]uint64
 
+// TODO(slisenberger): We want to use rotated bitboards. Here's what
+// we need:
+// 1.) Prepopulate, for all 64 possible squares, for all possible
+// occupancies on their rank, what the vector of movements is.
+// 2.) Do the same for diagonals.
+// 3.) When calculating sliding attacks, look up the
+
 // The preprocessed set of squares a pawn can move to in a capture.
 var WHITEPAWNATTACKS [64]uint64
 var BLACKPAWNATTACKS [64]uint64

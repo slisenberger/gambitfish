@@ -23,6 +23,7 @@ type Move struct {
 	PrevWKSCastling bool
 	PrevBQSCastling bool
 	PrevBKSCastling bool
+	PrevCheck       bool
 	PrevEPSquare    Square
 	TwoPawnAdvance  bool // For En Passant Management.
 }

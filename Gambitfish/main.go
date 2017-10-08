@@ -6,25 +6,35 @@ import "./game"
 import "./engine/evaluate"
 import "./player"
 import "fmt"
+import "log"
 import "math/rand"
+import "runtime/pprof"
+import "os"
 import "time"
 
 func main() {
+	f, err := os.Create("pprof.cpu")
+	if err != nil {
+		log.Fatal(err)
+	}
+	pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
 	rand.Seed(time.Now().Unix())
 	game.InitInternalData()
 	b := game.DefaultBoard()
 	e := evaluate.CompoundEvaluator{
 		Evaluators: []evaluate.Evaluator{
 			evaluate.MaterialEvaluator{},
+			evaluate.PieceSquareEvaluator{},
 			// We'll turn this on when I like it
 			// evaluate.MobilityEvaluator{},
 
 			evaluate.OpeningEvaluator{},
-			evaluate.KingSafetyEvaluator{},
+			//evaluate.KingSafetyEvaluator{},
 		},
 	}
-	p1 := player.CommandLinePlayer{Color: game.WHITE}
-	p2 := player.AIPlayer{Evaluator: e, Depth: 4, Color: game.BLACK}
+	p1 := player.AIPlayer{Evaluator: e, Depth: 5, Color: game.WHITE}
+	p2 := player.AIPlayer{Evaluator: e, Depth: 5, Color: game.BLACK}
 	b.Print()
 	for i := 0; i < 300; i++ {
 		time.Sleep(1 * time.Second)
