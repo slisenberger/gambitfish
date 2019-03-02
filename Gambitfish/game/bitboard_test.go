@@ -4,6 +4,7 @@ import "reflect"
 import "testing"
 
 func TestSquaresFromBitboard(t *testing.T) {
+	InitInternalData()
 	testCases := []struct {
 		name     string
 		bitboard uint64
@@ -48,6 +49,12 @@ func TestSetBitOnBoard(t *testing.T) {
 			uint64(0x8000000000000000),
 			H8,
 			uint64(0),
+		},
+		{
+			"successfully unsets square on h8, full board",
+			uint64(0xFFFFFFFFFFFFFFFF),
+			H8,
+			uint64(0x7FFFFFFFFFFFFFFF),
 		},
 	}
 

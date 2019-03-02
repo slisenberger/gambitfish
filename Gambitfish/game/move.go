@@ -25,6 +25,7 @@ type Move struct {
 	PrevBQSCastling bool
 	PrevBKSCastling bool
 	PrevCheck       bool
+	PrevLastMove    *Move
 	PrevEPSquare    Square
 	TwoPawnAdvance  bool // For En Passant Management.
 }
@@ -60,6 +61,7 @@ func NewMove(p Piece, square Square, old Square, b *Board) Move {
 		PrevWQSCastling: b.WQSCastling,
 		PrevBKSCastling: b.BKSCastling,
 		PrevWKSCastling: b.WKSCastling,
+		PrevLastMove:    b.LastMove,
 		Promotion:       NULLPIECE,
 		PrevEPSquare:    b.EPSquare,
 		TwoPawnAdvance:  false,

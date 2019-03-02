@@ -69,6 +69,7 @@ func InitInternalData() {
 	InitRayAttacks()
 	InitPawnAttacks()
 	InitZobristNumbers()
+	BuildByteLookupTable()
 }
 
 // LegalKingMovesDict returns a 64-indexed set of bitboards

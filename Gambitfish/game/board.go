@@ -13,6 +13,7 @@ type Board struct {
 	BKSCastling bool
 	BQSCastling bool
 	Move        int
+	LastMove    *Move
 	EPSquare    Square // The square a pawn was just pushed two forward.
 }
 
@@ -103,10 +104,20 @@ func ApplyMove(b *Board, m Move) {
 		fmt.Println(b.AllLegalMoves())
 		panic("nil piece: " + m.String())
 	}
+	if m.Capture == nil && b.Squares[m.Square] != NULLPIECE {
+		b.Print()
+		fmt.Println(m)
+		fmt.Println("don't have capture in a move to occupied sq..")
+	}
+	if m.Capture != nil && m.Capture.Square > H8 {
+		b.Print()
+		fmt.Println(m)
+		fmt.Println("capturing offboard sq..")
+	}
 	// If there's a capture: remove the captured piece.
 	if m.Capture != nil {
-		b.Squares[m.Capture.Square] = NULLPIECE
 		b.Position = UnSetPiece(b.Position, m.Capture.Piece, m.Capture.Square)
+		b.Squares[m.Capture.Square] = NULLPIECE
 	}
 	// Then, move the piece to its new square.
 	// Check for promotion of a pawn.
@@ -182,8 +193,42 @@ func ApplyMove(b *Board, m Move) {
 		b.Move++
 	}
 
+	b.LastMove = &m
+
 	// Update bitboard representations.
 	b.Position = UpdateBitboards(b.Position)
+
+	// Check for my error case...
+	rOnH8 := false
+	brs := SquaresFromBitBoard(b.Position.BlackRooks)
+	qOnH8 := false
+	bqs := SquaresFromBitBoard(b.Position.WhiteQueens)
+	for _, q := range bqs {
+		if q == H8 {
+			qOnH8 = true
+		}
+
+	}
+	for _, r := range brs {
+		if r == H8 {
+			rOnH8 = true
+		}
+
+	}
+	if (b.Squares[H8] != BLACKROOK) && rOnH8 {
+		b.Print()
+		fmt.Println(m.PrevLastMove)
+		fmt.Println(m)
+		fmt.Println("found error..")
+		panic("abort")
+	}
+	if (b.Squares[H8] != WHITEQUEEN) && qOnH8 {
+		b.Print()
+		fmt.Println(m.PrevLastMove)
+		fmt.Println(m)
+		fmt.Println("found error..")
+		panic("abort")
+	}
 }
 
 // UndoMove returns a board to the state it was at prior to
@@ -239,6 +284,7 @@ func UndoMove(b *Board, m Move) {
 	if b.Active == BLACK {
 		b.Move--
 	}
+	b.LastMove = m.PrevLastMove
 
 	b.Position = UpdateBitboards(b.Position)
 }

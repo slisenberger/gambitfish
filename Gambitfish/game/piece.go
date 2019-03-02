@@ -107,7 +107,7 @@ func RayMoves(b *Board, p Piece, cur Square, dirs []Direction) []Move {
 		// Get the ray attacks in a direction for this square.
 		ra := RayAttacks(dir, cur)
 		blocker := ra & pos.Occupied
-		if blocker >= 1 {
+		if blocker > 0 {
 			blockSquare := BitScan(blocker, dir > 0)
 			ra = ra ^ RayAttacks(dir, blockSquare)
 		}
@@ -131,6 +131,15 @@ func RayMoves(b *Board, p Piece, cur Square, dirs []Direction) []Move {
 		move := NewMove(p, s, cur, b)
 		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
 		if b.Squares[s] == NULLPIECE {
+			fmt.Println("Last move: " + b.LastMove.String())
+			fmt.Println(SquaresFromBitBoard(pos.BlackPawns))
+			fmt.Println(SquaresFromBitBoard(pos.BlackKnights))
+			fmt.Println(SquaresFromBitBoard(pos.BlackBishops))
+			fmt.Println(SquaresFromBitBoard(pos.BlackRooks))
+			fmt.Println(SquaresFromBitBoard(pos.BlackQueens))
+			fmt.Println(SquaresFromBitBoard(allAtk))
+			fmt.Println(SquaresFromBitBoard(opp))
+			fmt.Println(SquaresFromBitBoard(pos.WhiteQueens))
 			b.Print()
 			panic("some ray capture is nil. abort! " + s.String())
 
@@ -148,7 +157,7 @@ func RayAttackBitboard(b *Board, cur Square, dirs []Direction) uint64 {
 		// Get the ray attacks in a direction for this square.
 		ra := RayAttacks(dir, cur)
 		blocker := ra & pos.Occupied
-		if blocker >= 1 {
+		if blocker > 0 {
 			blockSquare := BitScan(blocker, dir > 0)
 			ra = ra ^ RayAttacks(dir, blockSquare)
 		}

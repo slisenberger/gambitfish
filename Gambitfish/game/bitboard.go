@@ -2,6 +2,8 @@
 // of a chess board state and its corresponding utilities.
 package game
 
+import "fmt"
+
 type Position struct {
 	// White piece locations.
 	WhiteKing    uint64
@@ -92,7 +94,13 @@ func UnSetPiece(bb Position, p Piece, s Square) Position {
 		if p.Color() == WHITE {
 			bb.WhiteRooks = UnSetBitOnBoard(bb.WhiteRooks, s)
 		} else {
+			oldRooks := bb.BlackRooks
 			bb.BlackRooks = UnSetBitOnBoard(bb.BlackRooks, s)
+			if oldRooks != bb.BlackRooks && false {
+				fmt.Println("black rook was not unset..")
+				fmt.Println(s)
+				fmt.Println(SquaresFromBitBoard(bb.BlackRooks))
+			}
 		}
 	case BISHOP:
 		if p.Color() == WHITE {
@@ -123,19 +131,71 @@ func SetBitOnBoard(board uint64, s Square) uint64 {
 
 // UnSetBitOnBoard updates a single 64 bit int, removing that bit from the board.
 func UnSetBitOnBoard(board uint64, s Square) uint64 {
-	return (board &^ (1 << uint64(s)))
+	return (board &^ (uint64(1) << uint64(s)))
 }
 
 // SquaresFromBitBoard returns a list of squares represented by the bits
 // in a bitboard.
-func SquaresFromBitBoard(board uint64) []Square {
+func SquaresFromBitBoard(board uint64) []Square { // Split the board into 8 2byte words, and get the precomputed squares from all
+	// 4 of these byte patterns.
+	var b1, b2, b3, b4 uint64
+	b1 = board & 0xffff
+	b2 = board & 0xffff0000
+	b3 = board & 0xffff00000000
+	b4 = board & 0xffff000000000000
+
+	// Build a slice and add the elements to it.
 	s := []Square{}
-	for board > 0 {
-		idx := BitScanForward(board)
-		s = append(s, idx)
-		board = board & (board - 1)
+	if b1 != 0 {
+		s = append(s, byteLookup[b1]...)
 	}
+	if b2 != 0 {
+		s = append(s, byteLookup[b2]...)
+	}
+	if b3 != 0 {
+		s = append(s, byteLookup[b3]...)
+	}
+	if b4 != 0 {
+		s = append(s, byteLookup[b4]...)
+	}
+	// This is the old way. Keeping it for posterity.
+	//	for board > 0 {
+	//		idx := BitScanForward(board)
+	//		s = append(s, idx)
+	//		board = board & (board - 1)
+	//	}
 	return s
+}
+
+// To speed up turning a bitboard into a list of squares, we look up pre-existing conversions of
+// bytes to a list of squares.
+var byteLookup map[uint64][]Square
+
+func BuildByteLookupTable() {
+	// We want to build a lookup table for each 2-byte word and
+	// the corresponding squares that belongs to it. We can do this by
+	// enumerating each word, running a slow calculation, and then adding
+	// these to the map.
+	byteLookup = map[uint64][]Square{}
+
+	// For each of 8 possible byte-sized words.
+	var i uint64
+	var b_conf uint64
+	var b uint64
+	for i = 0; i < 4; i++ {
+		// Take the byte configuration pattern and build the two byte word out of it.
+		for b_conf = 0; b_conf < 65536; b_conf++ {
+			// bitshift it to represent the real byte affected.
+			b = b_conf << (16 * i)
+			s := []Square{}
+			for b > 0 {
+				idx := BitScanForward(b)
+				s = append(s, idx)
+				b = b & (b - 1)
+			}
+			byteLookup[b_conf<<(16*i)] = s
+		}
+	}
 }
 
 // BITSCAN UTILITIES
