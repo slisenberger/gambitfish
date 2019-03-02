@@ -37,6 +37,12 @@ var RAY_ATTACKS_SE [64]uint64
 var RAY_ATTACKS_S [64]uint64
 var RAY_ATTACKS_SW [64]uint64
 
+// The preprocessed conversion between a normally indexed bitboard and
+// the corresponding index on a rotated bitboard.
+var ROT_90_LEFT_CONVERSION [64]uint64
+var ROT_45_RIGHT_CONVERSION [64]uint64
+var ROT_45_LEFT_CONVERSION [64]uint64
+
 // TODO(slisenberger): We want to use rotated bitboards. Here's what
 // we need:
 // 1.) Prepopulate, for all 64 possible squares, for all possible
@@ -66,10 +72,65 @@ var ZOBRISTBQS uint64
 func InitInternalData() {
 	LEGALKINGMOVES = LegalKingMovesDict()
 	LEGALKNIGHTMOVES = LegalKnightMovesDict()
+	InitRotatedBitboardConversions()
 	InitRayAttacks()
+	InitRotatedBitboardAttacks()
 	InitPawnAttacks()
 	InitZobristNumbers()
 	BuildByteLookupTable()
+}
+
+// In order to use rotated bitboards, we'll
+// need a way to translate our usual coordinate
+// system to find the index in a rotated bitboard.
+// These maps convert from a given square to its
+// rotated equivalent.
+func InitRotatedBitboardConversions() {
+	ROT_90_LEFT_CONVERSION = [64]uint64{
+		7, 15, 23, 31, 39, 47, 55, 63,
+		6, 14, 22, 30, 38, 46, 54, 62,
+		5, 13, 21, 29, 37, 45, 53, 61,
+		4, 12, 20, 28, 36, 44, 52, 60,
+		3, 11, 19, 27, 35, 43, 51, 59,
+		2, 10, 18, 26, 34, 42, 50, 58,
+		1, 9, 17, 25, 33, 41, 49, 57,
+		0, 8, 16, 24, 32, 40, 48, 56,
+	}
+	ROT_45_LEFT_CONVERSION = [64]uint64{
+		0,
+		8, 1,
+		16, 9, 2,
+		24, 17, 10, 3,
+		32, 25, 18, 11, 4,
+		40, 33, 26, 19, 12, 5,
+		48, 41, 34, 27, 20, 13, 6,
+		56, 49, 42, 35, 28, 21, 14, 7,
+		57, 50, 43, 36, 29, 22, 15,
+		58, 51, 44, 37, 30, 23,
+		59, 52, 45, 38, 31,
+		60, 53, 46, 39,
+		61, 54, 47,
+		62, 55,
+		63,
+	}
+
+	ROT_45_RIGHT_CONVERSION = [64]uint64{
+		7,
+		6, 15,
+		5, 14, 23,
+		4, 13, 22, 31,
+		3, 12, 21, 30, 39,
+		2, 11, 20, 29, 38, 47,
+		1, 10, 19, 28, 37, 46, 55,
+		0, 9, 18, 27, 36, 45, 54, 63,
+		8, 17, 26, 35, 44, 53, 62,
+		16, 25, 34, 43, 52, 61,
+		24, 33, 42, 51, 60,
+		32, 41, 50, 59,
+		40, 49, 58,
+		48, 57,
+		56,
+	}
 }
 
 // LegalKingMovesDict returns a 64-indexed set of bitboards
@@ -204,6 +265,14 @@ func InitRayAttacks() {
 			RAY_ATTACKS_W = ra
 		}
 	}
+}
+
+// InitRotatedBitboardAttacks creates a preprocessed set of
+// arrays in which a particular piece in a particular direction
+// can find the squares it is capable of attacking, once
+// the rest of the squares on its board have been identified.
+func InitRotatedBitboardAttacks() {
+
 }
 
 func InitPawnAttacks() {
