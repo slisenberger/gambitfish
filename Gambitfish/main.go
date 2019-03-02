@@ -24,12 +24,12 @@ func main() {
 	e := game.CompoundEvaluator{
 		Evaluators: []game.Evaluator{
 			game.MaterialEvaluator{},
-			game.PieceSquareEvaluator{},
+			// game.PieceSquareEvaluator{},
 			// We'll turn this on when I like it
 			// MobilityEvaluator{},
 
-			game.OpeningEvaluator{},
-			//game.KingSafetyEvaluator{},
+			// game.OpeningEvaluator{},
+			// game.KingSafetyEvaluator{},
 		},
 	}
 	p1 := player.CommandLinePlayer{Color: game.WHITE}

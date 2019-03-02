@@ -1,0 +1,28 @@
+Here's the result of a March 2nd pprof in which I had about 10s on the first iteration of perft:
+
+Total: 2852 samples
+     313  11.0%  11.0%      945  33.1% _/home/stefan/code/chess/Gambitfish/game.GetAttackBitboard
+     238   8.3%  19.3%      463  16.2% _/home/stefan/code/chess/Gambitfish/game.RayAttackBitboard
+     178   6.2%  25.6%      668  23.4% _/home/stefan/code/chess/Gambitfish/game.ApplyMove
+     169   5.9%  31.5%      247   8.7% _/home/stefan/code/chess/Gambitfish/game.UndoMove
+     137   4.8%  36.3%      137   4.8% _/home/stefan/code/chess/Gambitfish/game.RayAttacks
+     132   4.6%  40.9%      132   4.6% sweepspan
+     117   4.1%  45.0%      338  11.9% runtime.mallocgc
+     105   3.7%  48.7%      548  19.2% runtime.growslice
+     103   3.6%  52.3%      360  12.6% cnew
+     103   3.6%  55.9%      103   3.6% flushptrbuf
+     101   3.5%  59.5%      101   3.5% scanblock
+      95   3.3%  62.8%       95   3.3% _/home/stefan/code/chess/Gambitfish/game.Piece.Color
+      77   2.7%  65.5%      557  19.5% _/home/stefan/code/chess/Gambitfish/game.AttackBitboard
+      66   2.3%  67.8%     2350  82.4% _/home/stefan/code/chess/Gambitfish/game.(*Board).AllLegalMoves
+      63   2.2%  70.0%       94   3.3% _/home/stefan/code/chess/Gambitfish/game.BitScan
+      60   2.1%  72.1%       89   3.1% runtime.mapaccess1_fast64
+      49   1.7%  73.8%      419  14.7% _/home/stefan/code/chess/Gambitfish/game.SquaresFromBitBoard
+      46   1.6%  75.5%       64   2.2% _/home/stefan/code/chess/Gambitfish/game.SetPiece
+      46   1.6%  77.1%       59   2.1% _/home/stefan/code/chess/Gambitfish/game.UnSetPiece
+      45   1.6%  78.6%       45   1.6% runtime.memclr
+
+The extremely worrying thing is the Attack bitboard which is using a lot. Over 80% of the samples were in the middle of an AllLegalMoves calculation, and 14.7% were in a SquaresFromBitBoard calculation.
+
+There may be a lot of quick wins from preallocating slices, see runtime.growslice taking up a considerable amount of time. However, I think attacking the bitboard code may prove fruitful.
+

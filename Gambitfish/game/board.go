@@ -197,38 +197,6 @@ func ApplyMove(b *Board, m Move) {
 
 	// Update bitboard representations.
 	b.Position = UpdateBitboards(b.Position)
-
-	// Check for my error case...
-	rOnH8 := false
-	brs := SquaresFromBitBoard(b.Position.BlackRooks)
-	qOnH8 := false
-	bqs := SquaresFromBitBoard(b.Position.WhiteQueens)
-	for _, q := range bqs {
-		if q == H8 {
-			qOnH8 = true
-		}
-
-	}
-	for _, r := range brs {
-		if r == H8 {
-			rOnH8 = true
-		}
-
-	}
-	if (b.Squares[H8] != BLACKROOK) && rOnH8 {
-		b.Print()
-		fmt.Println(m.PrevLastMove)
-		fmt.Println(m)
-		fmt.Println("found error..")
-		panic("abort")
-	}
-	if (b.Squares[H8] != WHITEQUEEN) && qOnH8 {
-		b.Print()
-		fmt.Println(m.PrevLastMove)
-		fmt.Println(m)
-		fmt.Println("found error..")
-		panic("abort")
-	}
 }
 
 // UndoMove returns a board to the state it was at prior to
