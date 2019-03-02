@@ -4,6 +4,8 @@ package game
 
 import "fmt"
 
+import "math/bits"
+
 type Position struct {
 	// White piece locations.
 	WhiteKing    uint64
@@ -145,7 +147,7 @@ func SquaresFromBitBoard(board uint64) []Square { // Split the board into 8 2byt
 	b4 = board & 0xffff000000000000
 
 	// Build a slice and add the elements to it.
-	s := []Square{}
+	s := make([]Square, 0, bits.OnesCount64(board))
 	if b1 != 0 {
 		s = append(s, byteLookup[b1]...)
 	}
