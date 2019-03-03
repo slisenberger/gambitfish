@@ -67,9 +67,21 @@ var ZOBRISTWQS uint64
 var ZOBRISTBKS uint64
 var ZOBRISTBQS uint64
 
+// The precomputed relevant occupancies to determine
+// blockers for ray attacks.
+var BLOCKERMASKBISHOP [64]uint64
+var BLOCKERMASKROOK [64]uint64
+
+// The hash key for a particular square for rooks/bishops
+// in looking up precomputed moves.
+var MAGICNUMBERBISHOP [64]uint64
+var MAGICNUMBERROOK [64]uint64
+
 // TODO(slisenberger): include en passant in zobrist.
 
 func InitInternalData() {
+	InitBlockerMasks()
+	InitMagicBitboards()
 	LEGALKINGMOVES = LegalKingMovesDict()
 	LEGALKNIGHTMOVES = LegalKnightMovesDict()
 	InitRotatedBitboardConversions()
@@ -131,6 +143,104 @@ func InitRotatedBitboardConversions() {
 		48, 57,
 		56,
 	}
+}
+
+// Generates the set of important bits for a square
+// that can block rook movement. Returns a bitboard with
+// the relevant occupancy. We ignore squares on the edges of
+// the board, since they can't block further movement.
+func BlockerMaskRook(s Square) uint64 {
+	var bb uint64
+	bb = 0
+	for col := 2; col < 8; col++ {
+		if col == s.Col() {
+			continue
+		}
+		bb = SetBitOnBoard(bb, GetSquare(s.Row(), col))
+	}
+	for row := 2; row < 8; row++ {
+		if row == s.Row() {
+			continue
+		}
+		bb = SetBitOnBoard(bb, GetSquare(row, s.Col()))
+	}
+	return bb
+}
+
+// Generates the set of important bits for a bishop that
+// can block bishop movement. We ignore squares on the edges
+// of the board, since they can't block further movement.
+func BlockerMaskBishop(s Square) uint64 {
+	var bb uint64
+	bb = 0
+	for col := 2; col < 8; col++ {
+		deltaCol := col - s.Col()
+		// If it's our column, this is our square, it's irrelevant
+		// for blockers.
+		if deltaCol == 0 {
+			continue
+		}
+		// For all other columns, look for the row above and below, and
+		// set these on the board.
+		if s.Row()+deltaCol >= 1 && s.Row()+deltaCol <= 8 {
+			bb = SetBitOnBoard(bb, GetSquare(s.Row()+deltaCol, col))
+
+		}
+		if s.Row()-deltaCol >= 1 && s.Row()-deltaCol <= 8 {
+			bb = SetBitOnBoard(bb, GetSquare(s.Row()+deltaCol, col))
+		}
+	}
+	return bb
+}
+
+func InitBlockerMasks() {
+	var i uint64
+	BLOCKERMASKBISHOP = [64]uint64{}
+	BLOCKERMASKROOK = [64]uint64{}
+	for i = 0; i < 64; i++ {
+		BLOCKERMASKBISHOP[i] = BlockerMaskBishop(Square(i))
+		BLOCKERMASKROOK[i] = BlockerMaskRook(Square(i))
+	}
+}
+
+// Initialize the preset arrays containing all possible
+// boards that could block rook or bishop movement, and the
+// resulting moves that can be made because of them.
+func InitMagicBitboards() {
+	// Store the magic number keys.
+	MAGICNUMBERROOK = [64]uint64{}
+	MAGICNUMBERBISHOP = [64]uint64{}
+	// Get all the possible blockerboards, and their resulting
+	// legal moves.
+
+	// And find the magics for all the squares.
+	var i uint64
+	var lookingForNumber bool
+	var magic uint64
+	// Loop once for rooks.
+	for i = 0; i < 64; i++ {
+		lookingForNumber := true
+		for lookingForNumber {
+			magic = rand.Uint64()
+
+			// Stop looking for magic numbers if we found one for this square.
+			lookingForNumber = false
+		}
+		MAGICNUMBERROOK[i] = magic
+	}
+
+	// And again for bishops.
+	for i = 0; i < 64; i++ {
+		lookingForNumber = true
+		for lookingForNumber {
+			magic = rand.Uint64()
+
+			// Stop looking for magic numbers if we found one for this square.
+			lookingForNumber = false
+		}
+		MAGICNUMBERBISHOP[i] = magic
+	}
+
 }
 
 // LegalKingMovesDict returns a 64-indexed set of bitboards
@@ -214,7 +324,7 @@ func InitRayAttacks() {
 				s := Square(i + j*uint64(dir))
 				if dir > 0 {
 					cur = cur << uint64(dir)
-					// Since positive directions can wrap around, we might nee dto end the loop here.
+					// Since positive directions can wrap around, we might need to end the loop here.
 					// Shouldn't be on the first column.
 					if dir == NE || dir == E {
 						// Find the square we are on.
