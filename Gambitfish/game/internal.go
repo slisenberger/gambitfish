@@ -4,6 +4,7 @@
 package game
 
 import "math/rand"
+import "math/bits"
 import "time"
 
 // The preprocessed set of squares a piece can move to for a given
@@ -77,16 +78,23 @@ var BLOCKERMASKROOK [64]uint64
 var MAGICNUMBERBISHOP [64]uint64
 var MAGICNUMBERROOK [64]uint64
 
+// The precomputed attack squares for bishops and rooks. Each
+// Square has a table, and each of those has a hash table indexed
+// By a magic number computation.
+var BISHOPATTACKS [64][]uint64
+var ROOKATTACKS [64][]uint64
+
 // TODO(slisenberger): include en passant in zobrist.
 
 func InitInternalData() {
+	// This needs to happen before magic bitboard generation
+	// because we use this as a convenience for building attack
+	// boards.
+	InitRayAttacks()
 	InitBlockerMasks()
 	InitMagicBitboards()
 	LEGALKINGMOVES = LegalKingMovesDict()
 	LEGALKNIGHTMOVES = LegalKnightMovesDict()
-	InitRotatedBitboardConversions()
-	InitRayAttacks()
-	InitRotatedBitboardAttacks()
 	InitPawnAttacks()
 	InitZobristNumbers()
 	BuildByteLookupTable()
@@ -210,6 +218,8 @@ func InitMagicBitboards() {
 	// Store the magic number keys.
 	MAGICNUMBERROOK = [64]uint64{}
 	MAGICNUMBERBISHOP = [64]uint64{}
+	ROOKATTACKS = [64][]uint64{}
+	BISHOPATTACKS = [64][]uint64{}
 	// Get all the possible blockerboards, and their resulting
 	// legal moves.
 
@@ -219,18 +229,23 @@ func InitMagicBitboards() {
 	var magic uint64
 	// Loop once for rooks.
 	for i = 0; i < 64; i++ {
-		lookingForNumber := true
+		lookingForNumber = true
+		bitCount := bits.OnesCount64(BLOCKERMASKROOK[i])
+		rookAttacks := make([]uint64, 2**bitCount)
 		for lookingForNumber {
 			magic = rand.Uint64()
 
 			// Stop looking for magic numbers if we found one for this square.
 			lookingForNumber = false
 		}
+		ROOKATTACKS[i] = rookAttacks
 		MAGICNUMBERROOK[i] = magic
 	}
 
 	// And again for bishops.
 	for i = 0; i < 64; i++ {
+		bitCount := bits.OnesCount64(BLOCKERMASKBISHOP[i])
+		bishopAttacks := make([]uint64, 2**bitCount)
 		lookingForNumber = true
 		for lookingForNumber {
 			magic = rand.Uint64()
@@ -238,6 +253,7 @@ func InitMagicBitboards() {
 			// Stop looking for magic numbers if we found one for this square.
 			lookingForNumber = false
 		}
+		BISHOPATTACKS[i] = bishopAttacks
 		MAGICNUMBERBISHOP[i] = magic
 	}
 
