@@ -8,11 +8,11 @@ type Bishop struct {
 var BISHOP_DIRS = []Direction{NE, NW, SE, SW}
 
 func BishopMoves(b *Board, p Piece, s Square) []Move {
-	return RayMoves(b, p, s, BISHOP_DIRS)
+	return RayMoves(b, p, s, true, false)
 }
 
 func BishopAttackBitboard(b *Board, cur Square) uint64 {
-	return RayAttackBitboard(b, cur, BISHOP_DIRS)
+	return RayAttackBitboard(b, cur, true, false)
 }
 func (p *Bishop) Value() float64 {
 	return 3.0

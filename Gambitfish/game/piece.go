@@ -98,21 +98,24 @@ func LegalKnightMoves(b *Board, p Piece, cur Square) []Move {
 	return moves
 }
 
-func RayMoves(b *Board, p Piece, cur Square, dirs []Direction) []Move {
+func RayMoves(b *Board, p Piece, cur Square, bishop, rook bool) []Move {
 	var moves []Move
 	pos := b.Position
 	var allAtk uint64
 	allAtk = 0
-	for _, dir := range dirs {
-		// Get the ray attacks in a direction for this square.
-		ra := RayAttacks(dir, cur)
-		blocker := ra & pos.Occupied
-		if blocker > 0 {
-			blockSquare := BitScan(blocker, dir > 0)
-			ra = ra ^ RayAttacks(dir, blockSquare)
-		}
-		allAtk = allAtk | ra
+	if bishop {
+		bm := BLOCKERMASKBISHOP[cur]
+		magic := MAGICNUMBERBISHOP[cur]
+		key := ((bm | pos.Occupied) * magic) >> SHIFTSIZEBISHOP[cur]
+		allAtk |= BISHOPATTACKS[cur][key]
 	}
+	if rook {
+		bm := BLOCKERMASKROOK[cur]
+		magic := MAGICNUMBERROOK[cur]
+		key := ((bm | pos.Occupied) * magic) >> SHIFTSIZEROOK[cur]
+		allAtk |= ROOKATTACKS[cur][key]
+	}
+
 	// TODO(slisenberger)
 	// THIS IS ALL COPIED BOILERPLATE.. FACTOR THIS OUT.
 	// Iterate through legal non captures
@@ -149,19 +152,21 @@ func RayMoves(b *Board, p Piece, cur Square, dirs []Direction) []Move {
 	return moves
 }
 
-func RayAttackBitboard(b *Board, cur Square, dirs []Direction) uint64 {
+func RayAttackBitboard(b *Board, cur Square, bishop, rook bool) uint64 {
 	var res uint64
 	res = 0
 	pos := b.Position
-	for _, dir := range dirs {
-		// Get the ray attacks in a direction for this square.
-		ra := RayAttacks(dir, cur)
-		blocker := ra & pos.Occupied
-		if blocker > 0 {
-			blockSquare := BitScan(blocker, dir > 0)
-			ra = ra ^ RayAttacks(dir, blockSquare)
-		}
-		res = res | ra
+	if bishop {
+		mask := BLOCKERMASKBISHOP[cur]
+		magic := MAGICNUMBERBISHOP[cur]
+		key := ((mask | pos.Occupied) * magic) >> SHIFTSIZEBISHOP[cur]
+		res |= BISHOPATTACKS[cur][key]
+	}
+	if rook {
+		mask := BLOCKERMASKROOK[cur]
+		magic := MAGICNUMBERROOK[cur]
+		key := ((mask | pos.Occupied) * magic) >> SHIFTSIZEROOK[cur]
+		res |= ROOKATTACKS[cur][key]
 	}
 	return res
 }

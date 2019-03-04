@@ -74,9 +74,69 @@ var BLOCKERMASKBISHOP [64]uint64
 var BLOCKERMASKROOK [64]uint64
 
 // The hash key for a particular square for rooks/bishops
-// in looking up precomputed moves.
-var MAGICNUMBERBISHOP [64]uint64
-var MAGICNUMBERROOK [64]uint64
+// in looking up precomputed moves. I tried computing these but it was
+// taking a really long time. Graciously stolen from Crafty's open source
+// engine.
+var MAGICNUMBERROOK = [64]uint64{
+	0x0080001020400080, 0x0040001000200040, 0x0080081000200080, 0x0080040800100080,
+	0x0080020400080080, 0x0080010200040080, 0x0080008001000200, 0x0080002040800100,
+	0x0000800020400080, 0x0000400020005000, 0x0000801000200080, 0x0000800800100080,
+	0x0000800400080080, 0x0000800200040080, 0x0000800100020080, 0x0000800040800100,
+	0x0000208000400080, 0x0000404000201000, 0x0000808010002000, 0x0000808008001000,
+	0x0000808004000800, 0x0000808002000400, 0x0000010100020004, 0x0000020000408104,
+	0x0000208080004000, 0x0000200040005000, 0x0000100080200080, 0x0000080080100080,
+	0x0000040080080080, 0x0000020080040080, 0x0000010080800200, 0x0000800080004100,
+	0x0000204000800080, 0x0000200040401000, 0x0000100080802000, 0x0000080080801000,
+	0x0000040080800800, 0x0000020080800400, 0x0000020001010004, 0x0000800040800100,
+	0x0000204000808000, 0x0000200040008080, 0x0000100020008080, 0x0000080010008080,
+	0x0000040008008080, 0x0000020004008080, 0x0000010002008080, 0x0000004081020004,
+	0x0000204000800080, 0x0000200040008080, 0x0000100020008080, 0x0000080010008080,
+	0x0000040008008080, 0x0000020004008080, 0x0000800100020080, 0x0000800041000080,
+	0x00FFFCDDFCED714A, 0x007FFCDDFCED714A, 0x003FFFCDFFD88096, 0x0000040810002101,
+	0x0001000204080011, 0x0001000204000801, 0x0001000082000401, 0x0001FFFAABFAD1A2,
+}
+
+var MAGICNUMBERBISHOP = [64]uint64{
+	0x0002020202020200, 0x0002020202020000, 0x0004010202000000, 0x0004040080000000,
+	0x0001104000000000, 0x0000821040000000, 0x0000410410400000, 0x0000104104104000,
+	0x0000040404040400, 0x0000020202020200, 0x0000040102020000, 0x0000040400800000,
+	0x0000011040000000, 0x0000008210400000, 0x0000004104104000, 0x0000002082082000,
+	0x0004000808080800, 0x0002000404040400, 0x0001000202020200, 0x0000800802004000,
+	0x0000800400A00000, 0x0000200100884000, 0x0000400082082000, 0x0000200041041000,
+	0x0002080010101000, 0x0001040008080800, 0x0000208004010400, 0x0000404004010200,
+	0x0000840000802000, 0x0000404002011000, 0x0000808001041000, 0x0000404000820800,
+	0x0001041000202000, 0x0000820800101000, 0x0000104400080800, 0x0000020080080080,
+	0x0000404040040100, 0x0000808100020100, 0x0001010100020800, 0x0000808080010400,
+	0x0000820820004000, 0x0000410410002000, 0x0000082088001000, 0x0000002011000800,
+	0x0000080100400400, 0x0001010101000200, 0x0002020202000400, 0x0001010101000200,
+	0x0000410410400000, 0x0000208208200000, 0x0000002084100000, 0x0000000020880000,
+	0x0000001002020000, 0x0000040408020000, 0x0004040404040000, 0x0002020202020000,
+	0x0000104104104000, 0x0000002082082000, 0x0000000020841000, 0x0000000000208800,
+	0x0000000010020200, 0x0000000404080200, 0x0000040404040400, 0x0002020202020200,
+}
+
+// The amount to shift by when calculating keys for magic numbers, indexed by square.
+var SHIFTSIZEROOK = [64]uint64{
+	52, 53, 53, 53, 53, 53, 53, 52,
+	53, 54, 54, 54, 54, 54, 54, 53,
+	53, 54, 54, 54, 54, 54, 54, 53,
+	53, 54, 54, 54, 54, 54, 54, 53,
+	53, 54, 54, 54, 54, 54, 54, 53,
+	53, 54, 54, 54, 54, 54, 54, 53,
+	53, 54, 54, 54, 54, 54, 54, 53,
+	53, 54, 54, 53, 53, 53, 53, 53,
+}
+
+var SHIFTSIZEBISHOP = [64]uint64{
+	58, 59, 59, 59, 59, 59, 59, 58,
+	59, 59, 59, 59, 59, 59, 59, 59,
+	59, 59, 57, 57, 57, 57, 59, 59,
+	59, 59, 57, 55, 55, 57, 59, 59,
+	59, 59, 57, 55, 55, 57, 59, 59,
+	59, 59, 57, 57, 57, 57, 59, 59,
+	59, 59, 59, 59, 59, 59, 59, 59,
+	58, 59, 59, 59, 59, 59, 59, 58,
+}
 
 // The precomputed attack squares for bishops and rooks. Each
 // Square has a table, and each of those has a hash table indexed
@@ -90,6 +150,7 @@ func InitInternalData() {
 	// This needs to happen before magic bitboard generation
 	// because we use this as a convenience for building attack
 	// boards.
+	BuildByteLookupTable()
 	InitRayAttacks()
 	InitBlockerMasks()
 	InitMagicBitboards()
@@ -97,7 +158,6 @@ func InitInternalData() {
 	LEGALKNIGHTMOVES = LegalKnightMovesDict()
 	InitPawnAttacks()
 	InitZobristNumbers()
-	BuildByteLookupTable()
 }
 
 // In order to use rotated bitboards, we'll
@@ -183,7 +243,7 @@ func BlockerMaskBishop(s Square) uint64 {
 	bb = 0
 	for col := 2; col < 8; col++ {
 		deltaCol := col - s.Col()
-		// If it's our column, this is our square, it's irrelevant
+		// If it's our row, this is our square, it's irrelevant
 		// for blockers.
 		if deltaCol == 0 {
 			continue
@@ -195,7 +255,7 @@ func BlockerMaskBishop(s Square) uint64 {
 
 		}
 		if s.Row()-deltaCol >= 1 && s.Row()-deltaCol <= 8 {
-			bb = SetBitOnBoard(bb, GetSquare(s.Row()+deltaCol, col))
+			bb = SetBitOnBoard(bb, GetSquare(s.Row()-deltaCol, col))
 		}
 	}
 	return bb
@@ -216,45 +276,38 @@ func InitBlockerMasks() {
 // resulting moves that can be made because of them.
 func InitMagicBitboards() {
 	// Store the magic number keys.
-	MAGICNUMBERROOK = [64]uint64{}
-	MAGICNUMBERBISHOP = [64]uint64{}
 	ROOKATTACKS = [64][]uint64{}
 	BISHOPATTACKS = [64][]uint64{}
 	// Get all the possible blockerboards, and their resulting
 	// legal moves.
 
-	// And find the magics for all the squares.
 	var i uint64
-	var lookingForNumber bool
-	var magic uint64
 	// Loop once for rooks.
 	for i = 0; i < 64; i++ {
-		lookingForNumber = true
-		bitCount := bits.OnesCount64(BLOCKERMASKROOK[i])
+		mask := BLOCKERMASKROOK[i]
+		bitCount := bits.OnesCount64(mask)
+		perms := GenerateBlockerPermutations(Square(i), mask, mask)
 		rookAttacks := make([]uint64, 1<<uint64(bitCount))
-		for lookingForNumber {
-			magic = rand.Uint64()
-
-			// Stop looking for magic numbers if we found one for this square.
-			lookingForNumber = false
+		for _, perm := range perms {
+			moves := RookMovesOnBoard(Square(i), perm)
+			key := (perm * MAGICNUMBERROOK[i]) >> uint64(64-bitCount)
+			rookAttacks[key] = moves
 		}
 		ROOKATTACKS[i] = rookAttacks
-		MAGICNUMBERROOK[i] = magic
 	}
 
 	// And again for bishops.
 	for i = 0; i < 64; i++ {
-		bitCount := bits.OnesCount64(BLOCKERMASKBISHOP[i])
+		mask := BLOCKERMASKBISHOP[i]
+		bitCount := bits.OnesCount64(mask)
+		perms := GenerateBlockerPermutations(Square(i), mask, mask)
 		bishopAttacks := make([]uint64, 1<<uint64(bitCount))
-		lookingForNumber = true
-		for lookingForNumber {
-			magic = rand.Uint64()
-
-			// Stop looking for magic numbers if we found one for this square.
-			lookingForNumber = false
+		for _, perm := range perms {
+			moves := BishopMovesOnBoard(Square(i), perm)
+			key := (perm * MAGICNUMBERBISHOP[i]) >> uint64(64-bitCount)
+			bishopAttacks[key] = moves
 		}
 		BISHOPATTACKS[i] = bishopAttacks
-		MAGICNUMBERBISHOP[i] = magic
 	}
 
 }
@@ -264,12 +317,13 @@ func InitMagicBitboards() {
 func RookMovesOnBoard(s Square, bb uint64) uint64 {
 	var movesbb uint64
 	// Check north.
+	moveNorth := s
 	for {
-		if (s.Row() + 1) > 8 {
+		if (moveNorth.Row() + 1) > 8 {
 			break // off the board
 		}
-		moveNorth := GetSquare(s.Row()+1, s.Col())
-		movesbb |= (uint64(1) << uint64(moveNorth))
+		moveNorth = GetSquare(moveNorth.Row()+1, moveNorth.Col())
+		movesbb = movesbb | uint64((uint64(1) << uint64(moveNorth)))
 		// If the new move intersects the blocker board, break.
 		if (uint64(1)<<uint64(moveNorth))&bb > 0 {
 			break
@@ -277,11 +331,12 @@ func RookMovesOnBoard(s Square, bb uint64) uint64 {
 	}
 
 	// Check south.
+	moveSouth := s
 	for {
-		if (s.Row() - 1) < 1 {
+		if (moveSouth.Row() - 1) < 1 {
 			break // off the board
 		}
-		moveSouth := GetSquare(s.Row()-1, s.Col())
+		moveSouth = GetSquare(moveSouth.Row()-1, moveSouth.Col())
 		movesbb |= (uint64(1) << uint64(moveSouth))
 		// If the new move intersects the blocker board, break.
 		if (uint64(1)<<uint64(moveSouth))&bb > 0 {
@@ -290,11 +345,12 @@ func RookMovesOnBoard(s Square, bb uint64) uint64 {
 	}
 
 	// Check west.
+	moveWest := s
 	for {
-		if (s.Col() - 1) < 1 {
+		if (moveWest.Col() - 1) < 1 {
 			break // off the board
 		}
-		moveWest := GetSquare(s.Row(), s.Col()-1)
+		moveWest = GetSquare(moveWest.Row(), moveWest.Col()-1)
 		movesbb |= (uint64(1) << uint64(moveWest))
 		// If the new move intersects the blocker board, break.
 		if (uint64(1)<<uint64(moveWest))&bb > 0 {
@@ -302,11 +358,12 @@ func RookMovesOnBoard(s Square, bb uint64) uint64 {
 		}
 	}
 	// Check east.
+	moveEast := s
 	for {
-		if (s.Col() + 1) > 8 {
+		if (moveEast.Col() + 1) > 8 {
 			break // off the board
 		}
-		moveEast := GetSquare(s.Row(), s.Col()-1)
+		moveEast = GetSquare(moveEast.Row(), moveEast.Col()+1)
 		movesbb |= (uint64(1) << uint64(moveEast))
 		// If the new move intersects the blocker board, break.
 		if (uint64(1)<<uint64(moveEast))&bb > 0 {
@@ -319,14 +376,15 @@ func RookMovesOnBoard(s Square, bb uint64) uint64 {
 func BishopMovesOnBoard(s Square, bb uint64) uint64 {
 	var movesbb uint64
 	// Check northwest.
+	moveNorthwest := s
 	for {
-		if (s.Row() + 1) > 8 {
+		if (moveNorthwest.Row() + 1) > 8 {
 			break // off the board
 		}
-		if (s.Col() - 1) < 1 {
+		if (moveNorthwest.Col() - 1) < 1 {
 			break // off the board
 		}
-		moveNorthwest := GetSquare(s.Row()+1, s.Col()-1)
+		moveNorthwest = GetSquare(moveNorthwest.Row()+1, moveNorthwest.Col()-1)
 		movesbb |= (uint64(1) << uint64(moveNorthwest))
 		// If the new move intersects the blocker board, break.
 		if (uint64(1)<<uint64(moveNorthwest))&bb > 0 {
@@ -335,14 +393,15 @@ func BishopMovesOnBoard(s Square, bb uint64) uint64 {
 	}
 
 	// Check northeast.
+	moveNortheast := s
 	for {
-		if (s.Row() + 1) > 8 {
+		if (moveNortheast.Row() + 1) > 8 {
 			break // off the board
 		}
-		if (s.Col() + 1) > 8 {
+		if (moveNortheast.Col() + 1) > 8 {
 			break // off the board
 		}
-		moveNortheast := GetSquare(s.Row()+1, s.Col()+1)
+		moveNortheast = GetSquare(moveNortheast.Row()+1, moveNortheast.Col()+1)
 		movesbb |= (uint64(1) << uint64(moveNortheast))
 		// If the new move intersects the blocker board, break.
 		if (uint64(1)<<uint64(moveNortheast))&bb > 0 {
@@ -351,14 +410,15 @@ func BishopMovesOnBoard(s Square, bb uint64) uint64 {
 	}
 
 	// Check southwest.
+	moveSouthwest := s
 	for {
-		if (s.Row() - 1) < 1 {
+		if (moveSouthwest.Row() - 1) < 1 {
 			break // off the board
 		}
-		if (s.Col() - 1) < 1 {
+		if (moveSouthwest.Col() - 1) < 1 {
 			break // off the board
 		}
-		moveSouthwest := GetSquare(s.Row()-1, s.Col()-1)
+		moveSouthwest = GetSquare(moveSouthwest.Row()-1, moveSouthwest.Col()-1)
 		movesbb |= (uint64(1) << uint64(moveSouthwest))
 		// If the new move intersects the blocker board, break.
 		if (uint64(1)<<uint64(moveSouthwest))&bb > 0 {
@@ -367,21 +427,40 @@ func BishopMovesOnBoard(s Square, bb uint64) uint64 {
 	}
 
 	// Check southeast.
+	moveSoutheast := s
 	for {
-		if (s.Row() - 1) < 1 {
+		if (moveSoutheast.Row() - 1) < 1 {
 			break // off the board
 		}
-		if (s.Col() + 1) > 8 {
+		if (moveSoutheast.Col() + 1) > 8 {
 			break // off the board
 		}
-		moveSouthwest := GetSquare(s.Row()-1, s.Col()+1)
-		movesbb |= (uint64(1) << uint64(moveSouthwest))
+		moveSoutheast = GetSquare(moveSoutheast.Row()-1, moveSoutheast.Col()+1)
+		movesbb |= (uint64(1) << uint64(moveSoutheast))
 		// If the new move intersects the blocker board, break.
-		if (uint64(1)<<uint64(moveSouthwest))&bb > 0 {
+		if (uint64(1)<<uint64(moveSoutheast))&bb > 0 {
 			break
 		}
 	}
 	return movesbb
+}
+
+func GenerateBlockerPermutations(s Square, blockerMask uint64, board uint64) []uint64 {
+	allPerms := []uint64{}
+	// If we've twiddled all the bits, then this board is a permutation.
+	if blockerMask == 0 {
+		return []uint64{board}
+	}
+	// Determine the next bit we are toggling in permutations, and remove it from the blocker mask.
+	nextToggledBit := bits.TrailingZeros64(blockerMask)
+	blockerMask = UnSetBitOnBoard(blockerMask, Square(nextToggledBit))
+	blockerLeftOn := board
+	blockerRemoved := board ^ (uint64(1) << uint64(nextToggledBit))
+
+	// Now enumerate all permutations with the toggled bit left on, and the toggled bit left off.
+	allPerms = append(allPerms, GenerateBlockerPermutations(s, blockerMask, blockerLeftOn)...)
+	allPerms = append(allPerms, GenerateBlockerPermutations(s, blockerMask, blockerRemoved)...)
+	return allPerms
 }
 
 // LegalKingMovesDict returns a 64-indexed set of bitboards
@@ -592,5 +671,4 @@ func RayAttacks(d Direction, s Square) uint64 {
 		return RAY_ATTACKS_E[s]
 	}
 	return 0
-
 }
