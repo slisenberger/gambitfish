@@ -6,6 +6,7 @@ package game
 import "math/rand"
 import "math/bits"
 import "time"
+import "fmt"
 
 // The preprocessed set of squares a piece can move to for a given
 // index.
@@ -45,8 +46,42 @@ var ZOBRISTBQS uint64
 
 // The precomputed relevant occupancies to determine
 // blockers for ray attacks.
-var BLOCKERMASKBISHOP [64]uint64
-var BLOCKERMASKROOK [64]uint64
+var BLOCKERMASKBISHOP = [64]uint64{
+	0x0040201008040200, 0x0000402010080400, 0x0000004020100A00, 0x0000000040221400,
+	0x0000000002442800, 0x0000000204085000, 0x0000020408102000, 0x0002040810204000,
+	0x0020100804020000, 0x0040201008040000, 0x00004020100A0000, 0x0000004022140000,
+	0x0000000244280000, 0x0000020408500000, 0x0002040810200000, 0x0004081020400000,
+	0x0010080402000200, 0x0020100804000400, 0x004020100A000A00, 0x0000402214001400,
+	0x0000024428002800, 0x0002040850005000, 0x0004081020002000, 0x0008102040004000,
+	0x0008040200020400, 0x0010080400040800, 0x0020100A000A1000, 0x0040221400142200,
+	0x0002442800284400, 0x0004085000500800, 0x0008102000201000, 0x0010204000402000,
+	0x0004020002040800, 0x0008040004081000, 0x00100A000A102000, 0x0022140014224000,
+	0x0044280028440200, 0x0008500050080400, 0x0010200020100800, 0x0020400040201000,
+	0x0002000204081000, 0x0004000408102000, 0x000A000A10204000, 0x0014001422400000,
+	0x0028002844020000, 0x0050005008040200, 0x0020002010080400, 0x0040004020100800,
+	0x0000020408102000, 0x0000040810204000, 0x00000A1020400000, 0x0000142240000000,
+	0x0000284402000000, 0x0000500804020000, 0x0000201008040200, 0x0000402010080400,
+	0x0002040810204000, 0x0004081020400000, 0x000A102040000000, 0x0014224000000000,
+	0x0028440200000000, 0x0050080402000000, 0x0020100804020000, 0x0040201008040200,
+}
+var BLOCKERMASKROOK = [64]uint64{
+	0x000101010101017E, 0x000202020202027C, 0x000404040404047A, 0x0008080808080876,
+	0x001010101010106E, 0x002020202020205E, 0x004040404040403E, 0x008080808080807E,
+	0x0001010101017E00, 0x0002020202027C00, 0x0004040404047A00, 0x0008080808087600,
+	0x0010101010106E00, 0x0020202020205E00, 0x0040404040403E00, 0x0080808080807E00,
+	0x00010101017E0100, 0x00020202027C0200, 0x00040404047A0400, 0x0008080808760800,
+	0x00101010106E1000, 0x00202020205E2000, 0x00404040403E4000, 0x00808080807E8000,
+	0x000101017E010100, 0x000202027C020200, 0x000404047A040400, 0x0008080876080800,
+	0x001010106E101000, 0x002020205E202000, 0x004040403E404000, 0x008080807E808000,
+	0x0001017E01010100, 0x0002027C02020200, 0x0004047A04040400, 0x0008087608080800,
+	0x0010106E10101000, 0x0020205E20202000, 0x0040403E40404000, 0x0080807E80808000,
+	0x00017E0101010100, 0x00027C0202020200, 0x00047A0404040400, 0x0008760808080800,
+	0x00106E1010101000, 0x00205E2020202000, 0x00403E4040404000, 0x00807E8080808000,
+	0x007E010101010100, 0x007C020202020200, 0x007A040404040400, 0x0076080808080800,
+	0x006E101010101000, 0x005E202020202000, 0x003E404040404000, 0x007E808080808000,
+	0x7E01010101010100, 0x7C02020202020200, 0x7A04040404040400, 0x7608080808080800,
+	0x6E10101010101000, 0x5E20202020202000, 0x3E40404040404000, 0x7E80808080808000,
+}
 
 // The hash key for a particular square for rooks/bishops
 // in looking up precomputed moves. I tried computing these but it was
@@ -126,70 +161,11 @@ func InitInternalData() {
 	// because we use this as a convenience for building attack
 	// boards.
 	BuildByteLookupTable()
-	InitBlockerMasks()
 	InitMagicBitboards()
 	LEGALKINGMOVES = LegalKingMovesDict()
 	LEGALKNIGHTMOVES = LegalKnightMovesDict()
 	InitPawnAttacks()
 	InitZobristNumbers()
-}
-
-// Generates the set of important bits for a square
-// that can block rook movement. Returns a bitboard with
-// the relevant occupancy. We ignore squares on the edges of
-// the board, since they can't block further movement.
-func BlockerMaskRook(s Square) uint64 {
-	var bb uint64
-	bb = 0
-	for col := 2; col < 8; col++ {
-		if col == s.Col() {
-			continue
-		}
-		bb = SetBitOnBoard(bb, GetSquare(s.Row(), col))
-	}
-	for row := 2; row < 8; row++ {
-		if row == s.Row() {
-			continue
-		}
-		bb = SetBitOnBoard(bb, GetSquare(row, s.Col()))
-	}
-	return bb
-}
-
-// Generates the set of important bits for a bishop that
-// can block bishop movement. We ignore squares on the edges
-// of the board, since they can't block further movement.
-func BlockerMaskBishop(s Square) uint64 {
-	var bb uint64
-	bb = 0
-	for col := 2; col < 8; col++ {
-		deltaCol := col - s.Col()
-		// If it's our row, this is our square, it's irrelevant
-		// for blockers.
-		if deltaCol == 0 {
-			continue
-		}
-		// For all other columns, look for the row above and below, and
-		// set these on the board.
-		if s.Row()+deltaCol >= 1 && s.Row()+deltaCol <= 8 {
-			bb = SetBitOnBoard(bb, GetSquare(s.Row()+deltaCol, col))
-
-		}
-		if s.Row()-deltaCol >= 1 && s.Row()-deltaCol <= 8 {
-			bb = SetBitOnBoard(bb, GetSquare(s.Row()-deltaCol, col))
-		}
-	}
-	return bb
-}
-
-func InitBlockerMasks() {
-	var i uint64
-	BLOCKERMASKBISHOP = [64]uint64{}
-	BLOCKERMASKROOK = [64]uint64{}
-	for i = 0; i < 64; i++ {
-		BLOCKERMASKBISHOP[i] = BlockerMaskBishop(Square(i))
-		BLOCKERMASKROOK[i] = BlockerMaskRook(Square(i))
-	}
 }
 
 // Initialize the preset arrays containing all possible
@@ -240,13 +216,13 @@ func RookMovesOnBoard(s Square, bb uint64) uint64 {
 	// Check north.
 	moveNorth := s
 	for {
-		if (moveNorth.Row() + 1) > 8 {
-			break // off the board
-		}
 		moveNorth = GetSquare(moveNorth.Row()+1, moveNorth.Col())
+		if moveNorth == OFFBOARD_SQUARE {
+			break
+		}
 		movesbb = SetBitOnBoard(movesbb, moveNorth)
 		// If the new move intersects the blocker board, break.
-		if (uint64(1)<<uint64(moveNorth))&bb > 0 {
+		if ((uint64(1) << uint64(moveNorth)) & bb) != 0 {
 			break
 		}
 	}
@@ -254,13 +230,13 @@ func RookMovesOnBoard(s Square, bb uint64) uint64 {
 	// Check south.
 	moveSouth := s
 	for {
-		if (moveSouth.Row() - 1) < 1 {
-			break // off the board
-		}
 		moveSouth = GetSquare(moveSouth.Row()-1, moveSouth.Col())
+		if moveSouth == OFFBOARD_SQUARE {
+			break
+		}
 		movesbb = SetBitOnBoard(movesbb, moveSouth)
 		// If the new move intersects the blocker board, break.
-		if (uint64(1)<<uint64(moveSouth))&bb > 0 {
+		if ((uint64(1) << uint64(moveSouth)) & bb) != 0 {
 			break
 		}
 	}
@@ -268,28 +244,31 @@ func RookMovesOnBoard(s Square, bb uint64) uint64 {
 	// Check west.
 	moveWest := s
 	for {
-		if (moveWest.Col() - 1) < 1 {
-			break // off the board
-		}
 		moveWest = GetSquare(moveWest.Row(), moveWest.Col()-1)
+		if moveWest == OFFBOARD_SQUARE {
+			break
+		}
 		movesbb = SetBitOnBoard(movesbb, moveWest)
 		// If the new move intersects the blocker board, break.
-		if (uint64(1)<<uint64(moveWest))&bb > 0 {
+		if ((uint64(1) << uint64(moveWest)) & bb) != 0 {
 			break
 		}
 	}
 	// Check east.
 	moveEast := s
 	for {
-		if (moveEast.Col() + 1) > 8 {
-			break // off the board
-		}
 		moveEast = GetSquare(moveEast.Row(), moveEast.Col()+1)
-		movesbb = SetBitOnBoard(movesbb, moveEast)
-		// If the new move intersects the blocker board, break.
-		if (uint64(1)<<uint64(moveEast))&bb > 0 {
+		if moveEast == OFFBOARD_SQUARE {
 			break
 		}
+		movesbb = SetBitOnBoard(movesbb, moveEast)
+		// If the new move intersects the blocker board, break.
+		if ((uint64(1) << uint64(moveEast)) & bb) != 0 {
+			break
+		}
+	}
+	if uint64(s) == 63 {
+		fmt.Println(SquaresFromBitBoard(movesbb))
 	}
 	return movesbb
 }
@@ -299,16 +278,13 @@ func BishopMovesOnBoard(s Square, bb uint64) uint64 {
 	// Check northwest.
 	moveNorthwest := s
 	for {
-		if (moveNorthwest.Row() + 1) > 8 {
-			break // off the board
-		}
-		if (moveNorthwest.Col() - 1) < 1 {
-			break // off the board
-		}
 		moveNorthwest = GetSquare(moveNorthwest.Row()+1, moveNorthwest.Col()-1)
+		if moveNorthwest == OFFBOARD_SQUARE {
+			break
+		}
 		movesbb |= (uint64(1) << uint64(moveNorthwest))
 		// If the new move intersects the blocker board, break.
-		if (uint64(1)<<uint64(moveNorthwest))&bb > 0 {
+		if ((uint64(1) << uint64(moveNorthwest)) & bb) != 0 {
 			break
 		}
 	}
@@ -316,16 +292,13 @@ func BishopMovesOnBoard(s Square, bb uint64) uint64 {
 	// Check northeast.
 	moveNortheast := s
 	for {
-		if (moveNortheast.Row() + 1) > 8 {
-			break // off the board
-		}
-		if (moveNortheast.Col() + 1) > 8 {
-			break // off the board
-		}
 		moveNortheast = GetSquare(moveNortheast.Row()+1, moveNortheast.Col()+1)
+		if moveNortheast == OFFBOARD_SQUARE {
+			break
+		}
 		movesbb |= (uint64(1) << uint64(moveNortheast))
 		// If the new move intersects the blocker board, break.
-		if (uint64(1)<<uint64(moveNortheast))&bb > 0 {
+		if ((uint64(1) << uint64(moveNortheast)) & bb) != 0 {
 			break
 		}
 	}
@@ -333,16 +306,13 @@ func BishopMovesOnBoard(s Square, bb uint64) uint64 {
 	// Check southwest.
 	moveSouthwest := s
 	for {
-		if (moveSouthwest.Row() - 1) < 1 {
-			break // off the board
-		}
-		if (moveSouthwest.Col() - 1) < 1 {
-			break // off the board
-		}
 		moveSouthwest = GetSquare(moveSouthwest.Row()-1, moveSouthwest.Col()-1)
+		if moveSouthwest == OFFBOARD_SQUARE {
+			break
+		}
 		movesbb |= (uint64(1) << uint64(moveSouthwest))
 		// If the new move intersects the blocker board, break.
-		if (uint64(1)<<uint64(moveSouthwest))&bb > 0 {
+		if ((uint64(1) << uint64(moveSouthwest)) & bb) != 0 {
 			break
 		}
 	}
@@ -350,16 +320,13 @@ func BishopMovesOnBoard(s Square, bb uint64) uint64 {
 	// Check southeast.
 	moveSoutheast := s
 	for {
-		if (moveSoutheast.Row() - 1) < 1 {
-			break // off the board
-		}
-		if (moveSoutheast.Col() + 1) > 8 {
-			break // off the board
-		}
 		moveSoutheast = GetSquare(moveSoutheast.Row()-1, moveSoutheast.Col()+1)
+		if moveSoutheast == OFFBOARD_SQUARE {
+			break
+		}
 		movesbb |= (uint64(1) << uint64(moveSoutheast))
 		// If the new move intersects the blocker board, break.
-		if (uint64(1)<<uint64(moveSoutheast))&bb > 0 {
+		if ((uint64(1) << uint64(moveSoutheast)) & bb) != 0 {
 			break
 		}
 	}
