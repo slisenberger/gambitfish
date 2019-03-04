@@ -106,13 +106,13 @@ func RayMoves(b *Board, p Piece, cur Square, bishop, rook bool) []Move {
 	if bishop {
 		bm := BLOCKERMASKBISHOP[cur]
 		magic := MAGICNUMBERBISHOP[cur]
-		key := ((bm | pos.Occupied) * magic) >> SHIFTSIZEBISHOP[cur]
+		key := ((bm & pos.Occupied) * magic) >> SHIFTSIZEBISHOP[cur]
 		allAtk |= BISHOPATTACKS[cur][key]
 	}
 	if rook {
 		bm := BLOCKERMASKROOK[cur]
 		magic := MAGICNUMBERROOK[cur]
-		key := ((bm | pos.Occupied) * magic) >> SHIFTSIZEROOK[cur]
+		key := ((bm & pos.Occupied) * magic) >> SHIFTSIZEROOK[cur]
 		allAtk |= ROOKATTACKS[cur][key]
 	}
 
@@ -159,13 +159,13 @@ func RayAttackBitboard(b *Board, cur Square, bishop, rook bool) uint64 {
 	if bishop {
 		mask := BLOCKERMASKBISHOP[cur]
 		magic := MAGICNUMBERBISHOP[cur]
-		key := ((mask | pos.Occupied) * magic) >> SHIFTSIZEBISHOP[cur]
+		key := ((mask & pos.Occupied) * magic) >> SHIFTSIZEBISHOP[cur]
 		res |= BISHOPATTACKS[cur][key]
 	}
 	if rook {
 		mask := BLOCKERMASKROOK[cur]
 		magic := MAGICNUMBERROOK[cur]
-		key := ((mask | pos.Occupied) * magic) >> SHIFTSIZEROOK[cur]
+		key := ((mask & pos.Occupied) * magic) >> SHIFTSIZEROOK[cur]
 		res |= ROOKATTACKS[cur][key]
 	}
 	return res
