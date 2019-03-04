@@ -231,7 +231,7 @@ func InitMagicBitboards() {
 	for i = 0; i < 64; i++ {
 		lookingForNumber = true
 		bitCount := bits.OnesCount64(BLOCKERMASKROOK[i])
-		rookAttacks := make([]uint64, 2**bitCount)
+		rookAttacks := make([]uint64, 1<<uint64(bitCount))
 		for lookingForNumber {
 			magic = rand.Uint64()
 
@@ -245,7 +245,7 @@ func InitMagicBitboards() {
 	// And again for bishops.
 	for i = 0; i < 64; i++ {
 		bitCount := bits.OnesCount64(BLOCKERMASKBISHOP[i])
-		bishopAttacks := make([]uint64, 2**bitCount)
+		bishopAttacks := make([]uint64, 1<<uint64(bitCount))
 		lookingForNumber = true
 		for lookingForNumber {
 			magic = rand.Uint64()
@@ -257,6 +257,131 @@ func InitMagicBitboards() {
 		MAGICNUMBERBISHOP[i] = magic
 	}
 
+}
+
+// Returns a set of legal moves for a rook on Square s with blockers on
+// bb.
+func RookMovesOnBoard(s Square, bb uint64) uint64 {
+	var movesbb uint64
+	// Check north.
+	for {
+		if (s.Row() + 1) > 8 {
+			break // off the board
+		}
+		moveNorth := GetSquare(s.Row()+1, s.Col())
+		movesbb |= (uint64(1) << uint64(moveNorth))
+		// If the new move intersects the blocker board, break.
+		if (uint64(1)<<uint64(moveNorth))&bb > 0 {
+			break
+		}
+	}
+
+	// Check south.
+	for {
+		if (s.Row() - 1) < 1 {
+			break // off the board
+		}
+		moveSouth := GetSquare(s.Row()-1, s.Col())
+		movesbb |= (uint64(1) << uint64(moveSouth))
+		// If the new move intersects the blocker board, break.
+		if (uint64(1)<<uint64(moveSouth))&bb > 0 {
+			break
+		}
+	}
+
+	// Check west.
+	for {
+		if (s.Col() - 1) < 1 {
+			break // off the board
+		}
+		moveWest := GetSquare(s.Row(), s.Col()-1)
+		movesbb |= (uint64(1) << uint64(moveWest))
+		// If the new move intersects the blocker board, break.
+		if (uint64(1)<<uint64(moveWest))&bb > 0 {
+			break
+		}
+	}
+	// Check east.
+	for {
+		if (s.Col() + 1) > 8 {
+			break // off the board
+		}
+		moveEast := GetSquare(s.Row(), s.Col()-1)
+		movesbb |= (uint64(1) << uint64(moveEast))
+		// If the new move intersects the blocker board, break.
+		if (uint64(1)<<uint64(moveEast))&bb > 0 {
+			break
+		}
+	}
+	return movesbb
+}
+
+func BishopMovesOnBoard(s Square, bb uint64) uint64 {
+	var movesbb uint64
+	// Check northwest.
+	for {
+		if (s.Row() + 1) > 8 {
+			break // off the board
+		}
+		if (s.Col() - 1) < 1 {
+			break // off the board
+		}
+		moveNorthwest := GetSquare(s.Row()+1, s.Col()-1)
+		movesbb |= (uint64(1) << uint64(moveNorthwest))
+		// If the new move intersects the blocker board, break.
+		if (uint64(1)<<uint64(moveNorthwest))&bb > 0 {
+			break
+		}
+	}
+
+	// Check northeast.
+	for {
+		if (s.Row() + 1) > 8 {
+			break // off the board
+		}
+		if (s.Col() + 1) > 8 {
+			break // off the board
+		}
+		moveNortheast := GetSquare(s.Row()+1, s.Col()+1)
+		movesbb |= (uint64(1) << uint64(moveNortheast))
+		// If the new move intersects the blocker board, break.
+		if (uint64(1)<<uint64(moveNortheast))&bb > 0 {
+			break
+		}
+	}
+
+	// Check southwest.
+	for {
+		if (s.Row() - 1) < 1 {
+			break // off the board
+		}
+		if (s.Col() - 1) < 1 {
+			break // off the board
+		}
+		moveSouthwest := GetSquare(s.Row()-1, s.Col()-1)
+		movesbb |= (uint64(1) << uint64(moveSouthwest))
+		// If the new move intersects the blocker board, break.
+		if (uint64(1)<<uint64(moveSouthwest))&bb > 0 {
+			break
+		}
+	}
+
+	// Check southeast.
+	for {
+		if (s.Row() - 1) < 1 {
+			break // off the board
+		}
+		if (s.Col() + 1) > 8 {
+			break // off the board
+		}
+		moveSouthwest := GetSquare(s.Row()-1, s.Col()+1)
+		movesbb |= (uint64(1) << uint64(moveSouthwest))
+		// If the new move intersects the blocker board, break.
+		if (uint64(1)<<uint64(moveSouthwest))&bb > 0 {
+			break
+		}
+	}
+	return movesbb
 }
 
 // LegalKingMovesDict returns a 64-indexed set of bitboards
@@ -391,14 +516,6 @@ func InitRayAttacks() {
 			RAY_ATTACKS_W = ra
 		}
 	}
-}
-
-// InitRotatedBitboardAttacks creates a preprocessed set of
-// arrays in which a particular piece in a particular direction
-// can find the squares it is capable of attacking, once
-// the rest of the squares on its board have been identified.
-func InitRotatedBitboardAttacks() {
-
 }
 
 func InitPawnAttacks() {
