@@ -74,8 +74,9 @@ func LegalKnightMoves(b *Board, p Piece, cur Square) []Move {
 	pos := b.Position
 	km := LEGALKNIGHTMOVES[cur]
 	// Iterate through legal non captures
-	for _, s := range SquaresFromBitBoard(km &^ pos.Occupied) {
-		moves = append(moves, NewMove(p, s, cur, b))
+	sq := SquaresFromBitBoard(km &^ pos.Occupied)
+	for i := 0; i < len(sq); i++ {
+		moves = append(moves, NewMove(p, sq[i], cur, b))
 	}
 	// Iterate through legal captures
 	var opp uint64
@@ -85,10 +86,15 @@ func LegalKnightMoves(b *Board, p Piece, cur Square) []Move {
 	case BLACK:
 		opp = pos.WhitePieces
 	}
-	for _, s := range SquaresFromBitBoard(km & opp) {
+	sq = SquaresFromBitBoard(km & opp)
+	for i := 0; i < len(sq); i++ {
+		s := sq[i]
 		move := NewMove(p, s, cur, b)
 		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
 		if b.Squares[s] == NULLPIECE {
+			fmt.Println("Last move: " + b.LastMove.String())
+			fmt.Println(SquaresFromBitBoard(km))
+			fmt.Println(SquaresFromBitBoard(opp))
 			b.Print()
 			panic("some knight capture is nil. abort! " + s.String())
 
@@ -135,14 +141,8 @@ func RayMoves(b *Board, p Piece, cur Square, bishop, rook bool) []Move {
 		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
 		if b.Squares[s] == NULLPIECE {
 			fmt.Println("Last move: " + b.LastMove.String())
-			fmt.Println(SquaresFromBitBoard(pos.BlackPawns))
-			fmt.Println(SquaresFromBitBoard(pos.BlackKnights))
-			fmt.Println(SquaresFromBitBoard(pos.BlackBishops))
-			fmt.Println(SquaresFromBitBoard(pos.BlackRooks))
-			fmt.Println(SquaresFromBitBoard(pos.BlackQueens))
 			fmt.Println(SquaresFromBitBoard(allAtk))
 			fmt.Println(SquaresFromBitBoard(opp))
-			fmt.Println(SquaresFromBitBoard(pos.WhiteQueens))
 			b.Print()
 			panic("some ray capture is nil. abort! " + s.String())
 
@@ -191,6 +191,10 @@ func LegalKingMoves(b *Board, p Piece, cur Square) []Move {
 		move := NewMove(p, s, cur, b)
 		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
 		if b.Squares[s] == NULLPIECE {
+			fmt.Println("Last move: " + b.LastMove.String())
+			fmt.Println(SquaresFromBitBoard(km))
+			fmt.Println(SquaresFromBitBoard(opp))
+			b.Print()
 			panic("some king capture is nil. abort! " + s.String())
 
 		}
@@ -279,7 +283,9 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 		}
 	}
 	// Check for side captures.
-	for _, s := range PawnAttackingSquares(p, cur) {
+	sq := PawnAttackingSquares(p, cur)
+	for i := 0; i < len(sq); i++ {
+		s := sq[i]
 		occupant := b.Squares[s]
 		if occupant != NULLPIECE && occupant.Color() != p.Color() {
 			if s.Row() == 1 || s.Row() == 8 {
@@ -353,6 +359,7 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 	}
 	return moves
 }
+
 
 func (p Piece) Color() Color {
 	switch p {
@@ -479,7 +486,9 @@ func LegalCaptures(b *Board, p Piece, cur Square) []Move {
 		opp = b.Position.WhitePieces
 	}
 
-	for _, s := range SquaresFromBitBoard(atk & opp) {
+	sq := SquaresFromBitBoard(atk & opp)
+	for i := 0; i < len(sq); i++ {
+		s := sq[i]
 		isPromotion := p.Type() == PAWN && (s.Row() == 1 || s.Row() == 8)
 		if !isPromotion {
 			move := NewMove(p, s, cur, b)
@@ -527,7 +536,9 @@ func LegalCaptures(b *Board, p Piece, cur Square) []Move {
 	// Do En Passant captures for pawns.
 	if p.Type() == PAWN {
 		// If attacking the en passant square, we can capture there.
-		for _, s := range SquaresFromBitBoard(atk) {
+		sq = SquaresFromBitBoard(atk)
+		for i := 0; i < len(sq); i++ {
+			s := sq[i]
 			if s == b.EPSquare {
 				var move Move
 				switch p.Color() {

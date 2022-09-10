@@ -98,7 +98,7 @@ func UnSetPiece(bb Position, p Piece, s Square) Position {
 		} else {
 			oldRooks := bb.BlackRooks
 			bb.BlackRooks = UnSetBitOnBoard(bb.BlackRooks, s)
-			if oldRooks != bb.BlackRooks && false {
+			if oldRooks == bb.BlackRooks {
 				fmt.Println("black rook was not unset..")
 				fmt.Println(s)
 				fmt.Println(SquaresFromBitBoard(bb.BlackRooks))

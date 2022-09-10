@@ -14,14 +14,14 @@ const NULL_MOVE_REDUCED_SEARCH_DEPTH = 2
 
 // An Alpha Beta Negamax implementation. Function stolen from here:
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning
-func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta float64, nullMove bool) (float64, *game.Move, int) {
+func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta float64, nullMove bool, c game.Color) (float64, *game.Move, int) {
 	// The number of nodes searched.
 	nodes := 0
 	// Store original values for transposition table.
 	alphaOrig := alpha
 	// Check the transposition table for work we've already done, and either
 	// return or update our cutoffs.
-	if entry, ok := game.TranspositionTable[game.ZobristHash(b)]; ok && entry.Depth >= depth && true {
+	if entry, ok := game.TranspositionTable[game.ZobristHash(b)]; ok && entry.Depth >= depth {
 		switch entry.Precision {
 		case game.EvalExact:
 			return entry.Eval, &entry.BestMove, 1
@@ -39,20 +39,14 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		}
 	}
 	// Return an eval if the game is over.
-	over, winner := b.CalculateGameOver()
+	over, _ := b.CalculateGameOver()
 	if over {
-		if b.Active == winner {
-			return math.Inf(1), nil, 1
-		} else if b.Active == -1*winner {
-			return math.Inf(-1), nil, 1
-		} else {
-			return 0, nil, 1
+			return math.Inf(int(c)), nil, 1
 		}
-	}
 
 	// Evaluate any leaf nodes.
 	if depth <= MAX_QUIESCENCE_DEPTH || (depth <= 0 && IsQuiet(b)) {
-		return e.Evaluate(b), nil, 1
+		return float64(c) * e.Evaluate(b), nil, 1
 	}
 	// TODO(slisenberger): I'd like to eventually ignore book moves, seeing if we can do decent
 	// from the opening.
@@ -65,24 +59,30 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	var moves []game.Move
 	// If we are past our depth limit, we are only in quiescence search.
 	// In quiescence search, only search remaining captures.
+	// TODO: Add checks and moves in check. Needs work.
 	if depth <= 0 {
-		moves = game.OrderMoves(b, b.AllLegalCaptures())
+		if game.IsCheck(b, b.Active) {
+			moves = game.OrderMoves(b, b.AllLegalMoves())
+		} else if len(b.AllLegalCaptures()) > 0 {
+			moves = game.OrderMoves(b, b.AllLegalCaptures())
+		}
 	} else {
 		moves = game.OrderMoves(b, b.AllLegalMoves())
 	}
 
 	// Try a null move first. If we can prune the search tree without
 	// moving, we should.
-	if nullMove && !game.IsCheck(b, b.Active) {
-		b.SwitchActivePlayer()
+	if nullMove && !game.IsCheck(b, c) {
 		// NullMoves affect en passant state, so we need to remember it.
 		epSquare := b.EPSquare
 		b.EPSquare = game.OFFBOARD_SQUARE
 		var n int
-		eval, _, n = AlphaBetaSearch(b, e, depth-1-NULL_MOVE_REDUCED_SEARCH_DEPTH, -beta, -alpha, false)
+	        b.SwitchActivePlayer()	
+		eval, _, n = AlphaBetaSearch(b, e, depth-1-NULL_MOVE_REDUCED_SEARCH_DEPTH, -beta, -alpha, false, -c)
+		// negamax
+		eval = -1 * eval
+	        b.SwitchActivePlayer()	
 		b.EPSquare = epSquare
-		b.SwitchActivePlayer()
-		eval = -1.0 * eval
 		if eval >= beta {
 			return eval, nil, nodes + n
 		}
@@ -99,12 +99,13 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		}
 		game.ApplyMove(b, move)
 		b.SwitchActivePlayer()
-		eval, _, n := AlphaBetaSearch(b, e, depth-1, -beta, -alpha, true)
+		eval, _, n := AlphaBetaSearch(b, e, depth-1, -beta, -alpha, true, -c)
+		// Negate eval -- it's opponent's opinion!
+		eval = -1 * eval
+	        b.SwitchActivePlayer()	
 		nodes += n
 		// Undo move and restore player.
-		b.SwitchActivePlayer()
 		game.UndoMove(b, move)
-		eval = -1.0 * eval
 		// We do >= because if checkmate is inevitable, we still need to pick a move.
 		if eval >= bestVal {
 			bestVal = eval
@@ -132,5 +133,5 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 }
 
 func IsQuiet(b *game.Board) bool {
-	return len(b.AllLegalCaptures()) == 0
+	return len(b.AllLegalCaptures()) == 0 && !game.IsCheck(b, b.Active)
 }

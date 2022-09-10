@@ -24,7 +24,7 @@ func main() {
 	e := game.CompoundEvaluator{
 		Evaluators: []game.Evaluator{
 			game.MaterialEvaluator{},
-			// game.PieceSquareEvaluator{},
+			game.PieceSquareEvaluator{},
 			// We'll turn this on when I like it
 			// MobilityEvaluator{},
 
@@ -33,7 +33,7 @@ func main() {
 		},
 	}
 	p1 := player.CommandLinePlayer{Color: game.WHITE}
-	p2 := player.AIPlayer{Evaluator: e, Depth: 4, Color: game.BLACK}
+	p2 := player.AIPlayer{Evaluator: e, Depth: 6, Color: game.BLACK}
 	b.Print()
 	for i := 0; i < 300; i++ {
 		time.Sleep(1 * time.Second)

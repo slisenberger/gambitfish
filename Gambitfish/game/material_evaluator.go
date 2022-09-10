@@ -18,11 +18,11 @@ func (m MaterialEvaluator) Evaluate(b *Board) float64 {
 		if p == NULLPIECE {
 			continue
 		}
-		if p.Color() == BLACK {
-			eval -= p.Value()
-		} else {
+		if p.Color() == b.Active  {
 			eval += p.Value()
+		} else {
+			eval -= p.Value()
 		}
 	}
-	return float64(b.Active) * eval
+	return eval
 }

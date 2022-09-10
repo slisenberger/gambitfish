@@ -33,3 +33,11 @@ func TestSacrificeQueen(t *testing.T) {
 		t.Error("Queen sacrificed on position with depth=2, which is losing")
 	}
 }
+
+
+// Test finding winning mate in ones.
+func TestMateInOne(t *testing.T) {
+	// With one ply, the greedy option is take the pawn!
+	_, move := AlphaBetaSearch(b, e, 1, math.Inf(-1), math.Inf(1))
+
+}

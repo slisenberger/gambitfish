@@ -447,7 +447,7 @@ func InitZobristNumbers() {
 		piecemap := map[PieceType][64]uint64{}
 		for _, p := range pieces {
 			squares := [64]uint64{}
-			for i := 0; i < 63; i++ {
+			for i := 0; i < 64; i++ {
 				squares[i] = uint64(rand.Uint32())<<32 + uint64(rand.Uint32())
 
 			}

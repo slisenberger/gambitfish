@@ -30,7 +30,7 @@ func (p *AIPlayer) MakeMove(b *game.Board) error {
 	var move *game.Move
 	var nodes int
 	for d := 1; d <= p.Depth; d++ {
-		eval, move, nodes = search.AlphaBetaSearch(b, p.Evaluator, d, math.Inf(-1), math.Inf(1), false)
+		eval, move, nodes = search.AlphaBetaSearch(b, p.Evaluator, d, math.Inf(-1), math.Inf(1), false, p.Color)
 		fmt.Println(fmt.Sprintf("iteration %v: best move is %v (%v nodes searched)", d, move, nodes))
 	}
 	t := time.Since(start)
@@ -111,6 +111,8 @@ func PrintPrincipalVariation(b *game.Board) {
 		//	}
 	}
 	// Print the principal variation.
+	entry := game.TranspositionTable[game.ZobristHash(b)]
+	fmt.Printf("\nEvaluation at Depth %v: %v\n", entry.Depth, entry.Eval)
 	fmt.Println("Principal Variation: ")
 	pvStrings := []string{}
 	for _, m := range moves {

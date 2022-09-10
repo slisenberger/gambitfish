@@ -206,15 +206,18 @@ func UndoMove(b *Board, m Move) {
 	o := m.Old
 	s := m.Square
 
-	b.Squares[o] = p
-	b.Position = SetPiece(b.Position, p, o)
 	// Return the square we were on to its old state.
 	b.Squares[s] = NULLPIECE
+
+	// Undo promotions and change our candidate piece to a pawn.
 	if m.Promotion != NULLPIECE {
 		b.Position = UnSetPiece(b.Position, m.Promotion, s)
 	} else {
 		b.Position = UnSetPiece(b.Position, p, s)
 	}
+	// Return our piece to its original place.
+	b.Position = SetPiece(b.Position, p, o)
+	b.Squares[o] = p
 	// Return a captured piece.
 	if m.Capture != nil {
 		b.Squares[m.Capture.Square] = m.Capture.Piece
@@ -280,8 +283,7 @@ func (b *Board) AllLegalMoves() []Move {
 		m := LegalMoves(b, p, Square(s))
 		for _, move := range m {
 			ApplyMove(b, move)
-			if !IsCheck(b, b.Active) {
-				moves = append(moves, move)
+			if !IsCheck(b, b.Active) { moves = append(moves, move)
 			}
 			UndoMove(b, move)
 		}
