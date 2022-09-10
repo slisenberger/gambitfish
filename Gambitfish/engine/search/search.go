@@ -41,12 +41,12 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	// Return an eval if the game is over.
 	over, _ := b.CalculateGameOver()
 	if over {
-			return math.Inf(int(c)), nil, 1
+			return math.Inf(-1), nil, 1
 		}
 
 	// Evaluate any leaf nodes.
 	if depth <= MAX_QUIESCENCE_DEPTH || (depth <= 0 && IsQuiet(b)) {
-		return float64(c) * e.Evaluate(b), nil, 1
+		return e.Evaluate(b), nil, 1
 	}
 	// TODO(slisenberger): I'd like to eventually ignore book moves, seeing if we can do decent
 	// from the opening.
