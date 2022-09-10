@@ -134,7 +134,7 @@ var SHIFTSIZEROOK = [64]uint64{
 	53, 54, 54, 54, 54, 54, 54, 53,
 	53, 54, 54, 54, 54, 54, 54, 53,
 	53, 54, 54, 54, 54, 54, 54, 53,
-	53, 54, 54, 53, 53, 53, 53, 53,
+	52, 53, 53, 53, 53, 53, 53, 52,
 }
 
 var SHIFTSIZEBISHOP = [64]uint64{
@@ -183,7 +183,8 @@ func InitMagicBitboards() {
 	for i = 0; i < 64; i++ {
 		mask := BLOCKERMASKROOK[i]
 		bitCount := bits.OnesCount64(mask)
-		perms := GenerateBlockerPermutations(Square(i), mask, mask)
+		perms := GenerateBlockerPermutations(mask, mask)
+		fmt.Printf("found %d permutations\n", len(perms))
 		rookAttacks := make([]uint64, 1<<uint64(bitCount))
 		for _, perm := range perms {
 			moves := RookMovesOnBoard(Square(i), perm)
@@ -197,7 +198,7 @@ func InitMagicBitboards() {
 	for i = 0; i < 64; i++ {
 		mask := BLOCKERMASKBISHOP[i]
 		bitCount := bits.OnesCount64(mask)
-		perms := GenerateBlockerPermutations(Square(i), mask, mask)
+		perms := GenerateBlockerPermutations(mask, mask)
 		bishopAttacks := make([]uint64, 1<<uint64(bitCount))
 		for _, perm := range perms {
 			moves := BishopMovesOnBoard(Square(i), perm)
@@ -333,7 +334,7 @@ func BishopMovesOnBoard(s Square, bb uint64) uint64 {
 	return movesbb
 }
 
-func GenerateBlockerPermutations(s Square, blockerMask uint64, board uint64) []uint64 {
+func GenerateBlockerPermutations(blockerMask uint64, board uint64) []uint64 {
 	allPerms := []uint64{}
 	// If we've twiddled all the bits, then this board is a permutation.
 	if blockerMask == 0 {
@@ -346,8 +347,8 @@ func GenerateBlockerPermutations(s Square, blockerMask uint64, board uint64) []u
 	blockerRemoved := board ^ (uint64(1) << uint64(nextToggledBit))
 
 	// Now enumerate all permutations with the toggled bit left on, and the toggled bit left off.
-	allPerms = append(allPerms, GenerateBlockerPermutations(s, blockerMask, blockerLeftOn)...)
-	allPerms = append(allPerms, GenerateBlockerPermutations(s, blockerMask, blockerRemoved)...)
+	allPerms = append(allPerms, GenerateBlockerPermutations(blockerMask, blockerLeftOn)...)
+	allPerms = append(allPerms, GenerateBlockerPermutations(blockerMask, blockerRemoved)...)
 	return allPerms
 }
 
