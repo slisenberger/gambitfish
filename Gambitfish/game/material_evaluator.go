@@ -2,15 +2,6 @@ package game
 
 type MaterialEvaluator struct{}
 
-// Utility for printing in debugging.
-func ColorToString(c Color) string {
-	if c == 1 {
-		return "WHITE"
-	} else {
-		return "BLACK"
-	}
-}
-
 // Evaluates a board by counting the material weights for all remaining pieces.
 func (m MaterialEvaluator) Evaluate(b *Board) float64 {
 	eval := 0.0

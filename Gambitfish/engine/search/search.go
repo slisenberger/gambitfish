@@ -8,7 +8,8 @@ import "../../game"
 // We reach depth 0 with pending captures.
 // This should eventually be controlled, but for now we max quiescence search
 // another nodes.
-const MAX_QUIESCENCE_DEPTH = -8
+// TODO: Turning off quiescene to fix material evaluation search bugs.
+const MAX_QUIESCENCE_DEPTH = -2
 
 const NULL_MOVE_REDUCED_SEARCH_DEPTH = 2
 
@@ -45,7 +46,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		}
 
 	// Evaluate any leaf nodes.
-	if depth <= MAX_QUIESCENCE_DEPTH || (depth <= 0 && IsQuiet(b)) {
+	if (depth <= MAX_QUIESCENCE_DEPTH) || (depth <= 0 && IsQuiet(b)) {
 		return e.Evaluate(b), nil, 1
 	}
 	// TODO(slisenberger): I'd like to eventually ignore book moves, seeing if we can do decent

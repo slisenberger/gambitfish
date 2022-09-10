@@ -6,7 +6,6 @@ package game
 import "math/rand"
 import "math/bits"
 import "time"
-import "fmt"
 
 // The preprocessed set of squares a piece can move to for a given
 // index.
@@ -184,7 +183,6 @@ func InitMagicBitboards() {
 		mask := BLOCKERMASKROOK[i]
 		bitCount := bits.OnesCount64(mask)
 		perms := GenerateBlockerPermutations(mask, mask)
-		fmt.Printf("found %d permutations\n", len(perms))
 		rookAttacks := make([]uint64, 1<<uint64(bitCount))
 		for _, perm := range perms {
 			moves := RookMovesOnBoard(Square(i), perm)
@@ -267,9 +265,6 @@ func RookMovesOnBoard(s Square, bb uint64) uint64 {
 		if ((uint64(1) << uint64(moveEast)) & bb) != 0 {
 			break
 		}
-	}
-	if uint64(s) == 63 {
-		fmt.Println(SquaresFromBitBoard(movesbb))
 	}
 	return movesbb
 }

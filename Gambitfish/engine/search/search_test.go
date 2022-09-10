@@ -60,3 +60,41 @@ func TestMate(t *testing.T) {
 	   }
         }
 }
+
+// Test preferring free material
+func TestMaterial(t *testing.T) {
+	game.InitInternalData()
+	testCases := []struct {
+		name  string
+		fen   string
+		move  string // The best move at the given depth
+		depth int
+	}{
+		{
+			name:  "free early queen for black",
+			fen:   "rnbqkb1r/pppp1ppp/5n2/4p3/2B1P1Q1/8/PPPP1PPP/RNB1K1NR b KQkq - 0 1",
+			move: "Nf6xg4",
+			depth: 1,
+		},
+		{
+			name: "free early queen for white",
+			fen: "rnb1kbnr/pppp1ppp/8/4p1q1/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1",
+			move: "Nf3xg5",
+			depth: 1,
+		},
+	}
+
+	e := game.MaterialEvaluator{}
+
+	for _, tc := range testCases {
+           b, err := game.BoardFromFen(tc.fen)
+	   if err != nil {
+		   t.Error("failed to read board from fen")
+	   }
+	   eval, move, _ := AlphaBetaSearch(b, e, tc.depth, math.Inf(-1), math.Inf(1), false, b.Active)
+	   if move.String() != tc.move {
+		t.Errorf("Got wrong move. Want %v, got %v (eval %v)", tc.move,  move.String(), eval)
+		b.Print()
+	   }
+        }
+}
