@@ -283,7 +283,8 @@ func (b *Board) AllLegalMoves() []Move {
 		m := LegalMoves(b, p, Square(s))
 		for _, move := range m {
 			ApplyMove(b, move)
-			if !IsCheck(b, b.Active) { moves = append(moves, move)
+			if !IsCheck(b, b.Active) {
+				moves = append(moves, move)
 			}
 			UndoMove(b, move)
 		}
@@ -291,7 +292,7 @@ func (b *Board) AllLegalMoves() []Move {
 	return moves
 }
 
-// AllLegalCaptures enumerates all of the legal moves currently available to the
+// AllLegalCaptures enumerates all of the legal captures currently available to the
 // active player.
 func (b *Board) AllLegalCaptures() []Move {
 	var moves []Move
@@ -306,6 +307,29 @@ func (b *Board) AllLegalCaptures() []Move {
 		for _, move := range m {
 			ApplyMove(b, move)
 			if !IsCheck(b, b.Active) {
+				moves = append(moves, move)
+			}
+			UndoMove(b, move)
+		}
+	}
+	return moves
+}
+
+// AllLegalChecks enumerates all of the legal checks currently available to the
+// active player.
+func (b *Board) AllLegalChecks() []Move {
+	var moves []Move
+	for s, p := range b.Squares {
+		if p == NULLPIECE {
+			continue
+		}
+		if p.Color() != b.Active {
+			continue
+		}
+		m := LegalMoves(b, p, Square(s))
+		for _, move := range m {
+			ApplyMove(b, move)
+			if !IsCheck(b, b.Active) && IsCheck(b, -1 * b.Active) {
 				moves = append(moves, move)
 			}
 			UndoMove(b, move)

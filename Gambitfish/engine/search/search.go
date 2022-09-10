@@ -60,11 +60,10 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	var moves []game.Move
 	// If we are past our depth limit, we are only in quiescence search.
 	// In quiescence search, only search remaining captures.
-	// TODO: Add checks and moves in check. Needs work.
 	if depth <= 0 {
 		if game.IsCheck(b, b.Active) {
 			moves = game.OrderMoves(b, b.AllLegalMoves())
-		} else if len(b.AllLegalCaptures()) > 0 {
+		} else {
 			moves = game.OrderMoves(b, b.AllLegalCaptures())
 		}
 	} else {
@@ -94,13 +93,14 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 			b.Print()
 			fmt.Println(b.AllLegalMoves())
 			fmt.Println(b.AllLegalCaptures())
+			fmt.Println(b.AllLegalChecks())
 			fmt.Println(depth)
 			fmt.Println(moves)
 			panic("somehow am making a null move..")
 		}
 		game.ApplyMove(b, move)
 		b.SwitchActivePlayer()
-		eval, _, n := AlphaBetaSearch(b, e, depth-1, -beta, -alpha, true, -c)
+		eval, _, n := AlphaBetaSearch(b, e, depth-1, -beta, -alpha, false, -c)
 		// Negate eval -- it's opponent's opinion!
 		eval = -1 * eval
 	        b.SwitchActivePlayer()	
@@ -134,5 +134,5 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 }
 
 func IsQuiet(b *game.Board) bool {
-	return len(b.AllLegalCaptures()) == 0 && !game.IsCheck(b, b.Active)
+	return (len(b.AllLegalCaptures()) == 0) && (len(b.AllLegalChecks()) == 0) && !game.IsCheck(b, b.Active)
 }
