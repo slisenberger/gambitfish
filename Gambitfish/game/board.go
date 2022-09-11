@@ -206,7 +206,7 @@ func UndoMove(b *Board, m Move) {
 	o := m.Old
 	s := m.Square
 
-	// Return the square we were on to its old state.
+	// Remove ourselves from our square.
 	b.Squares[s] = NULLPIECE
 
 	// Undo promotions and change our candidate piece to a pawn.
@@ -220,8 +220,13 @@ func UndoMove(b *Board, m Move) {
 	b.Squares[o] = p
 	// Return a captured piece.
 	if m.Capture != nil {
+		if m.EnPassant{
+			b.Squares[m.PrevEPSquare] = m.Capture.Piece
+		        b.Position = SetPiece(b.Position, m.Capture.Piece, m.PrevEPSquare)
+		} else {
 			b.Squares[m.Capture.Square] = m.Capture.Piece
 		        b.Position = SetPiece(b.Position, m.Capture.Piece, m.Capture.Square)
+		}
 	}
 
 	// Undo rook moves from castling.

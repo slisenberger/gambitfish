@@ -63,6 +63,8 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	if depth <= 0 {
 		if game.IsCheck(b, b.Active) {
 			moves = game.OrderMoves(b, b.AllLegalMoves())
+			// Testing a check depth extension. Will eventually factor this elsewhere.
+			depth += 1
 		} else {
 			if len(b.AllLegalChecksAndCaptures()) > 0 {
 				moves = game.OrderMoves(b, b.AllLegalChecksAndCaptures())
@@ -106,10 +108,10 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		eval, _, n := AlphaBetaSearch(b, e, depth-1, -beta, -alpha, false, -c)
 		// Negate eval -- it's opponent's opinion!
 		eval = -1 * eval
+		game.UndoMove(b, move)
 	        b.SwitchActivePlayer()	
 		nodes += n
 		// Undo move and restore player.
-		game.UndoMove(b, move)
 		// We do >= because if checkmate is inevitable, we still need to pick a move.
 		if eval >= bestVal {
 			bestVal = eval

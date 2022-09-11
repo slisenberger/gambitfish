@@ -44,6 +44,12 @@ func TestMate(t *testing.T) {
 			move: "Qd2-h6",
 			depth: 3,
 		},
+		{
+			name: "m2 from game with engine. black blundered f6.",
+			fen: "r1bqkbnr/ppppp1p1/n4p1p/8/2PPP3/8/PP3PPP/RNBQKBNR w - - 1 1",
+			move: "Qd1-h5",
+			depth: 3,
+		}
 	}
 
 	e := game.MaterialEvaluator{}

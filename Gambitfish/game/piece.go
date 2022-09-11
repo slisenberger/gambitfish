@@ -352,7 +352,7 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 	// If en passant is legal, we migh be able to capture.
 	if epSquare != OFFBOARD_SQUARE {
 		adjToEP := cur.Col()-1 == epSquare.Col() || cur.Col()+1 == epSquare.Col()
-		if p.Color() == WHITE && cur.Row() == 5 && adjToEP {
+		if p.Color() == WHITE && cur.Row() == 5 && adjToEP && epSquare.Row() == 6 {
 			move := NewMove(p, GetSquare(6, epSquare.Col()), cur, b)
 			move.EnPassant = true
 			capturedPiece := b.Squares[epSquare]
@@ -362,7 +362,7 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 			move.Capture = &Capture{capturedPiece, epSquare}
 			moves = append(moves, move)
 		}
-		if p.Color() == BLACK && cur.Row() == 4 && adjToEP {
+		if p.Color() == BLACK && cur.Row() == 4 && adjToEP && epSquare.Row() == 3 {
 			move := NewMove(p, GetSquare(3, epSquare.Col()), cur, b)
 			move.EnPassant = true
 			capturedPiece := b.Squares[epSquare]
@@ -564,7 +564,6 @@ func LegalCaptures(b *Board, p Piece, cur Square) []Move {
 					move = NewMove(p, GetSquare(3, b.EPSquare.Col()), cur, b)
 				}
 				capturedPiece := b.Squares[b.EPSquare]
-				move.EnPassant = true
 				move.Capture = &Capture{capturedPiece, b.EPSquare}
 				moves = append(moves, move)
 			}

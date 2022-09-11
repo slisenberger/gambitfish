@@ -46,6 +46,10 @@ func (m Move) String() string {
 	if m.Promotion != NULLPIECE {
 		mv = fmt.Sprintf("%v=%v", mv, m.Promotion)
 	}
+
+	if m.EnPassant {
+		mv += "(en passant)"
+	}
 	return mv
 }
 
