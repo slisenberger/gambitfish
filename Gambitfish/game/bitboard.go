@@ -2,7 +2,6 @@
 // of a chess board state and its corresponding utilities.
 package game
 
-import "fmt"
 
 import "math/bits"
 
@@ -96,13 +95,7 @@ func UnSetPiece(bb Position, p Piece, s Square) Position {
 		if p.Color() == WHITE {
 			bb.WhiteRooks = UnSetBitOnBoard(bb.WhiteRooks, s)
 		} else {
-			oldRooks := bb.BlackRooks
 			bb.BlackRooks = UnSetBitOnBoard(bb.BlackRooks, s)
-			if oldRooks == bb.BlackRooks {
-				fmt.Println("black rook was not unset..")
-				fmt.Println(s)
-				fmt.Println(SquaresFromBitBoard(bb.BlackRooks))
-			}
 		}
 	case BISHOP:
 		if p.Color() == WHITE {

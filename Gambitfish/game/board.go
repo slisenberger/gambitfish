@@ -220,8 +220,8 @@ func UndoMove(b *Board, m Move) {
 	b.Squares[o] = p
 	// Return a captured piece.
 	if m.Capture != nil {
-		b.Squares[m.Capture.Square] = m.Capture.Piece
-		b.Position = SetPiece(b.Position, m.Capture.Piece, m.Capture.Square)
+			b.Squares[m.Capture.Square] = m.Capture.Piece
+		        b.Position = SetPiece(b.Position, m.Capture.Piece, m.Capture.Square)
 	}
 
 	// Undo rook moves from castling.
@@ -330,6 +330,29 @@ func (b *Board) AllLegalChecks() []Move {
 		for _, move := range m {
 			ApplyMove(b, move)
 			if !IsCheck(b, b.Active) && IsCheck(b, -1 * b.Active) {
+				moves = append(moves, move)
+			}
+			UndoMove(b, move)
+		}
+	}
+	return moves
+}
+
+// AllLegalChecksAndCaptures enumerates all of the loud moves currently available to the
+// active player.
+func (b *Board) AllLegalChecksAndCaptures() []Move {
+	var moves []Move
+	for s, p := range b.Squares {
+		if p == NULLPIECE {
+			continue
+		}
+		if p.Color() != b.Active {
+			continue
+		}
+		m := LegalMoves(b, p, Square(s))
+		for _, move := range m {
+			ApplyMove(b, move)
+			if !IsCheck(b, b.Active) && (IsCheck(b, -1 * b.Active) || move.Capture != nil){
 				moves = append(moves, move)
 			}
 			UndoMove(b, move)

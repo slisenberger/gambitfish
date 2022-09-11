@@ -140,9 +140,23 @@ func RayMoves(b *Board, p Piece, cur Square, bishop, rook bool) []Move {
 		move := NewMove(p, s, cur, b)
 		move.Capture = &Capture{Piece: b.Squares[s], Square: s}
 		if b.Squares[s] == NULLPIECE {
-			fmt.Println("Last move: " + b.LastMove.String())
+			fmt.Println("Last move")
+			fmt.Println("----------")
+			lastMove := b.LastMove
+			for lastMove != nil {
+				fmt.Println(lastMove.String())
+				lastMove = lastMove.PrevLastMove
+			}
+
 			fmt.Println(SquaresFromBitBoard(allAtk))
 			fmt.Println(SquaresFromBitBoard(opp))
+			fmt.Println(SquaresFromBitBoard(pos.Occupied))
+			fmt.Println(SquaresFromBitBoard(pos.WhitePawns))
+			fmt.Println(SquaresFromBitBoard(pos.WhiteBishops))
+			fmt.Println(SquaresFromBitBoard(pos.WhiteKnights))
+			fmt.Println(SquaresFromBitBoard(pos.BlackPawns))
+			fmt.Println(SquaresFromBitBoard(pos.BlackBishops))
+			fmt.Println(SquaresFromBitBoard(pos.BlackKnights))
 			b.Print()
 			panic("some ray capture is nil. abort! " + s.String())
 
@@ -340,6 +354,7 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 		adjToEP := cur.Col()-1 == epSquare.Col() || cur.Col()+1 == epSquare.Col()
 		if p.Color() == WHITE && cur.Row() == 5 && adjToEP {
 			move := NewMove(p, GetSquare(6, epSquare.Col()), cur, b)
+			move.EnPassant = true
 			capturedPiece := b.Squares[epSquare]
 			if capturedPiece == NULLPIECE {
 				panic(fmt.Sprintf("capture on %v is nil", epSquare))
@@ -349,6 +364,7 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 		}
 		if p.Color() == BLACK && cur.Row() == 4 && adjToEP {
 			move := NewMove(p, GetSquare(3, epSquare.Col()), cur, b)
+			move.EnPassant = true
 			capturedPiece := b.Squares[epSquare]
 			if capturedPiece == NULLPIECE {
 				panic(fmt.Sprintf("capture on %v is nil", epSquare))
@@ -548,6 +564,7 @@ func LegalCaptures(b *Board, p Piece, cur Square) []Move {
 					move = NewMove(p, GetSquare(3, b.EPSquare.Col()), cur, b)
 				}
 				capturedPiece := b.Squares[b.EPSquare]
+				move.EnPassant = true
 				move.Capture = &Capture{capturedPiece, b.EPSquare}
 				moves = append(moves, move)
 			}

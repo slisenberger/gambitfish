@@ -9,7 +9,7 @@ import "../../game"
 // This should eventually be controlled, but for now we max quiescence search
 // another nodes.
 // TODO: Turning off quiescene to fix material evaluation search bugs.
-const MAX_QUIESCENCE_DEPTH = -2
+const MAX_QUIESCENCE_DEPTH = -8
 
 const NULL_MOVE_REDUCED_SEARCH_DEPTH = 2
 
@@ -64,7 +64,10 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		if game.IsCheck(b, b.Active) {
 			moves = game.OrderMoves(b, b.AllLegalMoves())
 		} else {
-			moves = game.OrderMoves(b, b.AllLegalCaptures())
+			if len(b.AllLegalChecksAndCaptures()) > 0 {
+				moves = game.OrderMoves(b, b.AllLegalChecksAndCaptures())
+			}
+			moves = game.OrderMoves(b, moves)
 		}
 	} else {
 		moves = game.OrderMoves(b, b.AllLegalMoves())
@@ -134,5 +137,5 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 }
 
 func IsQuiet(b *game.Board) bool {
-	return (len(b.AllLegalCaptures()) == 0) && (len(b.AllLegalChecks()) == 0) && !game.IsCheck(b, b.Active)
+	return len(b.AllLegalChecksAndCaptures()) == 0 && !game.IsCheck(b, b.Active)
 }

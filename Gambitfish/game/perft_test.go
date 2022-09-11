@@ -1,19 +1,10 @@
 package game
 
 import "fmt"
-import "log"
-import "os"
-import "runtime/pprof"
 import "testing"
 import "time"
 
 func TestPerft(t *testing.T) {
-	f, err := os.Create("pprof.cpu")
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
 	InitInternalData()
 	testCases := []struct {
 		name  string
