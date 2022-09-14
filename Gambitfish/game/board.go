@@ -18,6 +18,15 @@ type Board struct {
 	AllMoves    []Move
 }
 
+type BoardState struct {
+	LastMove *Move
+	WKSCastling bool
+	WQSCastling bool
+	BKSCastling bool
+	BQSCastling bool
+	EPSquare    Square // The square a pawn was just pushed two forward.
+}
+
 func DefaultBoard() *Board {
 	b := &Board{Active: WHITE}
 	// Add pawns
@@ -96,10 +105,19 @@ func (b *Board) Print() {
 }
 
 // ApplyMove changes the state of the Board for any given move.
-func ApplyMove(b *Board, m Move) {
+func ApplyMove(b *Board, m Move) BoardState {
 	p := m.Piece
 	o := m.Old
 	s := m.Square
+	// Save old state.
+	bs := BoardState{
+		LastMove: b.LastMove,
+		WKSCastling: b.WKSCastling,
+		BKSCastling: b.BKSCastling,
+		WQSCastling: b.WQSCastling,
+		BQSCastling: b.WQSCastling,
+		EPSquare: b.EPSquare,
+	}
 	if p == NULLPIECE {
 		b.Print()
 		fmt.Println(b.AllLegalMoves())
@@ -197,11 +215,12 @@ func ApplyMove(b *Board, m Move) {
 
 	// Update bitboard representations.
 	b.Position = UpdateBitboards(b.Position)
+	return bs
 }
 
 // UndoMove returns a board to the state it was at prior to
 // applying a move m.
-func UndoMove(b *Board, m Move) {
+func UndoMove(b *Board, m Move, bs BoardState) {
 	p := m.Piece
 	o := m.Old
 	s := m.Square
@@ -249,18 +268,18 @@ func UndoMove(b *Board, m Move) {
 	}
 
 	// Reapply original castling rights.
-	b.WQSCastling = m.PrevWQSCastling
-	b.BQSCastling = m.PrevBQSCastling
-	b.WKSCastling = m.PrevWKSCastling
-	b.BKSCastling = m.PrevBKSCastling
+	b.WQSCastling = bs.WQSCastling
+	b.BQSCastling = bs.BQSCastling
+	b.WKSCastling = bs.WKSCastling
+	b.BKSCastling = bs.BKSCastling
 
 	// Reapply original en passant column.
-	b.EPSquare = m.PrevEPSquare
+	b.EPSquare = bs.EPSquare
 	// Reverse the move counter.
 	if b.Active == BLACK {
 		b.Move--
 	}
-	b.LastMove = m.PrevLastMove
+	b.LastMove = bs.LastMove
 
 	b.Position = UpdateBitboards(b.Position)
 }
@@ -287,11 +306,11 @@ func (b *Board) AllLegalMoves() []Move {
 		}
 		m := LegalMoves(b, p, Square(s))
 		for i := 0; i < len(m); i++ {
-			ApplyMove(b, m[i])
+			bs := ApplyMove(b, m[i])
 			if !IsCheck(b, b.Active) {
 				moves = append(moves, m[i])
 			}
-			UndoMove(b, m[i])
+			UndoMove(b, m[i], bs)
 		}
 	}
 	return moves
@@ -310,11 +329,11 @@ func (b *Board) AllLegalCaptures() []Move {
 		}
 		m := LegalCaptures(b, p, Square(s))
 		for _, move := range m {
-			ApplyMove(b, move)
+			bs := ApplyMove(b, move)
 			if !IsCheck(b, b.Active) {
 				moves = append(moves, move)
 			}
-			UndoMove(b, move)
+			UndoMove(b, move, bs)
 		}
 	}
 	return moves
@@ -333,11 +352,11 @@ func (b *Board) AllLegalChecks() []Move {
 		}
 		m := LegalMoves(b, p, Square(s))
 		for _, move := range m {
-			ApplyMove(b, move)
+			bs := ApplyMove(b, move)
 			if !IsCheck(b, b.Active) && IsCheck(b, -1 * b.Active) {
 				moves = append(moves, move)
 			}
-			UndoMove(b, move)
+			UndoMove(b, move, bs)
 		}
 	}
 	return moves
@@ -356,11 +375,11 @@ func (b *Board) AllLegalChecksAndCaptures() []Move {
 		}
 		m := LegalCaptures(b, p, Square(s))
 		for _, move := range m {
-			ApplyMove(b, move)
+			bs := ApplyMove(b, move)
 			if !IsCheck(b, b.Active) && (IsCheck(b, -1 * b.Active) || move.Capture != nil){
 				moves = append(moves, move)
 			}
-			UndoMove(b, move)
+			UndoMove(b, move, bs)
 		}
 	}
 	return moves

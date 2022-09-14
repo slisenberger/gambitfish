@@ -37,8 +37,10 @@ type Move struct {
 // 5-10: Old square
 // 11-16: New Square
 // 17-20: Capture Piece
-// 21-26: Capture Square // 26-29: Promotion Piece
-// 30: Two pawn push?
+// 21-26: Capture Square  // Can we remove this to make room for other bits?
+// 27-30: Promotion Piece
+// 31: Two pawn advance
+// 32: En passant
 type EfficientMove uint32
 
 func NewEfficientMove(p Piece, s Square, o Square) EfficientMove {
@@ -60,6 +62,14 @@ func (m EfficientMove) AddPromotion (p Piece) EfficientMove {
 	return EfficientMove(uint32(m) | uint32(p) << 2)
 }
 
+func (m EfficientMove) AddTwoPawnAdvance() EfficientMove {
+	return EfficientMove(uint32(m) | uint32(1) << 1)
+}
+
+func (m EfficientMove) AddEnPassant() EfficientMove {
+	return EfficientMove(uint32(m) | uint32(1))
+}
+
 func MoveToEfficientMove(m Move) EfficientMove {
 	em := NewEfficientMove(Piece(m.Piece), Square(m.Square), Square(m.Old))
 	if m.Capture != nil {
@@ -67,6 +77,12 @@ func MoveToEfficientMove(m Move) EfficientMove {
 	}
 	if m.Promotion != NULLPIECE {
 		em = em.AddPromotion(m.Promotion)
+	}
+	if m.TwoPawnAdvance {
+		em = em.AddTwoPawnAdvance()
+	}
+	if m.EnPassant {
+		em = em.AddEnPassant()
 	}
 	return em
 }
@@ -92,8 +108,6 @@ func EfficientMoveToMove(e EfficientMove) Move {
 
 	pp := (e & 0x0000003C >> 2)
 	m.Promotion = Piece(pp)
-
-
 	return m
 }
 
@@ -202,21 +216,14 @@ func OrderMoves(b *Board, moves []Move, depth int, km KillerMoves) []Move {
 				continue
 			}
 			// Order non captures by piece value weights.
-			ApplyMove(b, m)
+			bs := ApplyMove(b, m)
 			m.Score = e.Evaluate(b)
-			UndoMove(b, m)
+			UndoMove(b, m, bs)
 		}
 		moves[i] = m
 	}
-	// Sort moves by scores.
-	//fmt.Println("Presort")
-	//fmt.Println("-------")
-	//fmt.Println(moves)
 	sort.Slice(moves, func(i, j int) bool {
 		return moves[i].Score > moves[j].Score
 	})
-	//fmt.Println("Postsort")
-	//fmt.Println("-------")
-	//fmt.Println(moves)
 	return moves
 }

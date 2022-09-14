@@ -11,6 +11,7 @@ func TestEfficientMove(t *testing.T) {
 				Piece: WHITEPAWN,
 				Old: E2,
 				Square: E4,
+				TwoPawnAdvance: true,
 			},
 		},{
 			

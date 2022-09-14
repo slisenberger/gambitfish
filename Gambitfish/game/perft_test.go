@@ -64,11 +64,11 @@ func PerftHelper(b *Board, depth int) int {
 	}
 	result := 0
 	for _, move := range legalMoves {
-		ApplyMove(b, move)
+		bs := ApplyMove(b, move)
 		b.SwitchActivePlayer()
 		result += PerftHelper(b, depth-1)
 		b.SwitchActivePlayer()
-		UndoMove(b, move)
+		UndoMove(b, move, bs)
 	}
 	return result
 }
