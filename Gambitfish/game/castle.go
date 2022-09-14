@@ -95,13 +95,13 @@ func CastlingMoves(b *Board, p Piece, cur Square) []EfficientMove {
 	if CanCastleQueenside(b, p.Color()) {
 		s := GetSquare(cur.Row(), cur.Col()-2)
 		move := NewEfficientMove(p, s, cur)
-		move.AddQSCastle()
+		move = move.AddQSCastle()
 		moves = append(moves, move)
 	}
 	if CanCastleKingside(b, p.Color()) {
 		s := GetSquare(cur.Row(), cur.Col()+2)
 		move := NewEfficientMove(p, s, cur)
-		move.AddKSCastle()
+		move = move.AddKSCastle()
 		moves = append(moves, move)
 	}
 	return moves

@@ -136,7 +136,7 @@ func (e EfficientMove) Capture() Piece {
 
 }
 func (e EfficientMove) Promotion() Piece {
-	return Piece((e & 0x0000F000 >> 8))
+	return Piece((e & 0x00000F00 >> 8))
 
 }
 func (e EfficientMove) TwoPawnAdvance() bool {
