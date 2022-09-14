@@ -25,10 +25,11 @@ type Move struct {
 // 5-10: Old square
 // 11-16: New Square
 // 17-20: Capture Piece
-// 21-26: Capture Square  // Can we remove this to make room for other bits?
-// 27-30: Promotion Piece
-// 31: Two pawn advance
-// 32: En passant
+// 21-24: Promotion Piece  // Can we remove this to make room for other bits?
+// 25: Two pawn advance
+// 26: En passant
+// 27: Castle Kingside
+// 28: Castle Queenside
 type EfficientMove uint32
 
 func NewEfficientMove(p Piece, s Square, o Square) EfficientMove {
@@ -46,15 +47,22 @@ func (m EfficientMove) AddCapture (p Piece) EfficientMove {
 }
 
 func (m EfficientMove) AddPromotion (p Piece) EfficientMove {
-	return EfficientMove(uint32(m) | uint32(p) << 2)
+	return EfficientMove(uint32(m) | uint32(p) << 8)
 }
 
 func (m EfficientMove) AddTwoPawnAdvance() EfficientMove {
-	return EfficientMove(uint32(m) | uint32(1) << 1)
+	return EfficientMove(uint32(m) | uint32(1) << 7)
 }
 
 func (m EfficientMove) AddEnPassant() EfficientMove {
-	return EfficientMove(uint32(m) | uint32(1))
+	return EfficientMove(uint32(m) | uint32(1) << 6)
+}
+
+func (m EfficientMove) AddKSCastle() EfficientMove {
+	return EfficientMove(uint32(m) | uint32(1) << 5)
+}
+func (m EfficientMove) AddQSCastle() EfficientMove {
+	return EfficientMove(uint32(m) | uint32(1) << 4)
 }
 
 func MoveToEfficientMove(m Move) EfficientMove {
@@ -70,6 +78,12 @@ func MoveToEfficientMove(m Move) EfficientMove {
 	}
 	if m.EnPassant {
 		em = em.AddEnPassant()
+	}
+	if m.KSCastle {
+		em = em.AddKSCastle()
+	}
+	if m.QSCastle {
+		em = em.AddQSCastle()
 	}
 	return em
 }
@@ -92,9 +106,49 @@ func EfficientMoveToMove(e EfficientMove) Move {
 		m.Capture = Piece(cp)
 	}
 
-	pp := (e & 0x0000003C >> 2)
+	pp := (e & 0x00000F00 >> 8)
+	tpa := (e & 0x00000080 >> 7)
+	ep := (e & 0x00000040 >> 6)
+	kc := (e & 0x00000020 >> 5)
+	qc := (e & 0x00000010 >> 4)
 	m.Promotion = Piece(pp)
+	m.TwoPawnAdvance = (tpa == 1)
+	m.EnPassant = (ep == 1)
+	m.KSCastle = (kc == 1)
+	m.QSCastle = (qc == 1)
 	return m
+}
+
+func (e EfficientMove) Piece() Piece {
+	return Piece((e & 0xF0000000) >> 28)
+}
+
+func (e EfficientMove) Old() Square {
+	return Square((e & 0x0FC00000) >> 22)
+
+}
+func (e EfficientMove) Square() Square {
+	return Square((e & 0x003F0000) >> 16)
+
+}
+func (e EfficientMove) Capture() Piece {
+	return Piece((e & 0x0000F000 >> 12))
+
+}
+func (e EfficientMove) TwoPawnAdvance() bool {
+	return (e & 0x00000080 >> 7) == 1
+
+}
+func (e EfficientMove) EnPassant() bool {
+	return (e & 0x00000040 >> 6) == 1
+
+}
+func (e EfficientMove) KSCastle() bool {
+	return (e & 0x00000020 >> 5) == 1
+
+}
+func (e EfficientMove) QSCastle() bool {
+	return (e & 0x00000010 >> 4) == 1
 }
 
 
@@ -124,7 +178,7 @@ func (m Move) String() string {
 }
 
 func (m Move) Equals(m2 Move) bool {
-	return m.Piece == m2.Piece && m.Square == m2.Square && m.Promotion == m2.Promotion && m.Capture == m.Capture
+	return m.Piece == m2.Piece && m.Square == m2.Square && m.Promotion == m2.Promotion && m.Capture == m2.Capture && m.TwoPawnAdvance == m2.TwoPawnAdvance && m.EnPassant == m2.EnPassant
 
 }
 

@@ -19,10 +19,7 @@ func TestEfficientMove(t *testing.T) {
 				Piece: WHITEROOK,
 				Old: E1,
 				Square: E4,
-				Capture: &Capture{
-					Piece: BLACKBISHOP,
-					Square: E4,
-				},
+				Capture: BLACKBISHOP,
 			},
 		},{
 			m: Move{
@@ -36,8 +33,8 @@ func TestEfficientMove(t *testing.T) {
 
 	for _, tc := range testCases {
 		m := MoveToEfficientMove(tc.m)
-		if tc.m.Capture != nil {
-			m.AddCapture(tc.m.Capture.Piece, tc.m.Capture.Square)
+		if tc.m.Capture != NULLPIECE {
+			m.AddCapture(tc.m.Capture)
 		}
 		got := EfficientMoveToMove(m)
 		if !got.Equals(tc.m) {
