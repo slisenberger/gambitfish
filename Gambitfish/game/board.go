@@ -440,7 +440,7 @@ func ZobristHash(b *Board) uint64 {
 	hash = 0
 	for s, p := range b.Squares {
 		if p != NULLPIECE {
-			hash = hash ^ ZOBRISTPIECES[p.Color()][p.Type()][s]
+			hash = hash ^ ZOBRISTPIECES[p][s]
 		}
 	}
 	if b.Active == WHITE {

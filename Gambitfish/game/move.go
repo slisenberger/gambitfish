@@ -240,7 +240,7 @@ func OrderMoves(b *Board, moves []EfficientMove, depth int, km KillerMoves) []Ef
 	}
 	// Loop through the move list the rest of the times for other orderings.
 	// Score constants
-	captureScore := 1500.0
+	captureScore := 1000.0
 	km1Score := 1000.0
 	km2Score := 999.0
 	bestMoveScore := 2000.0

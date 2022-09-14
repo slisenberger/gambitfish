@@ -32,7 +32,7 @@ var BLACKPAWNATTACKS [64]uint64
 
 // The preprocessed random numbers to be used for zobrist hash keys.
 // It is a map of color-> piece -> square
-var ZOBRISTPIECES map[Color]map[PieceType][64]uint64
+var ZOBRISTPIECES map[Piece][64]uint64
 
 // A random number indicating turn to move.
 var ZOBRISTTURN uint64
@@ -435,20 +435,17 @@ func InitPawnAttacks() {
 // See https://chessprogramming.wikispaces.com/Zobrist+Hashing
 func InitZobristNumbers() {
 	rand.Seed(time.Now().UTC().UnixNano())
-	ZOBRISTPIECES = map[Color]map[PieceType][64]uint64{}
-	colors := []Color{WHITE, BLACK}
-	pieces := []PieceType{PAWN, BISHOP, KNIGHT, ROOK, QUEEN, KING}
-	for _, c := range colors {
-		piecemap := map[PieceType][64]uint64{}
-		for _, p := range pieces {
+	ZOBRISTPIECES = map[Piece][64]uint64{}
+	pieces := []Piece{
+		WHITEPAWN, BLACKPAWN, WHITEBISHOP, BLACKBISHOP, WHITEKNIGHT, BLACKKNIGHT,
+		WHITEROOK, BLACKROOK, WHITEQUEEN, BLACKQUEEN, WHITEKING, BLACKKING}
+	for _, p := range pieces {
 			squares := [64]uint64{}
 			for i := 0; i < 64; i++ {
 				squares[i] = uint64(rand.Uint32())<<32 + uint64(rand.Uint32())
 
 			}
-			piecemap[p] = squares
-		}
-		ZOBRISTPIECES[c] = piecemap
+		ZOBRISTPIECES[p] = squares
 	}
 	ZOBRISTTURN = uint64(rand.Uint32())<<32 + uint64(rand.Uint32())
 	ZOBRISTWKS = uint64(rand.Uint32())<<32 + uint64(rand.Uint32())
