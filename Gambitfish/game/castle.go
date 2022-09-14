@@ -90,18 +90,18 @@ func CanCastleGeneric(b *Board, c Color, castleOccupancy uint64, kingSlide uint6
 }
 
 // Calculates legal castle moves in the game. Should only be called on kings.
-func CastlingMoves(b *Board, p Piece, cur Square) []Move {
-	moves := []Move{}
+func CastlingMoves(b *Board, p Piece, cur Square) []EfficientMove {
+	moves := []EfficientMove{}
 	if CanCastleQueenside(b, p.Color()) {
 		s := GetSquare(cur.Row(), cur.Col()-2)
-		move := NewMove(p, s, cur, b)
-		move.QSCastle = true
+		move := NewEfficientMove(p, s, cur)
+		move.AddQSCastle()
 		moves = append(moves, move)
 	}
 	if CanCastleKingside(b, p.Color()) {
 		s := GetSquare(cur.Row(), cur.Col()+2)
-		move := NewMove(p, s, cur, b)
-		move.KSCastle = true
+		move := NewEfficientMove(p, s, cur)
+		move.AddKSCastle()
 		moves = append(moves, move)
 	}
 	return moves

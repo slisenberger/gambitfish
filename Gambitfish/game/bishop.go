@@ -7,7 +7,7 @@ type Bishop struct {
 
 var BISHOP_DIRS = []Direction{NE, NW, SE, SW}
 
-func BishopMoves(b *Board, p Piece, s Square) []Move {
+func BishopMoves(b *Board, p Piece, s Square) []EfficientMove {
 	return RayMoves(b, p, s, true, false)
 }
 

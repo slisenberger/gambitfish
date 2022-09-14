@@ -9,7 +9,7 @@ type Rook struct {
 
 var ROOK_DIRS = []Direction{N, S, E, W}
 
-func RookMoves(b *Board, p Piece, s Square) []Move {
+func RookMoves(b *Board, p Piece, s Square) []EfficientMove {
 	return RayMoves(b, p, s, false, true)
 }
 

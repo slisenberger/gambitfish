@@ -3,7 +3,7 @@ package game
 
 type Knight struct{}
 
-func KnightMoves(b *Board, p Piece, s Square) []Move {
+func KnightMoves(b *Board, p Piece, s Square) []EfficientMove {
 	return LegalKnightMoves(b, p, s)
 }
 

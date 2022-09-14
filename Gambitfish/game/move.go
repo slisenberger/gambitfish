@@ -135,6 +135,10 @@ func (e EfficientMove) Capture() Piece {
 	return Piece((e & 0x0000F000 >> 12))
 
 }
+func (e EfficientMove) Promotion() Piece {
+	return Piece((e & 0x0000F000 >> 8))
+
+}
 func (e EfficientMove) TwoPawnAdvance() bool {
 	return (e & 0x00000080 >> 7) == 1
 
@@ -155,9 +159,9 @@ func (e EfficientMove) QSCastle() bool {
 func (m Move) String() string {
 	var s string
 	if m.QSCastle {
-		s = "O-O-O"
+		return "O-O-O"
 	} else if m.KSCastle {
-		s = "O-O"
+		return "O-O"
 	} else {
 		s = fmt.Sprintf("%v%v", m.Piece, m.Old)
 		if m.Capture != NULLPIECE {
@@ -177,6 +181,30 @@ func (m Move) String() string {
 	return s
 }
 
+func (m EfficientMove) String() string {
+	var s string
+	if m.QSCastle() {
+		return "O-O-O"
+	} else if m.KSCastle() {
+		return "O-O"
+	} else {
+		s = fmt.Sprintf("%v%v", m.Piece(), m.Old())
+		if m.Capture() != NULLPIECE {
+			s += "x"
+		} else {
+			s += "-"
+		}
+		s += m.Square().String()
+		if m.Promotion() != NULLPIECE {
+			s += "%v=%v" + m.Promotion().String()
+		}
+
+		if m.EnPassant() {
+			s += "(en passant)"
+		}
+	}
+	return s
+}
 func (m Move) Equals(m2 Move) bool {
 	return m.Piece == m2.Piece && m.Square == m2.Square && m.Promotion == m2.Promotion && m.Capture == m2.Capture && m.TwoPawnAdvance == m2.TwoPawnAdvance && m.EnPassant == m2.EnPassant
 
@@ -196,14 +224,19 @@ func NewMove(p Piece, square Square, old Square, b *Board) Move {
 	return m
 }
 
-// Order the moves in an intelligent way for alpha beta pruning.
-func OrderMoves(b *Board, moves []Move, depth int, km KillerMoves) []Move {
+type MoveRank struct {
+	Move EfficientMove
+	Score float64
+}
 
-	var k [2]*Move
+// Order the moves in an intelligent way for alpha beta pruning.
+func OrderMoves(b *Board, moves []EfficientMove, depth int, km KillerMoves) []EfficientMove {
+
+	var k [2]EfficientMove
 	if km != nil {
 		k = km.GetKillerMoves(depth)
 	} else {
-		k = [2]*Move{nil, nil}
+		k = [2]EfficientMove{0, 0}
 	}
 	// Loop through the move list the rest of the times for other orderings.
 	// Score constants
@@ -213,40 +246,41 @@ func OrderMoves(b *Board, moves []Move, depth int, km KillerMoves) []Move {
 	bestMoveScore := 2000.0
 	e := PieceSquareEvaluator{}
 	// Start with what we already believe the best move is.
-	bestMove := Move{}
-	if entry, ok := TranspositionTable[ZobristHash(b)]; ok && !entry.BestMove.NoMove {
+	bestMove := EfficientMove(0)
+	if entry, ok := TranspositionTable[ZobristHash(b)]; ok && entry.BestMove != EfficientMove(0) {
 		bestMove = entry.BestMove
 	}
+	moveScores := make(map[EfficientMove]float64)
 
 	for i := 0; i < len(moves); i++ {
 		m := moves[i]
-		if m.Equals(bestMove) {
-			m.Score = bestMoveScore
+		if m == bestMove {
+			moveScores[m] = bestMoveScore
 			continue
 		}
-		if m.Capture != NULLPIECE {
-			m.Score = captureScore + m.Capture.Value() - m.Piece.Value()
+		if m.Capture() != NULLPIECE {
+			moveScores[m] = captureScore + m.Capture().Value() - m.Piece().Value()
 			continue
 		} else {
 
 			// If it's a killer move, order it highly.
-			if k[0] != nil && k[0].Equals(m) {
-				m.Score = km1Score
+			if k[0] != EfficientMove(0) && k[0] == m {
+				moveScores[m] = km1Score
 				continue
 			}
-			if k[1] != nil && k[1].Equals(m) {
-				m.Score = km2Score
+			if k[1] != EfficientMove(0) && k[1] == m {
+				moveScores[m] = km2Score
 				continue
 			}
 			// Order non captures by piece value weights.
 			bs := ApplyMove(b, m)
-			m.Score = e.Evaluate(b)
+			moveScores[m] = e.Evaluate(b)
 			UndoMove(b, m, bs)
 		}
 		moves[i] = m
 	}
 	sort.Slice(moves, func(i, j int) bool {
-		return moves[i].Score > moves[j].Score
+		return moveScores[moves[i]] > moveScores[moves[j]]
 	})
 	return moves
 }

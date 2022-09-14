@@ -69,14 +69,14 @@ func TargetLegal(b *Board, p Piece, s Square, capture bool) (bool, Piece) {
 	}
 	return false, NULLPIECE
 }
-func LegalKnightMoves(b *Board, p Piece, cur Square) []Move {
-	var moves []Move
+func LegalKnightMoves(b *Board, p Piece, cur Square) []EfficientMove {
+	var moves []EfficientMove
 	pos := b.Position
 	km := LEGALKNIGHTMOVES[cur]
 	// Iterate through legal non captures
 	sq := SquaresFromBitBoard(km &^ pos.Occupied)
 	for i := 0; i < len(sq); i++ {
-		moves = append(moves, NewMove(p, sq[i], cur, b))
+		moves = append(moves, NewEfficientMove(p, sq[i], cur))
 	}
 	// Iterate through legal captures
 	var opp uint64
@@ -89,8 +89,8 @@ func LegalKnightMoves(b *Board, p Piece, cur Square) []Move {
 	sq = SquaresFromBitBoard(km & opp)
 	for i := 0; i < len(sq); i++ {
 		s := sq[i]
-		move := NewMove(p, s, cur, b)
-		move.Capture = b.Squares[s]
+		move := NewEfficientMove(p, s, cur)
+		move.AddCapture(b.Squares[s])
 		if b.Squares[s] == NULLPIECE {
 			fmt.Println("Last move: " + b.LastMove.String())
 			fmt.Println(SquaresFromBitBoard(km))
@@ -104,8 +104,8 @@ func LegalKnightMoves(b *Board, p Piece, cur Square) []Move {
 	return moves
 }
 
-func RayMoves(b *Board, p Piece, cur Square, bishop, rook bool) []Move {
-	var moves []Move
+func RayMoves(b *Board, p Piece, cur Square, bishop, rook bool) []EfficientMove {
+	var moves []EfficientMove
 	pos := b.Position
 	var allAtk uint64
 	allAtk = 0
@@ -126,7 +126,7 @@ func RayMoves(b *Board, p Piece, cur Square, bishop, rook bool) []Move {
 	// THIS IS ALL COPIED BOILERPLATE.. FACTOR THIS OUT.
 	// Iterate through legal non captures
 	for _, s := range SquaresFromBitBoard(allAtk &^ pos.Occupied) {
-		moves = append(moves, NewMove(p, s, cur, b))
+		moves = append(moves, NewEfficientMove(p, s, cur))
 	}
 	// Iterate through legal captures
 	var opp uint64
@@ -137,8 +137,8 @@ func RayMoves(b *Board, p Piece, cur Square, bishop, rook bool) []Move {
 		opp = pos.WhitePieces
 	}
 	for _, s := range SquaresFromBitBoard(allAtk & opp) {
-		move := NewMove(p, s, cur, b)
-		move.Capture = b.Squares[s]
+		move := NewEfficientMove(p, s, cur)
+		move.AddCapture(b.Squares[s])
 		if b.Squares[s] == NULLPIECE {
 			fmt.Println("Last move")
 			fmt.Println("----------")
@@ -179,13 +179,13 @@ func RayAttackBitboard(b *Board, cur Square, bishop, rook bool) uint64 {
 	return res
 }
 
-func LegalKingMoves(b *Board, p Piece, cur Square) []Move {
-	moves := []Move{}
+func LegalKingMoves(b *Board, p Piece, cur Square) []EfficientMove {
+	moves := []EfficientMove{}
 	pos := b.Position
 	km := LEGALKINGMOVES[cur]
 	// Iterate through legal non captures
 	for _, s := range SquaresFromBitBoard(km &^ pos.Occupied) {
-		moves = append(moves, NewMove(p, s, cur, b))
+		moves = append(moves, NewEfficientMove(p, s, cur))
 	}
 	// Iterate through legal captures
 	var opp uint64
@@ -196,8 +196,8 @@ func LegalKingMoves(b *Board, p Piece, cur Square) []Move {
 		opp = pos.WhitePieces
 	}
 	for _, s := range SquaresFromBitBoard(km & opp) {
-		move := NewMove(p, s, cur, b)
-		move.Capture = b.Squares[s]
+		move := NewEfficientMove(p, s, cur)
+		move.AddCapture(b.Squares[s])
 		if b.Squares[s] == NULLPIECE {
 			fmt.Println("Last move: " + b.LastMove.String())
 			fmt.Println(SquaresFromBitBoard(km))
@@ -225,7 +225,7 @@ func PawnAttackingSquares(p Piece, cur Square) []Square {
 	return SquaresFromBitBoard(res)
 }
 
-func PawnMoves(b *Board, p Piece, cur Square) []Move {
+func PawnMoves(b *Board, p Piece, cur Square) []EfficientMove {
 	// Check if the piece can move two squares.
 	var isStartPawn bool
 	var direction int // Which way pawns move.
@@ -239,53 +239,53 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 		direction = 1
 		break
 	}
-	moves := []Move{}
+	moves := []EfficientMove{}
 	s := GetSquare(cur.Row()+direction, cur.Col())
 	if l, _ := TargetLegal(b, p, s, false); l {
 		// Check for promotion and add the promotions.
 		if s.Row() == 1 || s.Row() == 8 {
-			move := NewMove(p, s, cur, b)
+			move := NewEfficientMove(p, s, cur)
 			switch p.Color() {
 			case WHITE:
-				move.Promotion = WHITEBISHOP
+				move.AddPromotion(WHITEBISHOP)
 			case BLACK:
-				move.Promotion = BLACKBISHOP
+				move.AddPromotion(BLACKBISHOP)
 			}
 			moves = append(moves, move)
-			move = NewMove(p, s, cur, b)
+			move = NewEfficientMove(p, s, cur)
 			switch p.Color() {
 			case WHITE:
-				move.Promotion = WHITEKNIGHT
+				move.AddPromotion(WHITEKNIGHT)
 			case BLACK:
-				move.Promotion = BLACKKNIGHT
+				move.AddPromotion(BLACKKNIGHT)
 			}
 			moves = append(moves, move)
-			move = NewMove(p, s, cur, b)
+			move = NewEfficientMove(p, s, cur)
 			switch p.Color() {
 			case WHITE:
-				move.Promotion = WHITEROOK
+				move.AddPromotion(WHITEROOK)
 			case BLACK:
-				move.Promotion = BLACKROOK
+				move.AddPromotion(BLACKROOK)
 			}
 			moves = append(moves, move)
-			move = NewMove(p, s, cur, b)
+			move = NewEfficientMove(p, s, cur)
 			switch p.Color() {
 			case WHITE:
-				move.Promotion = WHITEQUEEN
+				move.AddPromotion(WHITEQUEEN)
 			case BLACK:
-				move.Promotion = BLACKQUEEN
+				move.AddPromotion(BLACKQUEEN)
 			}
 			moves = append(moves, move)
 
 		} else {
-			moves = append(moves, NewMove(p, s, cur, b))
+			moves = append(moves, NewEfficientMove(p, s, cur))
 		}
 		// We only can move forward two if we can also move forward one.
 		if isStartPawn {
 			s := GetSquare(cur.Row()+2*direction, cur.Col())
 			if l, _ := TargetLegal(b, p, s, false); l {
-				m := NewMove(p, s, cur, b)
-				m.TwoPawnAdvance = true
+				m := NewEfficientMove(p, s, cur)
+				m.AddTwoPawnAdvance()
 				moves = append(moves, m)
 			}
 		}
@@ -297,46 +297,46 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 		occupant := b.Squares[s]
 		if occupant != NULLPIECE && occupant.Color() != p.Color() {
 			if s.Row() == 1 || s.Row() == 8 {
-				move := NewMove(p, s, cur, b)
-				move.Capture = occupant
+				move := NewEfficientMove(p, s, cur)
+				move.AddCapture(occupant)
 				switch p.Color() {
 				case WHITE:
-					move.Promotion = WHITEQUEEN
+					move.AddPromotion(WHITEQUEEN)
 				case BLACK:
-					move.Promotion = BLACKQUEEN
+					move.AddPromotion(BLACKQUEEN)
 				}
 				moves = append(moves, move)
-				move = NewMove(p, s, cur, b)
-				move.Capture = occupant
+				move = NewEfficientMove(p, s, cur)
+				move.AddCapture(occupant)
 				switch p.Color() {
 				case WHITE:
-					move.Promotion = WHITEKNIGHT
+					move.AddPromotion(WHITEKNIGHT)
 				case BLACK:
-					move.Promotion = BLACKKNIGHT
+					move.AddPromotion(BLACKKNIGHT)
 				}
 				moves = append(moves, move)
-				move = NewMove(p, s, cur, b)
-				move.Capture = occupant
+				move = NewEfficientMove(p, s, cur)
+				move.AddCapture(occupant)
 				switch p.Color() {
 				case WHITE:
-					move.Promotion = WHITEBISHOP
+					move.AddPromotion(WHITEBISHOP)
 				case BLACK:
-					move.Promotion = BLACKBISHOP
+					move.AddPromotion(BLACKBISHOP)
 				}
 				moves = append(moves, move)
-				move = NewMove(p, s, cur, b)
-				move.Capture = occupant
+				move = NewEfficientMove(p, s, cur)
+				move.AddCapture(occupant)
 				switch p.Color() {
 				case WHITE:
-					move.Promotion = WHITEROOK
+					move.AddPromotion(WHITEROOK)
 				case BLACK:
-					move.Promotion = BLACKROOK
+					move.AddPromotion(BLACKROOK)
 				}
 				moves = append(moves, move)
 
 			} else {
-				move := NewMove(p, s, cur, b)
-				move.Capture = occupant
+				move := NewEfficientMove(p, s, cur)
+				move.AddCapture(occupant)
 				moves = append(moves, move)
 			}
 		}
@@ -347,23 +347,23 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 	if epSquare != OFFBOARD_SQUARE {
 		adjToEP := cur.Col()-1 == epSquare.Col() || cur.Col()+1 == epSquare.Col()
 		if p.Color() == WHITE && cur.Row() == 5 && adjToEP && epSquare.Row() == 6 {
-			move := NewMove(p, GetSquare(6, epSquare.Col()), cur, b)
-			move.EnPassant = true
+			move := NewEfficientMove(p, GetSquare(6, epSquare.Col()), cur)
+			move.AddEnPassant()
 			capturedPiece := b.Squares[epSquare]
 			if capturedPiece == NULLPIECE {
 				panic(fmt.Sprintf("capture on %v is nil", epSquare))
 			}
-			move.Capture = capturedPiece
+			move.AddCapture(capturedPiece)
 			moves = append(moves, move)
 		}
 		if p.Color() == BLACK && cur.Row() == 4 && adjToEP && epSquare.Row() == 3 {
-			move := NewMove(p, GetSquare(3, epSquare.Col()), cur, b)
-			move.EnPassant = true
+			move := NewEfficientMove(p, GetSquare(3, epSquare.Col()), cur)
+			move.AddEnPassant()
 			capturedPiece := b.Squares[epSquare]
 			if capturedPiece == NULLPIECE {
 				panic(fmt.Sprintf("capture on %v is nil", epSquare))
 			}
-			move.Capture = capturedPiece
+			move.AddCapture(capturedPiece)
 			moves = append(moves, move)
 		}
 	}
@@ -467,7 +467,8 @@ func (p Piece) Value() float64 {
 
 // Legal moves returns the pseudolegal moves for a given piece on a
 // board on the starting square cur.
-func LegalMoves(b *Board, p Piece, cur Square) []Move {
+func LegalMoves(b *Board, p Piece, cur Square) []EfficientMove {
+	m := []EfficientMove{}
 	switch p {
 	case WHITEKNIGHT, BLACKKNIGHT:
 		return KnightMoves(b, p, cur)
@@ -482,11 +483,11 @@ func LegalMoves(b *Board, p Piece, cur Square) []Move {
 	case WHITEQUEEN, BLACKQUEEN:
 		return QueenMoves(b, p, cur)
 	}
-	return []Move{}
+	return m
 }
 
-func LegalCaptures(b *Board, p Piece, cur Square) []Move {
-	moves := []Move{}
+func LegalCaptures(b *Board, p Piece, cur Square) []EfficientMove {
+	moves := []EfficientMove{}
 	atk := AttackBitboard(b, p, cur)
 	var opp uint64
 	switch p.Color() {
@@ -501,44 +502,44 @@ func LegalCaptures(b *Board, p Piece, cur Square) []Move {
 		s := sq[i]
 		isPromotion := p.Type() == PAWN && (s.Row() == 1 || s.Row() == 8)
 		if !isPromotion {
-			move := NewMove(p, s, cur, b)
-			move.Capture = b.Squares[s]
+			move := NewEfficientMove(p, s, cur)
+			move.AddCapture(b.Squares[s])
 			moves = append(moves, move)
 		} else {
-			move := NewMove(p, s, cur, b)
-			move.Capture = b.Squares[s]
+			move := NewEfficientMove(p, s, cur)
+			move.AddCapture(b.Squares[s])
 			switch p.Color() {
 			case WHITE:
-				move.Promotion = WHITEQUEEN
+				move.AddPromotion(WHITEQUEEN)
 			case BLACK:
-				move.Promotion = BLACKQUEEN
+				move.AddPromotion(BLACKQUEEN)
 			}
 			moves = append(moves, move)
-			move = NewMove(p, s, cur, b)
-			move.Capture = b.Squares[s]
+			move = NewEfficientMove(p, s, cur)
+			move.AddCapture(b.Squares[s])
 			switch p.Color() {
 			case WHITE:
-				move.Promotion = WHITEBISHOP
+				move.AddPromotion(WHITEBISHOP)
 			case BLACK:
-				move.Promotion = BLACKBISHOP
+				move.AddPromotion(BLACKBISHOP)
 			}
 			moves = append(moves, move)
-			move = NewMove(p, s, cur, b)
-			move.Capture = b.Squares[s]
+			move = NewEfficientMove(p, s, cur)
+			move.AddCapture(b.Squares[s])
 			switch p.Color() {
 			case WHITE:
-				move.Promotion = WHITEKNIGHT
+				move.AddPromotion(WHITEKNIGHT)
 			case BLACK:
-				move.Promotion = BLACKKNIGHT
+				move.AddPromotion(BLACKKNIGHT)
 			}
 			moves = append(moves, move)
-			move = NewMove(p, s, cur, b)
-			move.Capture = b.Squares[s]
+			move = NewEfficientMove(p, s, cur)
+			move.AddCapture(b.Squares[s])
 			switch p.Color() {
 			case WHITE:
-				move.Promotion = WHITEROOK
+				move.AddPromotion(WHITEROOK)
 			case BLACK:
-				move.Promotion = BLACKROOK
+				move.AddPromotion(BLACKROOK)
 			}
 			moves = append(moves, move)
 		}
@@ -550,15 +551,15 @@ func LegalCaptures(b *Board, p Piece, cur Square) []Move {
 		for i := 0; i < len(sq); i++ {
 			s := sq[i]
 			if s == b.EPSquare {
-				var move Move
+				var move EfficientMove
 				switch p.Color() {
 				case WHITE:
-					move = NewMove(p, GetSquare(6, b.EPSquare.Col()), cur, b)
+					move = NewEfficientMove(p, GetSquare(6, b.EPSquare.Col()), cur)
 				case BLACK:
-					move = NewMove(p, GetSquare(3, b.EPSquare.Col()), cur, b)
+					move = NewEfficientMove(p, GetSquare(3, b.EPSquare.Col()), cur)
 				}
 				capturedPiece := b.Squares[b.EPSquare]
-				move.Capture = capturedPiece
+				move.AddCapture(capturedPiece)
 				moves = append(moves, move)
 			}
 		}

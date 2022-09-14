@@ -13,13 +13,13 @@ type Board struct {
 	BKSCastling bool
 	BQSCastling bool
 	Move        int
-	LastMove    *Move
+	LastMove    EfficientMove
 	EPSquare    Square // The square a pawn was just pushed two forward.
-	AllMoves    []Move
+	AllMoves    []EfficientMove
 }
 
 type BoardState struct {
-	LastMove *Move
+	LastMove EfficientMove
 	WKSCastling bool
 	WQSCastling bool
 	BKSCastling bool
@@ -105,10 +105,11 @@ func (b *Board) Print() {
 }
 
 // ApplyMove changes the state of the Board for any given move.
-func ApplyMove(b *Board, m Move) BoardState {
-	p := m.Piece
-	o := m.Old
-	s := m.Square
+func ApplyMove(b *Board, m EfficientMove) BoardState {
+	p := m.Piece()
+	o := m.Old()
+	s := m.Square()
+	c := m.Capture()
 	// Save old state.
 	bs := BoardState{
 		LastMove: b.LastMove,
@@ -123,45 +124,45 @@ func ApplyMove(b *Board, m Move) BoardState {
 		fmt.Println(b.AllLegalMoves())
 		panic("nil piece: " + m.String())
 	}
-	if m.Capture == NULLPIECE && b.Squares[m.Square] != NULLPIECE {
+	if m.Capture() == NULLPIECE && b.Squares[s] != NULLPIECE {
 		b.Print()
 		fmt.Println(m)
 		fmt.Println("don't have capture in a move to occupied sq..")
 	}
-	if m.Capture != NULLPIECE && m.Square > H8 {
+	if m.Capture() != NULLPIECE && s > H8 {
 		b.Print()
 		fmt.Println(m)
 		fmt.Println("capturing offboard sq..")
 	}
 	// If there's a capture: remove the captured piece.
-	if m.Capture != NULLPIECE {
+	if c != NULLPIECE {
 		// In en passant, the piece is not on the square we move to.
-		if m.EnPassant {
-			b.Position = UnSetPiece(b.Position, m.Capture, b.EPSquare)
+		if m.EnPassant() {
+			b.Position = UnSetPiece(b.Position, c, b.EPSquare)
 			b.Squares[b.EPSquare] = NULLPIECE
 		} else {
-			b.Position = UnSetPiece(b.Position, m.Capture, m.Square)
-			b.Squares[m.Square] = NULLPIECE
+			b.Position = UnSetPiece(b.Position, c, s)
+			b.Squares[s] = NULLPIECE
 		}
 	}
 	// Then, move the piece to its new square.
 	// Check for promotion of a pawn.
-	if m.Promotion != NULLPIECE {
-		b.Squares[s] = m.Promotion
-		b.Position = SetPiece(b.Position, m.Promotion, s)
+	if m.Promotion() != NULLPIECE {
+		b.Squares[s] = m.Promotion()
+		b.Position = SetPiece(b.Position, m.Promotion(), s)
 	} else {
 		b.Squares[s] = p
 		b.Position = SetPiece(b.Position, p, s)
 	}
 	// Check for castling and modify rook state if so.  // New rook squares are relative to king.
-	if m.QSCastle || m.KSCastle {
+	if m.QSCastle() || m.KSCastle() {
 		var newRookSquare Square
 		var oldRookSquare Square
-		if m.QSCastle {
+		if m.QSCastle() {
 			newRookSquare = GetSquare(o.Row(), o.Col()-1)
 			oldRookSquare = GetSquare(o.Row(), 1)
 		}
-		if m.KSCastle {
+		if m.KSCastle() {
 			newRookSquare = GetSquare(o.Row(), o.Col()+1)
 			oldRookSquare = GetSquare(o.Row(), 8)
 		}
@@ -171,12 +172,12 @@ func ApplyMove(b *Board, m Move) BoardState {
 		b.Squares[oldRookSquare] = NULLPIECE
 	}
 	// Then, remove the piece from its old square.
-	b.Position = UnSetPiece(b.Position, p, m.Old)
-	b.Squares[m.Old] = NULLPIECE
+	b.Position = UnSetPiece(b.Position, p, o)
+	b.Squares[o] = NULLPIECE
 	// Modify castling state from rook and king moves.
 	// We know any piece moving from e8, e1, a8, h8, a1, or h1 must
 	// change castling rights.
-	switch m.Old {
+	switch o {
 	case A8:
 		b.BQSCastling = false
 	case H8:
@@ -193,8 +194,8 @@ func ApplyMove(b *Board, m Move) BoardState {
 		b.WQSCastling = false
 	}
 	// Affect castling state of captured rooks.
-	if m.Capture != NULLPIECE {
-		switch m.Square {
+	if c != NULLPIECE {
+		switch s {
 		case A8:
 			b.BQSCastling = false
 		case H8:
@@ -206,7 +207,7 @@ func ApplyMove(b *Board, m Move) BoardState {
 		}
 	}
 	// Apply En Passant state
-	if m.TwoPawnAdvance {
+	if m.TwoPawnAdvance() {
 		b.EPSquare = s
 	} else {
 		b.EPSquare = OFFBOARD_SQUARE
@@ -216,7 +217,7 @@ func ApplyMove(b *Board, m Move) BoardState {
 	if b.Active == BLACK {
 		b.Move++
 	}
-	b.LastMove = &m
+	b.LastMove = m
 	// Update bitboard representations.
 	b.Position = UpdateBitboards(b.Position)
 	return bs
@@ -224,17 +225,18 @@ func ApplyMove(b *Board, m Move) BoardState {
 
 // UndoMove returns a board to the state it was at prior to
 // applying a move m.
-func UndoMove(b *Board, m Move, bs BoardState) {
-	p := m.Piece
-	o := m.Old
-	s := m.Square
+func UndoMove(b *Board, m EfficientMove, bs BoardState) {
+	p := m.Piece()
+	o := m.Old()
+	s := m.Square()
+	c := m.Capture()
 
 	// Remove ourselves from our square.
 	b.Squares[s] = NULLPIECE
 
 	// Undo promotions and change our candidate piece to a pawn.
-	if m.Promotion != NULLPIECE {
-		b.Position = UnSetPiece(b.Position, m.Promotion, s)
+	if m.Promotion() != NULLPIECE {
+		b.Position = UnSetPiece(b.Position, m.Promotion(), s)
 	} else {
 		b.Position = UnSetPiece(b.Position, p, s)
 	}
@@ -242,25 +244,25 @@ func UndoMove(b *Board, m Move, bs BoardState) {
 	b.Position = SetPiece(b.Position, p, o)
 	b.Squares[o] = p
 	// Return a captured piece.
-	if m.Capture != NULLPIECE {
-		if m.EnPassant{
-			b.Squares[bs.EPSquare] = m.Capture
-		        b.Position = SetPiece(b.Position, m.Capture, bs.EPSquare)
+	if c != NULLPIECE {
+		if m.EnPassant(){
+			b.Squares[bs.EPSquare] = c
+		        b.Position = SetPiece(b.Position, c, bs.EPSquare)
 		} else {
-			b.Squares[m.Square] = m.Capture
-		        b.Position = SetPiece(b.Position, m.Capture, m.Square)
+			b.Squares[s] = c
+		        b.Position = SetPiece(b.Position, c, s)
 		}
 	}
 
 	// Undo rook moves from castling.
-	if m.QSCastle || m.KSCastle {
+	if m.QSCastle() || m.KSCastle() {
 		var newRookSquare Square
 		var oldRookSquare Square
-		if m.QSCastle {
+		if m.QSCastle() {
 			newRookSquare = GetSquare(o.Row(), o.Col()-1)
 			oldRookSquare = GetSquare(o.Row(), 1)
 		}
-		if m.KSCastle {
+		if m.KSCastle() {
 			newRookSquare = GetSquare(o.Row(), o.Col()+1)
 			oldRookSquare = GetSquare(o.Row(), 8)
 		}
@@ -299,8 +301,8 @@ func (b *Board) SwitchActivePlayer() {
 
 // AllLegalMoves enumerates all of the legal moves currently available to the
 // active player.
-func (b *Board) AllLegalMoves() []Move {
-	var moves []Move
+func (b *Board) AllLegalMoves() []EfficientMove {
+	var moves []EfficientMove
 	for s, p := range b.Squares {
 		if p == NULLPIECE {
 			continue
@@ -322,8 +324,8 @@ func (b *Board) AllLegalMoves() []Move {
 
 // AllLegalCaptures enumerates all of the legal captures currently available to the
 // active player.
-func (b *Board) AllLegalCaptures() []Move {
-	var moves []Move
+func (b *Board) AllLegalCaptures() []EfficientMove {
+	var moves []EfficientMove
 	for s, p := range b.Squares {
 		if p == NULLPIECE {
 			continue
@@ -345,8 +347,8 @@ func (b *Board) AllLegalCaptures() []Move {
 
 // AllLegalChecks enumerates all of the legal checks currently available to the
 // active player.
-func (b *Board) AllLegalChecks() []Move {
-	var moves []Move
+func (b *Board) AllLegalChecks() []EfficientMove {
+	var moves []EfficientMove
 	for s, p := range b.Squares {
 		if p == NULLPIECE {
 			continue
@@ -368,8 +370,8 @@ func (b *Board) AllLegalChecks() []Move {
 
 // AllLegalChecksAndCaptures enumerates all of the loud moves currently available to the
 // active player.
-func (b *Board) AllLegalChecksAndCaptures() []Move {
-	var moves []Move
+func (b *Board) AllLegalChecksAndCaptures() []EfficientMove {
+	var moves []EfficientMove
 	for s, p := range b.Squares {
 		if p == NULLPIECE {
 			continue
@@ -380,7 +382,7 @@ func (b *Board) AllLegalChecksAndCaptures() []Move {
 		m := LegalCaptures(b, p, Square(s))
 		for _, move := range m {
 			bs := ApplyMove(b, move)
-			if !IsCheck(b, b.Active) && (IsCheck(b, -1 * b.Active) || move.Capture != NULLPIECE){
+			if !IsCheck(b, b.Active) && (IsCheck(b, -1 * b.Active) || move.Capture() != NULLPIECE){
 				moves = append(moves, move)
 			}
 			UndoMove(b, move, bs)
@@ -392,7 +394,7 @@ func (b *Board) AllLegalChecksAndCaptures() []Move {
 // Returns true if the game is drawn, won, or lost. The integer
 // returned is the winner (or draw). This function should be called on the beginning
 // of a move.
-func (b *Board) CalculateGameOver(lm []Move) (bool, Color) {
+func (b *Board) CalculateGameOver(lm []EfficientMove) (bool, Color) {
 	if len(lm) == 0 {
 		// If the active player is in check, they lose.
 		if IsCheck(b, b.Active) {

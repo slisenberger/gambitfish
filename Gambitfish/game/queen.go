@@ -7,7 +7,7 @@ type Queen struct {
 
 var QUEEN_DIRS = []Direction{N, S, E, W, NW, NE, SW, SE}
 
-func QueenMoves(b *Board, p Piece, s Square) []Move {
+func QueenMoves(b *Board, p Piece, s Square) []EfficientMove {
 	return RayMoves(b, p, s, true, true)
 }
 
