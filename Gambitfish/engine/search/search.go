@@ -13,7 +13,7 @@ const NULL_MOVE_REDUCED_SEARCH_DEPTH = 2
 
 // An Alpha Beta Negamax implementation. Function stolen from here:
 // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning
-func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta float64, nullMove bool, c game.Color, km game.KillerMoves) (float64, *game.Move, int) {
+func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta float64, nullMove bool, c game.Color, km game.KillerMoves) (float64, game.EfficientMove, int) {
 	// The number of nodes searched.
 	nodes := 0
 	// Store original values for transposition table.
@@ -23,7 +23,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	if entry, ok := game.TranspositionTable[game.ZobristHash(b)]; ok && (entry.Depth >= depth) {
 		switch entry.Precision {
 		case game.EvalExact:
-			return entry.Eval, &entry.BestMove, 1
+			return entry.Eval, entry.BestMove, 1
 		case game.EvalLowerBound:
 			if entry.Eval > alpha {
 				alpha = entry.Eval
@@ -34,7 +34,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 			}
 		}
 		if alpha >= beta {
-			return entry.Eval, &entry.BestMove, 1
+			return entry.Eval, entry.BestMove, 1
 		}
 	}
 	// Evaluate any leaf nodes.
@@ -43,7 +43,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		// Store values in transposition table.
 		hash := game.ZobristHash(b)
 		eval, move, nodes := QuiescenceSearch(b, e, MAX_QUIESCENCE_DEPTH, alpha, beta)
-		entry := game.TTEntry{Depth: 0, Eval: eval, BestMove: game.Move{NoMove: true}, Precision: game.EvalExact}
+		entry := game.TTEntry{Depth: 0, Eval: eval, BestMove: game.EfficientMove(0), Precision: game.EvalExact}
 		// Only store values if they are better values than we've seen before.
 		_, ok := game.TranspositionTable[hash]
 		if !ok {
@@ -58,7 +58,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	lm := b.AllLegalMoves()
 	over, _ := b.CalculateGameOver(lm)
 	if over {
-		return math.Inf(-1), nil, 1
+		return math.Inf(-1), game.EfficientMove(0), 1
 	}
 	// TODO(slisenberger): I'd like to eventually ignore book moves, seeing if we can do decent
 	// from the opening.
@@ -68,9 +68,9 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 
 
 
-	var best game.Move
+	var best game.EfficientMove
 	var eval float64
-	var moves []game.Move
+	var moves []game.EfficientMove
 	// Check extensions.
 	if game.IsCheck(b, b.Active) {
 		depth = depth + 1
@@ -92,7 +92,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	        b.SwitchActivePlayer()	
 		b.EPSquare = epSquare
 		if eval >= beta {
-			return eval, nil, nodes + n
+			return eval, game.EfficientMove(0), nodes + n
 		}
 	}
 	bestVal := math.Inf(-1)
@@ -117,8 +117,8 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		if alpha >= beta {
 			// Non captures that cause beta cutoffs should be tried
 			// earlier in sooner iterations.
-			if move.Capture == game.NULLPIECE {
-				km.AddKillerMove(depth, &move)
+			if move.Capture() == game.NULLPIECE {
+				km.AddKillerMove(depth, move)
 		        }
 			break
 		}
@@ -139,19 +139,19 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	if !ok || (old.Depth < depth) {
 		game.TranspositionTable[hash] = entry
 	}
-	return bestVal, &best, nodes
+	return bestVal, best, nodes
 }
 
-func QuiescenceSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta float64) (float64, *game.Move, int){
+func QuiescenceSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta float64) (float64, game.EfficientMove, int){
 	// The number of nodes searched.
 	nodes := 0
 
 	// Return normal evaluation from quiet boards.
 	if depth <= 0 || IsQuiet(b) {
-		return e.Evaluate(b), nil, 1
+		return e.Evaluate(b), game.EfficientMove(0), 1
 	}
-	var best game.Move
-	var moves []game.Move
+	var best game.EfficientMove
+	var moves []game.EfficientMove
 
 	// Else, quiescence search only searches legal captures and checks, or check evasions
 
@@ -187,7 +187,7 @@ func QuiescenceSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta fl
 		}
 	}
 
-	return bestVal, &best, nodes
+	return bestVal, best, nodes
 }
 
 func IsQuiet(b *game.Board) bool {

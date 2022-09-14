@@ -28,7 +28,7 @@ func (p *AIPlayer) MakeMove(b *game.Board) error {
 	// the best move on ply 1 is the best on ply 2. This fills the transposition table
 	// to lead with the best move on future plies.
 	var eval float64
-	var move *game.Move
+	var move game.EfficientMove
 	var nodes int
 	for d := 1; d <= p.Depth; d++ {
 		eval, move, nodes = search.AlphaBetaSearch(b, p.Evaluator, d, math.Inf(-1), math.Inf(1), true, p.Color, km)
@@ -36,7 +36,7 @@ func (p *AIPlayer) MakeMove(b *game.Board) error {
 	}
 	t := time.Since(start)
 	fmt.Println(fmt.Sprintf("evaluation over in: %v", t))
-	if move == nil {
+	if move == game.EfficientMove(0) {
 		return errors.New("no move could be made")
 	}
 	// Convert eval to + for white, - for black.
@@ -46,7 +46,7 @@ func (p *AIPlayer) MakeMove(b *game.Board) error {
 	fmt.Println(fmt.Sprintf("AI Player making best move with depth %v: %v, eval %v", p.Depth, move, eval))
 
 	PrintPrincipalVariation(b)
-	game.ApplyMove(b, *move)
+	game.ApplyMove(b, move)
 	return nil
 }
 
@@ -59,15 +59,15 @@ func (p *CommandLinePlayer) MakeMove(b *game.Board) error {
 	reader := bufio.NewReader(os.Stdin)
 	// Compare legal moves against the input choice.
 	moves := b.AllLegalMoves()
-	var move game.Move
+	var move game.EfficientMove
 	foundMove := false
 	for !foundMove {
-		candidates := []game.Move{}
+		candidates := []game.EfficientMove{}
 		fmt.Println("Please input a move. What square is the piece you would like to move? (for castling, start with the king)")
 		b, _, _ := reader.ReadLine()
 		from := string(b)
 		for _, m := range moves {
-			if m.Old.String() == from {
+			if m.Old().String() == from {
 				candidates = append(candidates, m)
 			}
 		}
@@ -79,7 +79,7 @@ func (p *CommandLinePlayer) MakeMove(b *game.Board) error {
 		b, _, _ = reader.ReadLine()
 		to := string(b)
 		for _, c := range candidates {
-			if c.Square.String() == to {
+			if c.Square().String() == to {
 				move = c
 				foundMove = true
 			}
@@ -96,12 +96,12 @@ func (p *CommandLinePlayer) MakeMove(b *game.Board) error {
 // Print principal variation prints the expected best continuation
 // from a given board.
 func PrintPrincipalVariation(b *game.Board) {
-	moves := []game.Move{}
+	moves := []game.EfficientMove{}
 	bs := []game.BoardState{}
 	// Get the principal variation, change board state.
 	for {
 		entry, ok := game.TranspositionTable[game.ZobristHash(b)]
-		if !ok || entry.BestMove.NoMove {
+		if !ok || entry.BestMove == game.EfficientMove(0) {
 			break
 		}
 		//		if entry.Precision == game.EvalExact {
