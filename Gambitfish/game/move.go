@@ -31,6 +31,49 @@ type Move struct {
 	Score float64
 }
 
+// Define a new move type that uses bits on an int
+// Bit map:
+// 1-4: Move piece
+// 5-10: Old square
+// 11-16: New Square
+// 17-20: Capture Piece
+// 21-26: Capture Square // 26-29: Promotion Piece
+// 30: Two pawn push?
+type EfficientMove uint32
+
+func NewEfficientMove(p Piece, s Square, o Square) EfficientMove {
+	m := uint32(0)
+	m = m | uint32(p) << 28
+	m = m | uint32(o) << 22
+	m = m | uint32(s) << 16
+	return EfficientMove(m)
+}
+
+func (m EfficientMove) AddCapture (p Piece, s Square) {
+	em := uint32(m) | uint32(p) << 12
+	em = em | uint32(s) << 6
+	m = EfficientMove(em)
+}
+
+func MoveToEfficientMove(m Move) EfficientMove {
+	em := NewEfficientMove(Piece(m.Piece), Square(m.Square), Square(m.Old))
+	if m.Capture != nil {
+		em.AddCapture(Piece(m.Capture.Piece), Square(m.Capture.Square))
+	}
+	return em
+}
+
+func EfficientMoveToMove(e EfficientMove) Move {
+	p := (e & 0xF0000000) >> 28
+	fmt.Printf("piece %v", Piece(p))
+	o := (e & 0x0FC00000) >> 22
+	fmt.Printf("square %v", Square(o))
+	s := (e & 0x003F0000) >> 16
+	fmt.Printf("old %v", Square(s))
+	m := NewMoveNoBoard(Piece(p), Square(s), Square(o))
+	return m
+}
+
 
 func (m Move) String() string {
 	var s string
@@ -76,6 +119,21 @@ func NewMove(p Piece, square Square, old Square, b *Board) Move {
 		PrevLastMove:    b.LastMove,
 		Promotion:       NULLPIECE,
 		PrevEPSquare:    b.EPSquare,
+		TwoPawnAdvance:  false,
+	}
+	return m
+}
+
+// Used for testing conversions.
+func NewMoveNoBoard(p Piece, square Square, old Square) Move {
+	m := Move{
+		Piece:           p,
+		Square:          square,
+		Old:             old,
+		EnPassant:       false,
+		KSCastle:        false,
+		QSCastle:        false,
+		Promotion:       NULLPIECE,
 		TwoPawnAdvance:  false,
 	}
 	return m

@@ -141,11 +141,10 @@ func ApplyMove(b *Board, m Move) {
 			newRookSquare = GetSquare(o.Row(), o.Col()+1)
 			oldRookSquare = GetSquare(o.Row(), 8)
 		}
-		rook := b.Squares[oldRookSquare]
-		b.Squares[newRookSquare] = rook
-		b.Position = SetPiece(b.Position, rook, newRookSquare)
+		b.Squares[newRookSquare] = b.Squares[oldRookSquare]
+		b.Position = SetPiece(b.Position, b.Squares[oldRookSquare], newRookSquare)
+		b.Position = UnSetPiece(b.Position, b.Squares[oldRookSquare], oldRookSquare)
 		b.Squares[oldRookSquare] = NULLPIECE
-		b.Position = UnSetPiece(b.Position, rook, oldRookSquare)
 	}
 	// Then, remove the piece from its old square.
 	b.Position = UnSetPiece(b.Position, p, m.Old)
@@ -355,7 +354,7 @@ func (b *Board) AllLegalChecksAndCaptures() []Move {
 		if p.Color() != b.Active {
 			continue
 		}
-		m := LegalMoves(b, p, Square(s))
+		m := LegalCaptures(b, p, Square(s))
 		for _, move := range m {
 			ApplyMove(b, move)
 			if !IsCheck(b, b.Active) && (IsCheck(b, -1 * b.Active) || move.Capture != nil){
@@ -370,8 +369,8 @@ func (b *Board) AllLegalChecksAndCaptures() []Move {
 // Returns true if the game is drawn, won, or lost. The integer
 // returned is the winner (or draw). This function should be called on the beginning
 // of a move.
-func (b *Board) CalculateGameOver() (bool, Color) {
-	if len(b.AllLegalMoves()) == 0 {
+func (b *Board) CalculateGameOver(lm []Move) (bool, Color) {
+	if len(lm) == 0 {
 		// If the active player is in check, they lose.
 		if IsCheck(b, b.Active) {
 			return true, -1 * b.Active
