@@ -41,7 +41,6 @@ func TestPerft(t *testing.T) {
 		}
 		b.Print()
 		fmt.Println(b.AllLegalMoves())
-
 		for i, want := range tc.moves {
 			depth := i + 1
 			start := time.Now()
@@ -67,8 +66,8 @@ func PerftHelper(b *Board, depth int) int {
 		bs := ApplyMove(b, move)
 		b.SwitchActivePlayer()
 		result += PerftHelper(b, depth-1)
-		b.SwitchActivePlayer()
 		UndoMove(b, move, bs)
+		b.SwitchActivePlayer()
 	}
 	return result
 }

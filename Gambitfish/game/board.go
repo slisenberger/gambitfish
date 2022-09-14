@@ -210,9 +210,7 @@ func ApplyMove(b *Board, m Move) BoardState {
 	if b.Active == BLACK {
 		b.Move++
 	}
-
 	b.LastMove = &m
-
 	// Update bitboard representations.
 	b.Position = UpdateBitboards(b.Position)
 	return bs

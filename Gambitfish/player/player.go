@@ -97,6 +97,7 @@ func (p *CommandLinePlayer) MakeMove(b *game.Board) error {
 // from a given board.
 func PrintPrincipalVariation(b *game.Board) {
 	moves := []game.Move{}
+	bs := []game.BoardState{}
 	// Get the principal variation, change board state.
 	for {
 		entry, ok := game.TranspositionTable[game.ZobristHash(b)]
@@ -105,7 +106,7 @@ func PrintPrincipalVariation(b *game.Board) {
 		}
 		//		if entry.Precision == game.EvalExact {
 		moves = append(moves, entry.BestMove)
-		game.ApplyMove(b, entry.BestMove)
+		bs = append(bs, game.ApplyMove(b, entry.BestMove))
 		b.SwitchActivePlayer()
 		//		} else {
 		//			break
@@ -123,6 +124,6 @@ func PrintPrincipalVariation(b *game.Board) {
 	// Undo board state.
 	for i := len(moves) - 1; i >= 0; i-- {
 		b.SwitchActivePlayer()
-		game.UndoMove(b, moves[i])
+		game.UndoMove(b, moves[i], bs[i])
 	}
 }

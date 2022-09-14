@@ -160,11 +160,6 @@ func NewMove(p Piece, square Square, old Square, b *Board) Move {
 		EnPassant:       false,
 		KSCastle:        false,
 		QSCastle:        false,
-		PrevBQSCastling: b.BQSCastling,
-		PrevWQSCastling: b.WQSCastling,
-		PrevBKSCastling: b.BKSCastling,
-		PrevWKSCastling: b.WKSCastling,
-		PrevLastMove:    b.LastMove,
 		Promotion:       NULLPIECE,
 		TwoPawnAdvance:  false,
 	}
