@@ -115,7 +115,7 @@ func ApplyMove(b *Board, m Move) BoardState {
 		WKSCastling: b.WKSCastling,
 		BKSCastling: b.BKSCastling,
 		WQSCastling: b.WQSCastling,
-		BQSCastling: b.WQSCastling,
+		BQSCastling: b.BQSCastling,
 		EPSquare: b.EPSquare,
 	}
 	if p == NULLPIECE {
@@ -240,8 +240,8 @@ func UndoMove(b *Board, m Move, bs BoardState) {
 	// Return a captured piece.
 	if m.Capture != nil {
 		if m.EnPassant{
-			b.Squares[m.PrevEPSquare] = m.Capture.Piece
-		        b.Position = SetPiece(b.Position, m.Capture.Piece, m.PrevEPSquare)
+			b.Squares[bs.EPSquare] = m.Capture.Piece
+		        b.Position = SetPiece(b.Position, m.Capture.Piece, bs.EPSquare)
 		} else {
 			b.Squares[m.Capture.Square] = m.Capture.Piece
 		        b.Position = SetPiece(b.Position, m.Capture.Piece, m.Capture.Square)
