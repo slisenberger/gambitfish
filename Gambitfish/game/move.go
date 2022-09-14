@@ -49,16 +49,24 @@ func NewEfficientMove(p Piece, s Square, o Square) EfficientMove {
 	return EfficientMove(m)
 }
 
-func (m EfficientMove) AddCapture (p Piece, s Square) {
+func (m EfficientMove) AddCapture (p Piece, s Square) EfficientMove {
 	em := uint32(m) | uint32(p) << 12
 	em = em | uint32(s) << 6
 	m = EfficientMove(em)
+	return m
+}
+
+func (m EfficientMove) AddPromotion (p Piece) EfficientMove {
+	return EfficientMove(uint32(m) | uint32(p) << 2)
 }
 
 func MoveToEfficientMove(m Move) EfficientMove {
 	em := NewEfficientMove(Piece(m.Piece), Square(m.Square), Square(m.Old))
 	if m.Capture != nil {
-		em.AddCapture(Piece(m.Capture.Piece), Square(m.Capture.Square))
+		em = em.AddCapture(Piece(m.Capture.Piece), Square(m.Capture.Square))
+	}
+	if m.Promotion != NULLPIECE {
+		em = em.AddPromotion(m.Promotion)
 	}
 	return em
 }
@@ -70,7 +78,22 @@ func EfficientMoveToMove(e EfficientMove) Move {
 	fmt.Printf("square %v", Square(o))
 	s := (e & 0x003F0000) >> 16
 	fmt.Printf("old %v", Square(s))
-	m := NewMoveNoBoard(Piece(p), Square(s), Square(o))
+	m := Move{
+		Piece: Piece(p),
+		Square: Square(s),
+		Old: Square(o),
+	}
+
+	cp := (e & 0x0000F000 >> 12)
+	cs := (e & 0x00000FC0 >> 6)
+	if Piece(cp) != NULLPIECE {
+		m.Capture = &Capture{Piece: Piece(cp), Square: Square(cs)}
+	}
+
+	pp := (e & 0x0000003C >> 2)
+	m.Promotion = Piece(pp)
+
+
 	return m
 }
 
@@ -101,7 +124,19 @@ func (m Move) String() string {
 }
 
 func (m Move) Equals(m2 Move) bool {
-	return m.Piece == m2.Piece && m.Square == m2.Square && m.Promotion == m2.Promotion && m.Capture == m2.Capture
+	baseEq := m.Piece == m2.Piece && m.Square == m2.Square && m.Promotion == m2.Promotion
+	// If one of the moves has a capture, make sure captures are equal
+	if m.Capture != nil {
+		if m2.Capture == nil {
+			return false
+		} else {
+			return baseEq && m.Capture.Piece == m2.Capture.Piece && m.Capture.Square == m2.Capture.Square
+		}
+	} else {
+		// Make sure both are nil ptrs.
+        	return baseEq && m.Capture == m2.Capture
+        }
+
 }
 
 func NewMove(p Piece, square Square, old Square, b *Board) Move {
@@ -119,21 +154,6 @@ func NewMove(p Piece, square Square, old Square, b *Board) Move {
 		PrevLastMove:    b.LastMove,
 		Promotion:       NULLPIECE,
 		PrevEPSquare:    b.EPSquare,
-		TwoPawnAdvance:  false,
-	}
-	return m
-}
-
-// Used for testing conversions.
-func NewMoveNoBoard(p Piece, square Square, old Square) Move {
-	m := Move{
-		Piece:           p,
-		Square:          square,
-		Old:             old,
-		EnPassant:       false,
-		KSCastle:        false,
-		QSCastle:        false,
-		Promotion:       NULLPIECE,
 		TwoPawnAdvance:  false,
 	}
 	return m

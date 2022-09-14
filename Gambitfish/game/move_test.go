@@ -7,17 +7,39 @@ func TestEfficientMove(t *testing.T) {
 		m Move
 	}{
 		{
-			m: NewMoveNoBoard(WHITEPAWN, GetSquare(4,2), GetSquare(2,2)),
-		},
-		{
-			m: NewMoveNoBoard(BLACKKING, GetSquare(4,4), GetSquare(5,5)),
+			m: Move{
+				Piece: WHITEPAWN,
+				Old: E2,
+				Square: E4,
+			},
+		},{
+			
+			m: Move{
+				Piece: WHITEROOK,
+				Old: E1,
+				Square: E4,
+				Capture: &Capture{
+					Piece: BLACKBISHOP,
+					Square: E4,
+				},
+			},
+		},{
+			m: Move{
+				Piece: WHITEPAWN,
+				Old: E7,
+				Square: E8,
+				Promotion: WHITEQUEEN,
+			},
 		},
 	}
 
 	for _, tc := range testCases {
 		m := MoveToEfficientMove(tc.m)
+		if tc.m.Capture != nil {
+			m.AddCapture(tc.m.Capture.Piece, tc.m.Capture.Square)
+		}
 		got := EfficientMoveToMove(m)
-		if got != tc.m {
+		if !got.Equals(tc.m) {
 			t.Errorf("efficient move conversion failed: got %v, want %v", got, tc.m)
 
 		}
