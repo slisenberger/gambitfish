@@ -117,7 +117,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		if alpha >= beta {
 			// Non captures that cause beta cutoffs should be tried
 			// earlier in sooner iterations.
-			if move.Capture == nil {
+			if move.Capture == game.NULLPIECE {
 				km.AddKillerMove(depth, &move)
 		        }
 			break

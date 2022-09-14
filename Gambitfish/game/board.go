@@ -123,20 +123,26 @@ func ApplyMove(b *Board, m Move) BoardState {
 		fmt.Println(b.AllLegalMoves())
 		panic("nil piece: " + m.String())
 	}
-	if m.Capture == nil && b.Squares[m.Square] != NULLPIECE {
+	if m.Capture == NULLPIECE && b.Squares[m.Square] != NULLPIECE {
 		b.Print()
 		fmt.Println(m)
 		fmt.Println("don't have capture in a move to occupied sq..")
 	}
-	if m.Capture != nil && m.Capture.Square > H8 {
+	if m.Capture != NULLPIECE && m.Square > H8 {
 		b.Print()
 		fmt.Println(m)
 		fmt.Println("capturing offboard sq..")
 	}
 	// If there's a capture: remove the captured piece.
-	if m.Capture != nil {
-		b.Position = UnSetPiece(b.Position, m.Capture.Piece, m.Capture.Square)
-		b.Squares[m.Capture.Square] = NULLPIECE
+	if m.Capture != NULLPIECE {
+		// In en passant, the piece is not on the square we move to.
+		if m.EnPassant {
+			b.Position = UnSetPiece(b.Position, m.Capture, b.EPSquare)
+			b.Squares[b.EPSquare] = NULLPIECE
+		} else {
+			b.Position = UnSetPiece(b.Position, m.Capture, m.Square)
+			b.Squares[m.Square] = NULLPIECE
+		}
 	}
 	// Then, move the piece to its new square.
 	// Check for promotion of a pawn.
@@ -187,8 +193,8 @@ func ApplyMove(b *Board, m Move) BoardState {
 		b.WQSCastling = false
 	}
 	// Affect castling state of captured rooks.
-	if m.Capture != nil {
-		switch m.Capture.Square {
+	if m.Capture != NULLPIECE {
+		switch m.Square {
 		case A8:
 			b.BQSCastling = false
 		case H8:
@@ -236,13 +242,13 @@ func UndoMove(b *Board, m Move, bs BoardState) {
 	b.Position = SetPiece(b.Position, p, o)
 	b.Squares[o] = p
 	// Return a captured piece.
-	if m.Capture != nil {
+	if m.Capture != NULLPIECE {
 		if m.EnPassant{
-			b.Squares[bs.EPSquare] = m.Capture.Piece
-		        b.Position = SetPiece(b.Position, m.Capture.Piece, bs.EPSquare)
+			b.Squares[bs.EPSquare] = m.Capture
+		        b.Position = SetPiece(b.Position, m.Capture, bs.EPSquare)
 		} else {
-			b.Squares[m.Capture.Square] = m.Capture.Piece
-		        b.Position = SetPiece(b.Position, m.Capture.Piece, m.Capture.Square)
+			b.Squares[m.Square] = m.Capture
+		        b.Position = SetPiece(b.Position, m.Capture, m.Square)
 		}
 	}
 
@@ -374,7 +380,7 @@ func (b *Board) AllLegalChecksAndCaptures() []Move {
 		m := LegalCaptures(b, p, Square(s))
 		for _, move := range m {
 			bs := ApplyMove(b, move)
-			if !IsCheck(b, b.Active) && (IsCheck(b, -1 * b.Active) || move.Capture != nil){
+			if !IsCheck(b, b.Active) && (IsCheck(b, -1 * b.Active) || move.Capture != NULLPIECE){
 				moves = append(moves, move)
 			}
 			UndoMove(b, move, bs)

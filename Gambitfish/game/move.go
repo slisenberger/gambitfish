@@ -4,27 +4,16 @@ import "fmt"
 
 import "sort"
 
-type Capture struct {
-	Piece  Piece
-	Square Square
-}
-
 // Moves have Pieces and squares
 type Move struct {
 	Piece           Piece
 	Square          Square
 	Old             Square
-	Capture         *Capture
+	Capture         Piece
 	EnPassant       bool
 	KSCastle        bool
 	QSCastle        bool
 	Promotion       Piece // Applicable for only Pawn moves
-	PrevWQSCastling bool
-	PrevWKSCastling bool
-	PrevBQSCastling bool
-	PrevBKSCastling bool
-	PrevCheck       bool
-	PrevLastMove    *Move
 	TwoPawnAdvance  bool // For En Passant Management.
 	NoMove bool
 	Score float64
@@ -50,9 +39,8 @@ func NewEfficientMove(p Piece, s Square, o Square) EfficientMove {
 	return EfficientMove(m)
 }
 
-func (m EfficientMove) AddCapture (p Piece, s Square) EfficientMove {
+func (m EfficientMove) AddCapture (p Piece) EfficientMove {
 	em := uint32(m) | uint32(p) << 12
-	em = em | uint32(s) << 6
 	m = EfficientMove(em)
 	return m
 }
@@ -71,8 +59,8 @@ func (m EfficientMove) AddEnPassant() EfficientMove {
 
 func MoveToEfficientMove(m Move) EfficientMove {
 	em := NewEfficientMove(Piece(m.Piece), Square(m.Square), Square(m.Old))
-	if m.Capture != nil {
-		em = em.AddCapture(Piece(m.Capture.Piece), Square(m.Capture.Square))
+	if m.Capture != NULLPIECE {
+		em = em.AddCapture(Piece(m.Capture))
 	}
 	if m.Promotion != NULLPIECE {
 		em = em.AddPromotion(m.Promotion)
@@ -100,9 +88,8 @@ func EfficientMoveToMove(e EfficientMove) Move {
 	}
 
 	cp := (e & 0x0000F000 >> 12)
-	cs := (e & 0x00000FC0 >> 6)
 	if Piece(cp) != NULLPIECE {
-		m.Capture = &Capture{Piece: Piece(cp), Square: Square(cs)}
+		m.Capture = Piece(cp)
 	}
 
 	pp := (e & 0x0000003C >> 2)
@@ -119,7 +106,7 @@ func (m Move) String() string {
 		s = "O-O"
 	} else {
 		s = fmt.Sprintf("%v%v", m.Piece, m.Old)
-		if m.Capture != nil {
+		if m.Capture != NULLPIECE {
 			s += "x"
 		} else {
 			s += "-"
@@ -137,18 +124,7 @@ func (m Move) String() string {
 }
 
 func (m Move) Equals(m2 Move) bool {
-	baseEq := m.Piece == m2.Piece && m.Square == m2.Square && m.Promotion == m2.Promotion
-	// If one of the moves has a capture, make sure captures are equal
-	if m.Capture != nil {
-		if m2.Capture == nil {
-			return false
-		} else {
-			return baseEq && m.Capture.Piece == m2.Capture.Piece && m.Capture.Square == m2.Capture.Square
-		}
-	} else {
-		// Make sure both are nil ptrs.
-        	return baseEq && m.Capture == m2.Capture
-        }
+	return m.Piece == m2.Piece && m.Square == m2.Square && m.Promotion == m2.Promotion && m.Capture == m.Capture
 
 }
 
@@ -194,8 +170,8 @@ func OrderMoves(b *Board, moves []Move, depth int, km KillerMoves) []Move {
 			m.Score = bestMoveScore
 			continue
 		}
-		if m.Capture != nil {
-			m.Score = captureScore + m.Capture.Piece.Value() - m.Piece.Value()
+		if m.Capture != NULLPIECE {
+			m.Score = captureScore + m.Capture.Value() - m.Piece.Value()
 			continue
 		} else {
 
