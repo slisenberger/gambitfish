@@ -32,10 +32,10 @@ func main() {
 		},
 	}
 	//p1 := player.CommandLinePlayer{Color: game.WHITE}
-	p1 := player.AIPlayer{Evaluator: e, Depth: 6, Color: game.WHITE}
+	p1 := player.AIPlayer{Evaluator: e, Depth: 7, Color: game.WHITE}
 	p2 := player.AIPlayer{Evaluator: e, Depth: 6, Color: game.BLACK}
 	b.Print()
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 300; i++ {
 		time.Sleep(1 * time.Second)
 		if over, winner := b.CalculateGameOver(b.AllLegalMoves()); over {
 			if winner != 0 {

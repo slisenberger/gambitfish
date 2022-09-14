@@ -7,7 +7,7 @@ import "../../game"
 // We reach depth 0 with pending captures.
 // This should eventually be controlled, but for now we max quiescence search
 // another nodes.
-const MAX_QUIESCENCE_DEPTH = -7
+const MAX_QUIESCENCE_DEPTH = -8
 
 const NULL_MOVE_REDUCED_SEARCH_DEPTH = 2
 
