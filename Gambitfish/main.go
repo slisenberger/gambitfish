@@ -25,16 +25,17 @@ func main() {
 		Evaluators: []game.Evaluator{
 			game.MaterialEvaluator{},
 			game.PieceSquareEvaluator{},
-			// We'll turn this on when I like it
-			game.MobilityEvaluator{},
-			game.KingSafetyEvaluator{},
+			// Calculating legal moves may be slowing this down. 
+			// game.MobilityEvaluator{},
+			// game.KingSafetyEvaluator{},
 			// game.OpeningEvaluator{},
 		},
 	}
 	p1 := player.CommandLinePlayer{Color: game.WHITE}
-	p2 := player.AIPlayer{Evaluator: e, Depth: 4, Color: game.BLACK}
+	//p1 := player.AIPlayer{Evaluator: e, Depth: 7, Color: game.WHITE}
+	p2 := player.AIPlayer{Evaluator: e, Depth: 7, Color: game.BLACK}
 	b.Print()
-	for i := 0; i < 300; i++ {
+	for i := 0; i < 2; i++ {
 		time.Sleep(1 * time.Second)
 		if over, winner := b.CalculateGameOver(); over {
 			if winner != 0 {

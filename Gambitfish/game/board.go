@@ -15,6 +15,7 @@ type Board struct {
 	Move        int
 	LastMove    *Move
 	EPSquare    Square // The square a pawn was just pushed two forward.
+	AllMoves    []Move
 }
 
 func DefaultBoard() *Board {
@@ -286,12 +287,12 @@ func (b *Board) AllLegalMoves() []Move {
 			continue
 		}
 		m := LegalMoves(b, p, Square(s))
-		for _, move := range m {
-			ApplyMove(b, move)
+		for i := 0; i < len(m); i++ {
+			ApplyMove(b, m[i])
 			if !IsCheck(b, b.Active) {
-				moves = append(moves, move)
+				moves = append(moves, m[i])
 			}
-			UndoMove(b, move)
+			UndoMove(b, m[i])
 		}
 	}
 	return moves

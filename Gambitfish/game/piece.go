@@ -377,14 +377,14 @@ func PawnMoves(b *Board, p Piece, cur Square) []Move {
 }
 
 
+
+var colors = [13]Color{
+	NULLCOLOR, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, 
+	BLACK, BLACK, BLACK, BLACK, BLACK, BLACK,
+}
+
 func (p Piece) Color() Color {
-	switch p {
-	case WHITEPAWN, WHITEKNIGHT, WHITEBISHOP, WHITEROOK, WHITEQUEEN, WHITEKING:
-		return WHITE
-	case BLACKPAWN, BLACKKNIGHT, BLACKBISHOP, BLACKROOK, BLACKQUEEN, BLACKKING:
-		return BLACK
-	}
-	return NULLCOLOR
+	return colors[p]
 }
 
 func (p Piece) Type() PieceType {
@@ -471,7 +471,7 @@ func (p Piece) Value() float64 {
 	return 0.0
 }
 
-// Legal moves returns the legal moves for a given piece on a
+// Legal moves returns the pseudolegal moves for a given piece on a
 // board on the starting square cur.
 func LegalMoves(b *Board, p Piece, cur Square) []Move {
 	switch p {

@@ -49,7 +49,13 @@ func TestMate(t *testing.T) {
 			fen: "r1bqkbnr/ppppp1p1/n4p1p/8/2PPP3/8/PP3PPP/RNBQKBNR w - - 1 1",
 			move: "Qd1-h5",
 			depth: 3,
-		}
+		},
+		{
+			name: "m1 engine surrendered.",
+			fen: "rn2kb1r/pp2pppp/5n2/Q3N3/3P4/4B3/P3qPPP/2R2RK1 w kq - 0 1",
+			move: "Rc1-c8",
+			depth: 1,
+		},
 	}
 
 	e := game.MaterialEvaluator{}
@@ -59,7 +65,7 @@ func TestMate(t *testing.T) {
 	   if err != nil {
 		   t.Error("failed to read board from fen")
 	   }
-	   _, move, _ := AlphaBetaSearch(b, e, tc.depth, math.Inf(-1), math.Inf(1), false, b.Active)
+	   _, move, _ := AlphaBetaSearch(b, e, tc.depth, math.Inf(-1), math.Inf(1), false, b.Active, game.NewKillerMoves())
 	   if move.String() != tc.move {
 		t.Errorf("Got wrong move. Want %v, got %v", tc.move, move.String())
 		b.Print()
@@ -97,7 +103,7 @@ func TestMaterial(t *testing.T) {
 	   if err != nil {
 		   t.Error("failed to read board from fen")
 	   }
-	   eval, move, _ := AlphaBetaSearch(b, e, tc.depth, math.Inf(-1), math.Inf(1), false, b.Active)
+	   eval, move, _ := AlphaBetaSearch(b, e, tc.depth, math.Inf(-1), math.Inf(1), false, b.Active, game.NewKillerMoves())
 	   if move.String() != tc.move {
 		t.Errorf("Got wrong move. Want %v, got %v (eval %v)", tc.move,  move.String(), eval)
 		b.Print()

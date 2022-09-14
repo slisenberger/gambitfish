@@ -23,6 +23,7 @@ type AIPlayer struct {
 
 func (p *AIPlayer) MakeMove(b *game.Board) error {
 	start := time.Now()
+	km := game.NewKillerMoves()
 	// Use iterative deepening to try and find good paths early. It's likely that
 	// the best move on ply 1 is the best on ply 2. This fills the transposition table
 	// to lead with the best move on future plies.
@@ -30,7 +31,7 @@ func (p *AIPlayer) MakeMove(b *game.Board) error {
 	var move *game.Move
 	var nodes int
 	for d := 1; d <= p.Depth; d++ {
-		eval, move, nodes = search.AlphaBetaSearch(b, p.Evaluator, d, math.Inf(-1), math.Inf(1), false, p.Color)
+		eval, move, nodes = search.AlphaBetaSearch(b, p.Evaluator, d, math.Inf(-1), math.Inf(1), true, p.Color, km)
 		fmt.Println(fmt.Sprintf("iteration %v: best move is %v (%v nodes searched)", d, move, nodes))
 	}
 	t := time.Since(start)
@@ -99,7 +100,7 @@ func PrintPrincipalVariation(b *game.Board) {
 	// Get the principal variation, change board state.
 	for {
 		entry, ok := game.TranspositionTable[game.ZobristHash(b)]
-		if !ok {
+		if !ok || entry.BestMove.NoMove {
 			break
 		}
 		//		if entry.Precision == game.EvalExact {

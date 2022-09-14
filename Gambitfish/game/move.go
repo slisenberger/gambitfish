@@ -2,8 +2,7 @@ package game
 
 import "fmt"
 
-import "math/rand"
-import "math"
+import "sort"
 
 type Capture struct {
 	Piece  Piece
@@ -28,33 +27,42 @@ type Move struct {
 	PrevLastMove    *Move
 	PrevEPSquare    Square
 	TwoPawnAdvance  bool // For En Passant Management.
+	NoMove bool
+	Score float64
 }
 
-func (m Move) String() string {
-	if m.QSCastle {
-		return "O-O-O"
-	} else if m.KSCastle {
-		return "O-O"
-	}
-	mv := fmt.Sprintf("%v%v", m.Piece, m.Old)
-	if m.Capture != nil {
-		mv += "x"
-	} else {
-		mv += "-"
-	}
-	mv += m.Square.String()
-	if m.Promotion != NULLPIECE {
-		mv = fmt.Sprintf("%v=%v", mv, m.Promotion)
-	}
 
-	if m.EnPassant {
-		mv += "(en passant)"
+func (m Move) String() string {
+	var s string
+	if m.QSCastle {
+		s = "O-O-O"
+	} else if m.KSCastle {
+		s = "O-O"
+	} else {
+		s = fmt.Sprintf("%v%v", m.Piece, m.Old)
+		if m.Capture != nil {
+			s += "x"
+		} else {
+			s += "-"
+		}
+		s += m.Square.String()
+		if m.Promotion != NULLPIECE {
+			s += "%v=%v" + m.Promotion.String()
+		}
+
+		if m.EnPassant {
+			s += "(en passant)"
+		}
 	}
-	return mv
+	return s
+}
+
+func (m Move) Equals(m2 Move) bool {
+	return m.Piece == m2.Piece && m.Square == m2.Square && m.Promotion == m2.Promotion && m.Capture == m2.Capture
 }
 
 func NewMove(p Piece, square Square, old Square, b *Board) Move {
-	return Move{
+	m := Move{
 		Piece:           p,
 		Square:          square,
 		Old:             old,
@@ -70,75 +78,67 @@ func NewMove(p Piece, square Square, old Square, b *Board) Move {
 		PrevEPSquare:    b.EPSquare,
 		TwoPawnAdvance:  false,
 	}
+	return m
 }
 
 // Order the moves in an intelligent way for alpha beta pruning.
-func OrderMoves(b *Board, moves []Move) []Move {
-	// Just to get things off the ground, we'll shuffle the moves, just to get some variety
-	// in the AI vs AI games.
-	for i := range moves {
-		j := rand.Intn(i + 1)
-		moves[i], moves[j] = moves[j], moves[i]
+func OrderMoves(b *Board, moves []Move, depth int, km KillerMoves) []Move {
+
+	var k [2]*Move
+	if km != nil {
+		k = km.GetKillerMoves(depth)
+	} else {
+		k = [2]*Move{nil, nil}
 	}
-	//This is our result array and map of seen moves
-	res := make([]Move, len(moves))
-	seen := make(map[string]bool, len(moves))
-
-	i := 0
-
-	// Start with what we already believe the best move is.
-	if entry, ok := TranspositionTable[ZobristHash(b)]; ok {
-		res[0] = entry.BestMove
-		seen[entry.BestMove.String()] = true
-		i = 1
-	}
-
 	// Loop through the move list the rest of the times for other orderings.
-	for {
-		if i >= len(moves) {
-			break
+	// Score constants
+	captureScore := 1500.0
+	km1Score := 1000.0
+	km2Score := 999.0
+	bestMoveScore := 2000.0
+	e := PieceSquareEvaluator{}
+	// Start with what we already believe the best move is.
+	bestMove := Move{}
+	if entry, ok := TranspositionTable[ZobristHash(b)]; ok && !entry.BestMove.NoMove {
+		bestMove = entry.BestMove
+	}
+
+	for i := 0; i < len(moves); i++ {
+		m := moves[i]
+		if m.Equals(bestMove) {
+			m.Score = bestMoveScore
+			continue
 		}
-		// Find MVV/LVA captures
-		mvv := 0.0    // Most valuable victim
-		lva := 1000.0 // least valuable attacker seeing that victim so far.
-		var best Move
-		var bestNonCapture Move
-		bestNonCaptureEval := math.Inf(-1)
-		e := PieceSquareEvaluator{}
-		for _, m := range moves {
-			// Skip moves we've already ordered
-			if seen[m.String()] {
+		if m.Capture != nil {
+			m.Score = captureScore + m.Capture.Piece.Value() - m.Piece.Value()
+			continue
+		} else {
+
+			// If it's a killer move, order it highly.
+			if k[0] != nil && k[0].Equals(m) {
+				m.Score = km1Score
 				continue
 			}
-			if m.Capture != nil {
-				// If it's our new best mvv, and also least valuable attacker,
-				// it's the best move so far.
-				if m.Capture.Piece.Value() >= mvv && m.Piece.Value() < lva {
-					mvv = m.Capture.Piece.Value()
-					lva = m.Piece.Value()
-					best = m
-				}
-			} else {
-				// Order non captures by piece value weights.
-				ApplyMove(b, m)
-				eval := e.Evaluate(b)
-				UndoMove(b, m)
-				if eval >= bestNonCaptureEval {
-					bestNonCaptureEval = eval
-					bestNonCapture = m
-				}
+			if k[1] != nil && k[1].Equals(m) {
+				m.Score = km2Score
+				continue
 			}
+			// Order non captures by piece value weights.
+			ApplyMove(b, m)
+			m.Score = e.Evaluate(b)
+			UndoMove(b, m)
 		}
-		// Add to results, and don't loop through this move again.
-		// If we found a victim at all.
-		if mvv > 0.0 {
-			res[i] = best
-			seen[best.String()] = true
-		} else {
-			res[i] = bestNonCapture
-			seen[bestNonCapture.String()] = true
-		}
-		i++
+		moves[i] = m
 	}
-	return res
+	// Sort moves by scores.
+	//fmt.Println("Presort")
+	//fmt.Println("-------")
+	//fmt.Println(moves)
+	sort.Slice(moves, func(i, j int) bool {
+		return moves[i].Score > moves[j].Score
+	})
+	//fmt.Println("Postsort")
+	//fmt.Println("-------")
+	//fmt.Println(moves)
+	return moves
 }
