@@ -7,7 +7,7 @@ import "../../game"
 // We reach depth 0 with pending captures.
 // This should eventually be controlled, but for now we max quiescence search
 // another nodes.
-const MAX_QUIESCENCE_DEPTH = -8
+const MAX_QUIESCENCE_DEPTH = 1
 
 const NULL_MOVE_REDUCED_SEARCH_DEPTH = 2
 
@@ -21,7 +21,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	// Check the transposition table for work we've already done, and either
 	// return or update our cutoffs.
 	h := game.ZobristHash(b)
-	if entry, ok := game.TranspositionTable[h]; ok && (entry.Depth >= depth) {
+	if entry, ok := game.TranspositionTable[h]; ok && (entry.Depth >= depth) && entry.Position == b.Position {
 		// Mark this entry to not be deleted.
 		entry.Ancient = false
 		game.TranspositionTable[h] = entry
@@ -58,7 +58,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		// Store values in transposition table.
 		hash := game.ZobristHash(b)
 		eval, move, nodes := QuiescenceSearch(b, e, MAX_QUIESCENCE_DEPTH, alpha, beta)
-		entry := game.TTEntry{Depth: 0, Eval: eval, BestMove: game.EfficientMove(0), Precision: game.EvalExact, Ancient: false}
+		entry := game.TTEntry{Depth: 0, Eval: eval, BestMove: game.EfficientMove(0), Precision: game.EvalExact, Ancient: false, Position: b.Position}
 		// Only store values if they are better values than we've seen before.
 		_, ok := game.TranspositionTable[hash]
 		if !ok {
@@ -107,7 +107,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	for i := 0; i < len(moves); i++ {
 		move := moves[i]
 		// Late Move Reductions. Trim the search space for later moves in our ordering scheme if they are quiet.
-		if (i >= 4) && (depth > 3) && move.Capture() == game.NULLPIECE && !game.IsCheck(b, b.Active) && move.Promotion() == game.NULLPIECE {
+		if (i >= 5) && (depth > 3) && move.Capture() == game.NULLPIECE && !game.IsCheck(b, b.Active) && move.Promotion() == game.NULLPIECE {
 			// Also exclude moves that give check from reductions.
 			// Need a faster way to check if moves are checking moves.
 			bs := game.ApplyMove(b, move)
@@ -124,7 +124,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		// Negate eval -- it's opponent's opinion!
 		eval = -1 * eval
 		game.UndoMove(b, move, bs)
-	        b.SwitchActivePlayer()	
+	        b.SwitchActivePlayer()
 		nodes += n
 		// Undo move and restore player.
 		// We do >= because if checkmate is inevitable, we still need to pick a move.
@@ -146,7 +146,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	}
 	// Store values in transposition table.
 	hash := game.ZobristHash(b)
-	entry := game.TTEntry{Depth: depth, Eval: bestVal, BestMove: best, Ancient: false}
+	entry := game.TTEntry{Depth: depth, Eval: bestVal, BestMove: best, Ancient: false, Position: b.Position}
 	if bestVal <= alphaOrig {
 		entry.Precision = game.EvalUpperBound
 	} else if bestVal >= beta {
@@ -169,22 +169,28 @@ func QuiescenceSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta fl
 	// The number of nodes searched.
 	nodes := 0
 
+	var moves []game.EfficientMove
+
+	// Else, quiescence search only searches legal captures and checks, or check evasions
+
+
+	moves = b.AllQuiescenceMoves()
+
+	// Start by making sure the game is still playable
+	over, winner := b.CalculateGameOver(b.AllLegalMoves())
+	if over {
+		if winner == 0 {
+			return 0.0, game.EfficientMove(0), 1
+		} else {
+			return math.Inf(-1), game.EfficientMove(0), 1
+		}
+	}
+
 	// Return normal evaluation from quiet boards.
 	if depth <= 0 || IsQuiet(b) {
 		return e.Evaluate(b), game.EfficientMove(0), 1
 	}
 	var best game.EfficientMove
-	var moves []game.EfficientMove
-
-	// Else, quiescence search only searches legal captures and checks, or check evasions
-
-	// If in check, all moves are worth trying.
-	if game.IsCheck(b, b.Active) {
-		moves = game.OrderMoves(b, b.AllLegalMoves(), depth, nil)
-	// Otherwise, only look through checks and captures
-	} else {
-		moves = game.OrderMoves(b, b.AllLegalChecksAndCaptures(), depth, nil)
-	}
 	bestVal := math.Inf(-1)
 	for _, move := range moves {
 		var eval float64
@@ -194,7 +200,7 @@ func QuiescenceSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta fl
 		// Negate eval -- it's opponent's opinion!
 		eval = -1 * eval
 		game.UndoMove(b, move, bs)
-	        b.SwitchActivePlayer()	
+	        b.SwitchActivePlayer()
 		nodes += n
 		// Undo move and restore player.
 		// We do >= because if checkmate is inevitable, we still need to pick a move.
@@ -214,5 +220,5 @@ func QuiescenceSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta fl
 }
 
 func IsQuiet(b *game.Board) bool {
-	return len(b.AllLegalChecksAndCaptures()) == 0 && !game.IsCheck(b, b.Active)
+	return len(b.AllQuiescenceMoves()) == 0
 }

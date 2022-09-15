@@ -387,7 +387,7 @@ func (b *Board) AllLegalChecksAndCaptures() []EfficientMove {
 		if p.Color() != b.Active {
 			continue
 		}
-		m := LegalCaptures(b, p, Square(s))
+		m := LegalMoves(b, p, Square(s))
 		for _, move := range m {
 			bs := ApplyMove(b, move)
 			if !IsCheck(b, b.Active) && (IsCheck(b, -1 * b.Active) || move.Capture() != NULLPIECE){
@@ -397,6 +397,35 @@ func (b *Board) AllLegalChecksAndCaptures() []EfficientMove {
 		}
 	}
 	return moves
+}
+
+func (b *Board) AllQuiescenceMoves() []EfficientMove {
+	var moves []EfficientMove
+	for s, p := range b.Squares {
+		if p == NULLPIECE {
+			continue
+		}
+		if p.Color() != b.Active {
+			continue
+		}
+		m := LegalMoves(b, p, Square(s))
+		for _, move := range m {
+			// In check, all moves should be searched.
+			if IsCheck(b, b.Active) {
+				moves = append(moves, move)
+				continue
+
+			}
+			// Otherwise, see if it's a check or capture.
+			bs := ApplyMove(b, move)
+			if !IsCheck(b, b.Active) && (IsCheck(b, -1 * b.Active) || move.Capture() != NULLPIECE){
+				moves = append(moves, move)
+			}
+			UndoMove(b, move, bs)
+		}
+	}
+	return moves
+
 }
 
 // Returns true if the game is drawn, won, or lost. The integer

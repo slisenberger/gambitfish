@@ -33,7 +33,7 @@ func main() {
 	}
        //	p1 := player.CommandLinePlayer{Color: game.WHITE}
 	p1 := player.AIPlayer{Evaluator: e, Depth: 10, Color: game.WHITE}
-	p2 := player.AIPlayer{Evaluator: e, Depth: 6, Color: game.BLACK}
+	p2 := player.AIPlayer{Evaluator: e, Depth: 8, Color: game.BLACK}
 	b.Print()
 	for i := 0; i < 300; i++ {
 		//time.Sleep(1 * time.Second)

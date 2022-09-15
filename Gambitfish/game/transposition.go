@@ -19,6 +19,7 @@ type TTEntry struct {
 	Precision EvalPrecision // Whether we evaluated this node as an alpha/beta cutoff.
 	BestMove  EfficientMove
 	Ancient   bool          // Whether this has gone a full evaluation without being accessed.
+	Position  Position
 }
 
 func EraseOldTableEntries() {

@@ -109,12 +109,11 @@ func PrintPrincipalVariation(b *game.Board) {
 		if !ok || entry.BestMove == game.EfficientMove(0) {
 			break
 		}
-		moves = append(moves, entry.BestMove)
 		// Break after first repetition
 		if seenMoves[entry.BestMove] {
 			break
 		}
-
+		moves = append(moves, entry.BestMove)
 		seenMoves[entry.BestMove] = true
 		b.SwitchActivePlayer()
 		bs = append(bs, game.ApplyMove(b, entry.BestMove))
