@@ -171,7 +171,7 @@ func (m Move) String() string {
 		}
 		s += m.Square.String()
 		if m.Promotion != NULLPIECE {
-			s += "%v=%v" + m.Promotion.String()
+			s = s + "=" + m.Promotion.String()
 		}
 
 		if m.EnPassant {
@@ -196,7 +196,7 @@ func (m EfficientMove) String() string {
 		}
 		s += m.Square().String()
 		if m.Promotion() != NULLPIECE {
-			s += "%v=%v" + m.Promotion().String()
+			s = s + "=" + m.Promotion().String()
 		}
 
 		if m.EnPassant() {

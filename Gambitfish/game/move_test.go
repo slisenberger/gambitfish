@@ -28,6 +28,14 @@ func TestEfficientMove(t *testing.T) {
 				Square: E8,
 				Promotion: WHITEQUEEN,
 			},
+		},{
+			m: Move{
+				Piece: BLACKPAWN,
+				Old: B5,
+				Square: A6,
+				Capture: WHITEPAWN,
+				EnPassant: true,
+			},
 		},
 	}
 
