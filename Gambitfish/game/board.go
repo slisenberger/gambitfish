@@ -399,8 +399,10 @@ func (b *Board) AllLegalChecksAndCaptures() []EfficientMove {
 	return moves
 }
 
-func (b *Board) AllQuiescenceMoves() []EfficientMove {
-	var moves []EfficientMove
+func (b *Board) AllQuiescenceMoves() ([]EfficientMove, []EfficientMove) {
+	var qmoves []EfficientMove
+	var allmoves []EfficientMove
+	var startincheck = IsCheck(b, b.Active)
 	for s, p := range b.Squares {
 		if p == NULLPIECE {
 			continue
@@ -410,21 +412,23 @@ func (b *Board) AllQuiescenceMoves() []EfficientMove {
 		}
 		m := LegalMoves(b, p, Square(s))
 		for _, move := range m {
-			// In check, all moves should be searched.
-			if IsCheck(b, b.Active) {
-				moves = append(moves, move)
-				continue
-
-			}
 			// Otherwise, see if it's a check or capture.
 			bs := ApplyMove(b, move)
-			if !IsCheck(b, b.Active) && (IsCheck(b, -1 * b.Active) || move.Capture() != NULLPIECE){
-				moves = append(moves, move)
+			if !IsCheck(b, b.Active) {
+				// We are not in check, so this move is legal.
+				allmoves = append(allmoves, move)
+				// Check Quiescence Conditions
+				// * Start in check
+				// * Delivers check
+				// * Captures
+				if startincheck ||  IsCheck(b, -1 * b.Active) || move.Capture() != NULLPIECE {
+					qmoves = append(qmoves, move)
+				}
 			}
 			UndoMove(b, move, bs)
 		}
 	}
-	return moves
+	return qmoves, allmoves
 
 }
 

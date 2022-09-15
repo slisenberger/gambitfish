@@ -7,7 +7,7 @@ import "../../game"
 // We reach depth 0 with pending captures.
 // This should eventually be controlled, but for now we max quiescence search
 // another nodes.
-const MAX_QUIESCENCE_DEPTH = 1
+const MAX_QUIESCENCE_DEPTH = 8
 
 const NULL_MOVE_REDUCED_SEARCH_DEPTH = 2
 
@@ -16,6 +16,17 @@ const NULL_MOVE_REDUCED_SEARCH_DEPTH = 2
 func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta float64, nullMove bool, c game.Color, km game.KillerMoves) (float64, game.EfficientMove, int) {
 	// The number of nodes searched.
 	nodes := 0
+	// Return an eval if the game is over.
+
+	lm := b.AllLegalMoves()
+	over, winner := b.CalculateGameOver(lm)
+	if over {
+		if winner == 0 {
+			return 0.0, game.EfficientMove(0), 1
+		} else {
+			return math.Inf(-1), game.EfficientMove(0), 1
+		}
+	}
 	// Store original values for transposition table.
 	alphaOrig := alpha
 	// Check the transposition table for work we've already done, and either
@@ -39,17 +50,6 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		}
 		if alpha >= beta {
 			return entry.Eval, entry.BestMove, 1
-		}
-	}
-	// Return an eval if the game is over.
-
-	lm := b.AllLegalMoves()
-	over, winner := b.CalculateGameOver(lm)
-	if over {
-		if winner == 0 {
-			return 0.0, game.EfficientMove(0), 1
-		} else {
-			return math.Inf(-1), game.EfficientMove(0), 1
 		}
 	}
 	// Evaluate any leaf nodes.
@@ -102,12 +102,12 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		}
 	}
 
-	moves = game.OrderMoves(b, lm, depth, km)
+	moves = game.OrderMoves(b, lm, depth, km, false)
 	bestVal := math.Inf(-1)
 	for i := 0; i < len(moves); i++ {
 		move := moves[i]
 		// Late Move Reductions. Trim the search space for later moves in our ordering scheme if they are quiet.
-		if (i >= 5) && (depth > 3) && move.Capture() == game.NULLPIECE && !game.IsCheck(b, b.Active) && move.Promotion() == game.NULLPIECE {
+		if (i >= 3) && (depth > 3) && move.Capture() == game.NULLPIECE && !game.IsCheck(b, b.Active) && move.Promotion() == game.NULLPIECE {
 			// Also exclude moves that give check from reductions.
 			// Need a faster way to check if moves are checking moves.
 			bs := game.ApplyMove(b, move)
@@ -120,7 +120,8 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 
 		bs := game.ApplyMove(b, move)
 		b.SwitchActivePlayer()
-		eval, _, n := AlphaBetaSearch(b, e, depth-1, -beta, -alpha, true, -c, km)
+		// Temporarily turn off null move reductions.
+		eval, _, n := AlphaBetaSearch(b, e, depth-1, -beta, -alpha, false, -c, km)
 		// Negate eval -- it's opponent's opinion!
 		eval = -1 * eval
 		game.UndoMove(b, move, bs)
@@ -156,9 +157,9 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	}
 
 	// Only store values if they are better values than we've seen before, or if
-	// no values have been stored.
+	// no values have been stored, or if a collission.
 	old, ok := game.TranspositionTable[hash]
-	if !ok || (old.Depth < depth) {
+	if !ok || (old.Depth < depth) || old.Position != b.Position {
 		game.TranspositionTable[hash] = entry
 	}
 
@@ -173,11 +174,11 @@ func QuiescenceSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta fl
 
 	// Else, quiescence search only searches legal captures and checks, or check evasions
 
+	qmoves, allmoves := b.AllQuiescenceMoves()
 
-	moves = b.AllQuiescenceMoves()
 
 	// Start by making sure the game is still playable
-	over, winner := b.CalculateGameOver(b.AllLegalMoves())
+	over, winner := b.CalculateGameOver(allmoves)
 	if over {
 		if winner == 0 {
 			return 0.0, game.EfficientMove(0), 1
@@ -185,11 +186,22 @@ func QuiescenceSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta fl
 			return math.Inf(-1), game.EfficientMove(0), 1
 		}
 	}
+	moves = game.OrderMoves(b, qmoves, depth, nil, true)
 
-	// Return normal evaluation from quiet boards.
-	if depth <= 0 || IsQuiet(b) {
-		return e.Evaluate(b), game.EfficientMove(0), 1
+	// evaluate the position as a stand pat baseline
+	eval := e.Evaluate(b)
+	// Return normal evaluation from quiet boards at max depth.
+	if depth <= 0 || len(moves) == 0 {
+		return eval, game.EfficientMove(0), 1
 	}
+	// Otherwise, use stand pat value to optimize quiescence bounds.
+	if eval >= beta {
+		return eval, game.EfficientMove(0), 1
+	}
+//	if eval > alpha {
+//		alpha = eval
+//	}
+
 	var best game.EfficientMove
 	bestVal := math.Inf(-1)
 	for _, move := range moves {
@@ -217,8 +229,4 @@ func QuiescenceSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta fl
 	}
 
 	return bestVal, best, nodes
-}
-
-func IsQuiet(b *game.Board) bool {
-	return len(b.AllQuiescenceMoves()) == 0
 }

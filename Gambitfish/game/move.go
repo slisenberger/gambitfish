@@ -230,7 +230,7 @@ type MoveRank struct {
 }
 
 // Order the moves in an intelligent way for alpha beta pruning.
-func OrderMoves(b *Board, moves []EfficientMove, depth int, km KillerMoves) []EfficientMove {
+func OrderMoves(b *Board, moves []EfficientMove, depth int, km KillerMoves, q bool) []EfficientMove {
 
 	var k [2]EfficientMove
 	if km != nil {
@@ -247,7 +247,8 @@ func OrderMoves(b *Board, moves []EfficientMove, depth int, km KillerMoves) []Ef
 	e := PieceSquareEvaluator{}
 	// Start with what we already believe the best move is.
 	bestMove := EfficientMove(0)
-	if entry, ok := TranspositionTable[ZobristHash(b)]; ok && entry.BestMove != EfficientMove(0) {
+	// Don't use transposition table in Quiescence search.
+	if entry, ok := TranspositionTable[ZobristHash(b)]; ok && !q && entry.BestMove != EfficientMove(0) {
 		bestMove = entry.BestMove
 	}
 	moveScores := make(map[EfficientMove]float64, len(moves))
@@ -259,7 +260,7 @@ func OrderMoves(b *Board, moves []EfficientMove, depth int, km KillerMoves) []Ef
 			continue
 		}
 		if m.Capture() != NULLPIECE {
-			moveScores[m] = captureScore + m.Capture().Value() - .1 * m.Piece().Value()
+			moveScores[m] = captureScore + m.Capture().Value() - m.Piece().Value()
 			continue
 		} else {
 

@@ -32,8 +32,8 @@ func main() {
 		},
 	}
        //	p1 := player.CommandLinePlayer{Color: game.WHITE}
-	p1 := player.AIPlayer{Evaluator: e, Depth: 10, Color: game.WHITE}
-	p2 := player.AIPlayer{Evaluator: e, Depth: 8, Color: game.BLACK}
+	p1 := player.AIPlayer{Evaluator: e, Depth: 4, Color: game.WHITE}
+	p2 := player.AIPlayer{Evaluator: e, Depth: 6, Color: game.BLACK}
 	b.Print()
 	for i := 0; i < 300; i++ {
 		//time.Sleep(1 * time.Second)
@@ -41,7 +41,11 @@ func main() {
 			if winner != 0 {
 				fmt.Println(fmt.Sprintf("WINNER: %v in %v moves", winner, b.Move))
 			} else {
-				fmt.Println("GAME ends in STALEMATE! no legal moves!")
+				if len(b.AllLegalMoves()) == 0 {
+					fmt.Println("GAME ends in STALEMATE! no legal moves!")
+				} else {
+					fmt.Println("GAME ends in DRAW by threefold repetition.")
+				}
 			}
 			break
 		}
@@ -52,10 +56,8 @@ func main() {
 		}
 		b.SwitchActivePlayer()
 
-		// Every 4 turns flush the table of entries that haven't been used.
-		if i % 4 == 0 {
-			game.EraseOldTableEntries()
-                }
+		// Every turn flush the table of entries that haven't been used.
+		game.EraseOldTableEntries()
 
 		fmt.Println("new board: ")
 		b.Print()
