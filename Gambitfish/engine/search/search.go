@@ -120,7 +120,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 
 		bs := game.ApplyMove(b, move)
 		b.SwitchActivePlayer()
-		eval, _, n := AlphaBetaSearch(b, e, depth-1, -beta, -alpha, false, -c, km)
+		eval, _, n := AlphaBetaSearch(b, e, depth-1, -beta, -alpha, true, -c, km)
 		// Negate eval -- it's opponent's opinion!
 		eval = -1 * eval
 		game.UndoMove(b, move, bs)
