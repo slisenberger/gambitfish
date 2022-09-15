@@ -425,10 +425,12 @@ func IsCheck(b *Board, c Color) bool {
 // Attacked means a piece could be captured.
 func GetAttackBitboard(b *Board, c Color) uint64 {
 	var res uint64
+	var p Piece
 	res = 0
-	for s, p := range b.Squares {
+	for i := 0; i < 64; i++ {
+		p = b.Squares[i]
 		if p != NULLPIECE && p.Color() == c {
-			res = res | AttackBitboard(b, p, Square(s))
+			res = res | AttackBitboard(b, p, Square(i))
 		}
 	}
 	return res

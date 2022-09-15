@@ -78,8 +78,7 @@ var KING_VALUE_TABLE = [64]float64{
 // in the piece value tables.
 func (m PieceSquareEvaluator) Evaluate(b *Board) float64 {
 	eval := 0.0
-	for i := 0; i < 64; i++ {
-		p := b.Squares[i]
+	for i, p := range b.Squares {
 		if p == NULLPIECE {
 			continue
 		}

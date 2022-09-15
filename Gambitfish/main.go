@@ -5,19 +5,19 @@ package main
 import "./game"
 import "./player"
 import "fmt"
-import "log"
+//import "log"
 import "math/rand"
-import "runtime/pprof"
-import "os"
+//import "runtime/pprof"
+//import "os"
 import "time"
 
 func main() {
-	f, err := os.Create("pprof.cpu")
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
+//	f, err := os.Create("pprof.cpu")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	pprof.StartCPUProfile(f)
+//	defer pprof.StopCPUProfile()
 	rand.Seed(time.Now().Unix())
 	game.InitInternalData()
 	b := game.DefaultBoard()
@@ -26,16 +26,16 @@ func main() {
 			game.MaterialEvaluator{},
 			game.PieceSquareEvaluator{},
 			// Calculating legal moves may be slowing this down. 
-			// game.MobilityEvaluator{},
+			//game.MobilityEvaluator{},
 			// game.KingSafetyEvaluator{},
 			// game.OpeningEvaluator{},
 		},
 	}
 	//p1 := player.CommandLinePlayer{Color: game.WHITE}
-	p1 := player.AIPlayer{Evaluator: e, Depth: 7, Color: game.WHITE}
-	p2 := player.AIPlayer{Evaluator: e, Depth: 6, Color: game.BLACK}
+	p1 := player.AIPlayer{Evaluator: e, Depth: 4, Color: game.WHITE}
+	p2 := player.AIPlayer{Evaluator: e, Depth: 7, Color: game.BLACK}
 	b.Print()
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 300; i++ {
 		time.Sleep(1 * time.Second)
 		if over, winner := b.CalculateGameOver(b.AllLegalMoves()); over {
 			if winner != 0 {
@@ -51,6 +51,11 @@ func main() {
 			p2.MakeMove(b)
 		}
 		b.SwitchActivePlayer()
+
+		// Every 4 turns flush the table of entries that haven't been used.
+		if i % 4 == 0 {
+			game.EraseOldTableEntries()
+                }
 
 		fmt.Println("new board: ")
 		b.Print()

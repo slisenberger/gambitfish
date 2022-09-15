@@ -452,9 +452,9 @@ func (p Piece) Value() float64 {
 	case BLACKPAWN, WHITEPAWN:
 		return 1.0
 	case BLACKBISHOP, WHITEBISHOP:
-		return 3.0
+		return 3.3
 	case BLACKKNIGHT, WHITEKNIGHT:
-		return 3.0
+		return 3.2
 	case BLACKROOK, WHITEROOK:
 		return 5.0
 	case BLACKQUEEN, WHITEQUEEN:

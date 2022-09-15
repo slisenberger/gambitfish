@@ -250,7 +250,7 @@ func OrderMoves(b *Board, moves []EfficientMove, depth int, km KillerMoves) []Ef
 	if entry, ok := TranspositionTable[ZobristHash(b)]; ok && entry.BestMove != EfficientMove(0) {
 		bestMove = entry.BestMove
 	}
-	moveScores := make(map[EfficientMove]float64)
+	moveScores := make(map[EfficientMove]float64, len(moves))
 
 	for i := 0; i < len(moves); i++ {
 		m := moves[i]
@@ -275,9 +275,8 @@ func OrderMoves(b *Board, moves []EfficientMove, depth int, km KillerMoves) []Ef
 			// Order non captures by piece value weights.
 			bs := ApplyMove(b, m)
 			moveScores[m] = e.Evaluate(b)
-			UndoMove(b, m, bs)
+	          	UndoMove(b, m, bs)
 		}
-		moves[i] = m
 	}
 	sort.Slice(moves, func(i, j int) bool {
 		return moveScores[moves[i]] > moveScores[moves[j]]

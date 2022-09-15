@@ -45,7 +45,7 @@ func (p *AIPlayer) MakeMove(b *game.Board) error {
 	}
 	fmt.Println(fmt.Sprintf("AI Player making best move with depth %v: %v, eval %v", p.Depth, move, eval))
 
-	PrintPrincipalVariation(b)
+	//PrintPrincipalVariation(b)
 	game.ApplyMove(b, move)
 	return nil
 }

@@ -16,3 +16,4 @@ func RookMoves(b *Board, p Piece, s Square) []EfficientMove {
 func RookAttackBitboard(b *Board, cur Square) uint64 {
 	return RayAttackBitboard(b, cur, false, true)
 }
+

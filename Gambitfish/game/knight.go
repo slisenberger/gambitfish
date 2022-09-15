@@ -14,5 +14,5 @@ func (p *Knight) AttackBitboard(b *Board, cur Square) uint64 {
 }
 
 func (p *Knight) Value() float64 {
-	return 3.0
+	return 3.2
 }

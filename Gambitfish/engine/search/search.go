@@ -20,7 +20,11 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	alphaOrig := alpha
 	// Check the transposition table for work we've already done, and either
 	// return or update our cutoffs.
-	if entry, ok := game.TranspositionTable[game.ZobristHash(b)]; ok && (entry.Depth >= depth) {
+	h := game.ZobristHash(b)
+	if entry, ok := game.TranspositionTable[h]; ok && (entry.Depth >= depth) {
+		// Mark this entry to not be deleted.
+		entry.Ancient = false
+		game.TranspositionTable[h] = entry
 		switch entry.Precision {
 		case game.EvalExact:
 			return entry.Eval, entry.BestMove, 1
@@ -37,13 +41,20 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 			return entry.Eval, entry.BestMove, 1
 		}
 	}
+	// Return an eval if the game is over.
+
+	lm := b.AllLegalMoves()
+	over, _ := b.CalculateGameOver(lm)
+	if over {
+		return math.Inf(-1), game.EfficientMove(0), 1
+	}
 	// Evaluate any leaf nodes.
 	if (depth <= 0) {
 		// TODO: Leaf node transposition tables are turned off for bug finding.
 		// Store values in transposition table.
 		hash := game.ZobristHash(b)
 		eval, move, nodes := QuiescenceSearch(b, e, MAX_QUIESCENCE_DEPTH, alpha, beta)
-		entry := game.TTEntry{Depth: 0, Eval: eval, BestMove: game.EfficientMove(0), Precision: game.EvalExact}
+		entry := game.TTEntry{Depth: 0, Eval: eval, BestMove: game.EfficientMove(0), Precision: game.EvalExact, Ancient: false}
 		// Only store values if they are better values than we've seen before.
 		_, ok := game.TranspositionTable[hash]
 		if !ok {
@@ -53,13 +64,6 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		//return QuiescenceSearch(b, e, MAX_QUIESCENCE_DEPTH, alpha, beta) // Only store values if they are better values than we've seen before.  
 	}
 
-	// Return an eval if the game is over.
-
-	lm := b.AllLegalMoves()
-	over, _ := b.CalculateGameOver(lm)
-	if over {
-		return math.Inf(-1), game.EfficientMove(0), 1
-	}
 	// TODO(slisenberger): I'd like to eventually ignore book moves, seeing if we can do decent
 	// from the opening.
 	//	if bm := BookMove(b); bm != nil {
@@ -125,7 +129,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	}
 	// Store values in transposition table.
 	hash := game.ZobristHash(b)
-	entry := game.TTEntry{Depth: depth, Eval: bestVal, BestMove: best}
+	entry := game.TTEntry{Depth: depth, Eval: bestVal, BestMove: best, Ancient: false}
 	if bestVal <= alphaOrig {
 		entry.Precision = game.EvalUpperBound
 	} else if bestVal >= beta {

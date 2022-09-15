@@ -18,4 +18,18 @@ type TTEntry struct {
 	Eval      float64       // What this was evaluated as.
 	Precision EvalPrecision // Whether we evaluated this node as an alpha/beta cutoff.
 	BestMove  EfficientMove
+	Ancient   bool          // Whether this has gone a full evaluation without being accessed.
+}
+
+func EraseOldTableEntries() {
+	for k, v := range TranspositionTable {
+		if v.Ancient {
+			delete(TranspositionTable,k)
+		} else {
+			v.Ancient = true
+			TranspositionTable[k] = v
+		}
+
+	}
+
 }

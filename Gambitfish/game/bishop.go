@@ -15,5 +15,5 @@ func BishopAttackBitboard(b *Board, cur Square) uint64 {
 	return RayAttackBitboard(b, cur, true, false)
 }
 func (p *Bishop) Value() float64 {
-	return 3.0
+	return 3.3
 }
