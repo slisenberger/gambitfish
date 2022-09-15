@@ -16,6 +16,7 @@ type Board struct {
 	LastMove    EfficientMove
 	EPSquare    Square // The square a pawn was just pushed two forward.
 	AllMoves    []EfficientMove
+	History     map[Position]int
 }
 
 type BoardState struct {
@@ -71,6 +72,7 @@ func DefaultBoard() *Board {
 	b.BQSCastling = true
 	b.Move = 1
 	b.EPSquare = OFFBOARD_SQUARE
+	b.History = make(map[Position]int)
 	return b
 }
 
@@ -220,6 +222,9 @@ func ApplyMove(b *Board, m EfficientMove) BoardState {
 	b.LastMove = m
 	// Update bitboard representations.
 	b.Position = UpdateBitboards(b.Position)
+
+	// Update this board's move history.
+	b.History[b.Position] = b.History[b.Position] + 1
 	return bs
 }
 
@@ -287,7 +292,14 @@ func UndoMove(b *Board, m EfficientMove, bs BoardState) {
 	}
 	b.LastMove = bs.LastMove
 
+
 	b.Position = UpdateBitboards(b.Position)
+	pc := b.History[b.Position]
+	if pc == 1 {
+		delete(b.History, b.Position)
+	} else {
+		b.History[b.Position] = pc - 1
+	}
 }
 
 func (b *Board) SwitchActivePlayer() {
@@ -404,6 +416,10 @@ func (b *Board) CalculateGameOver(lm []EfficientMove) (bool, Color) {
 			return true, 0
 		}
 
+	}
+
+	if b.History[b.Position] >= 3 {
+		return true, 0
 	}
 	return false, 0
 }

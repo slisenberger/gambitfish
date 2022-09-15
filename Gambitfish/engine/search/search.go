@@ -44,9 +44,13 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	// Return an eval if the game is over.
 
 	lm := b.AllLegalMoves()
-	over, _ := b.CalculateGameOver(lm)
+	over, winner := b.CalculateGameOver(lm)
 	if over {
-		return math.Inf(-1), game.EfficientMove(0), 1
+		if winner == 0 {
+			return 0.0, game.EfficientMove(0), 1
+		} else {
+			return math.Inf(-1), game.EfficientMove(0), 1
+		}
 	}
 	// Evaluate any leaf nodes.
 	if (depth <= 0) {
@@ -79,18 +83,17 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	if game.IsCheck(b, b.Active) {
 		depth = depth + 1
 	}
-	moves = game.OrderMoves(b, lm, depth, km)
-	
+	threat := game.EfficientMove(0)
 
 	// Try a null move first. If we can prune the search tree without
-	// moving, we should.
+	// moving, we should. We also identify threats in the position this way.
 	if nullMove && !game.IsCheck(b, c) {
 		// NullMoves affect en passant state, so we need to remember it.
 		epSquare := b.EPSquare
 		b.EPSquare = game.OFFBOARD_SQUARE
 		var n int
 	        b.SwitchActivePlayer()	
-		eval, _, n = AlphaBetaSearch(b, e, depth-1-NULL_MOVE_REDUCED_SEARCH_DEPTH, -beta, -alpha, false, -c, km)
+		eval, threat, n = AlphaBetaSearch(b, e, depth-1-NULL_MOVE_REDUCED_SEARCH_DEPTH, -beta, -alpha, false, -c, km)
 		// negamax
 		eval = -1 * eval
 	        b.SwitchActivePlayer()	
@@ -99,8 +102,23 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 			return eval, game.EfficientMove(0), nodes + n
 		}
 	}
+
+	moves = game.OrderMoves(b, lm, depth, km)
 	bestVal := math.Inf(-1)
-	for _, move := range moves {
+	for i := 0; i < len(moves); i++ {
+		move := moves[i]
+		// Late Move Reductions. Trim the search space for later moves in our ordering scheme if they are quiet.
+		if (i >=4) && (depth > 3) && move.Capture() == game.NULLPIECE && !game.IsCheck(b, b.Active)&& move.Promotion() == game.NULLPIECE && threat != game.EfficientMove(0) {
+			// Also exclude moves that give check from reductions.
+			// Need a faster way to check if moves are checking moves.
+			bs := game.ApplyMove(b, move)
+			if !game.IsCheck(b, c * -1) {
+				depth = depth - 1
+			}
+			game.UndoMove(b, move, bs)
+
+		}
+
 		bs := game.ApplyMove(b, move)
 		b.SwitchActivePlayer()
 		eval, _, n := AlphaBetaSearch(b, e, depth-1, -beta, -alpha, false, -c, km)

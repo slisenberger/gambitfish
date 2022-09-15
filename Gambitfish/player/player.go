@@ -30,9 +30,13 @@ func (p *AIPlayer) MakeMove(b *game.Board) error {
 	var eval float64
 	var move game.EfficientMove
 	var nodes int
-	for d := 1; d <= p.Depth; d++ {
-		eval, move, nodes = search.AlphaBetaSearch(b, p.Evaluator, d, math.Inf(-1), math.Inf(1), true, p.Color, km)
+	alpha := math.Inf(-1)
+	beta := math.Inf(1)
+	d := 1
+	for d <= p.Depth {
+		eval, move, nodes = search.AlphaBetaSearch(b, p.Evaluator, d, alpha, beta, false, p.Color, km)
 		fmt.Println(fmt.Sprintf("iteration %v: best move is %v (%v nodes searched)", d, move, nodes))
+		d++
 	}
 	t := time.Since(start)
 	fmt.Println(fmt.Sprintf("evaluation over in: %v", t))
