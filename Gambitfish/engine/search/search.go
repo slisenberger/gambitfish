@@ -155,7 +155,8 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		entry.Precision = game.EvalExact
 	}
 
-	// Only store values if they are better values than we've seen before.
+	// Only store values if they are better values than we've seen before, or if
+	// no values have been stored.
 	old, ok := game.TranspositionTable[hash]
 	if !ok || (old.Depth < depth) {
 		game.TranspositionTable[hash] = entry

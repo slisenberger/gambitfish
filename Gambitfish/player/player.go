@@ -49,7 +49,7 @@ func (p *AIPlayer) MakeMove(b *game.Board) error {
 	}
 	fmt.Println(fmt.Sprintf("AI Player making best move with depth %v: %v, eval %v", p.Depth, move, eval))
 
-	//PrintPrincipalVariation(b)
+	PrintPrincipalVariation(b)
 	game.ApplyMove(b, move)
 	return nil
 }
@@ -102,19 +102,27 @@ func (p *CommandLinePlayer) MakeMove(b *game.Board) error {
 func PrintPrincipalVariation(b *game.Board) {
 	moves := []game.EfficientMove{}
 	bs := []game.BoardState{}
+	seenMoves := make(map[game.EfficientMove]bool)
 	// Get the principal variation, change board state.
 	for {
 		entry, ok := game.TranspositionTable[game.ZobristHash(b)]
 		if !ok || entry.BestMove == game.EfficientMove(0) {
 			break
 		}
-		//		if entry.Precision == game.EvalExact {
 		moves = append(moves, entry.BestMove)
-		bs = append(bs, game.ApplyMove(b, entry.BestMove))
+		// Break after first repetition
+		if seenMoves[entry.BestMove] {
+			break
+		}
+
+		seenMoves[entry.BestMove] = true
 		b.SwitchActivePlayer()
-		//		} else {
-		//			break
-		//	}
+		bs = append(bs, game.ApplyMove(b, entry.BestMove))
+	}
+	// Undo board state.
+	for i := len(moves) - 1; i >= 0; i-- {
+		game.UndoMove(b, moves[i], bs[i])
+		b.SwitchActivePlayer()
 	}
 	// Print the principal variation.
 	entry := game.TranspositionTable[game.ZobristHash(b)]
@@ -125,9 +133,4 @@ func PrintPrincipalVariation(b *game.Board) {
 		pvStrings = append(pvStrings, m.String())
 	}
 	fmt.Println(strings.Join(pvStrings, " "))
-	// Undo board state.
-	for i := len(moves) - 1; i >= 0; i-- {
-		b.SwitchActivePlayer()
-		game.UndoMove(b, moves[i], bs[i])
-	}
 }
