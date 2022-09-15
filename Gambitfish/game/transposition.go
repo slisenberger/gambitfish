@@ -22,14 +22,12 @@ type TTEntry struct {
 }
 
 func EraseOldTableEntries() {
+	var tt = map[uint64]TTEntry{}
 	for k, v := range TranspositionTable {
-		if v.Ancient {
-			delete(TranspositionTable,k)
-		} else {
+		if !v.Ancient {
 			v.Ancient = true
-			TranspositionTable[k] = v
+			tt[k] = v
 		}
-
 	}
-
+	TranspositionTable = tt
 }

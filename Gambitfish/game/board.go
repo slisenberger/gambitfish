@@ -16,7 +16,7 @@ type Board struct {
 	LastMove    EfficientMove
 	EPSquare    Square // The square a pawn was just pushed two forward.
 	AllMoves    []EfficientMove
-	History     map[Position]int
+	History     []Position
 }
 
 type BoardState struct {
@@ -72,7 +72,7 @@ func DefaultBoard() *Board {
 	b.BQSCastling = true
 	b.Move = 1
 	b.EPSquare = OFFBOARD_SQUARE
-	b.History = make(map[Position]int)
+	b.History = make([]Position, 50)
 	return b
 }
 
@@ -224,7 +224,7 @@ func ApplyMove(b *Board, m EfficientMove) BoardState {
 	b.Position = UpdateBitboards(b.Position)
 
 	// Update this board's move history.
-	b.History[b.Position] = b.History[b.Position] + 1
+	b.History = append(b.History, b.Position)
 	return bs
 }
 
@@ -294,12 +294,8 @@ func UndoMove(b *Board, m EfficientMove, bs BoardState) {
 
 
 	b.Position = UpdateBitboards(b.Position)
-	pc := b.History[b.Position]
-	if pc == 1 {
-		delete(b.History, b.Position)
-	} else {
-		b.History[b.Position] = pc - 1
-	}
+	b.History = b.History[:len(b.History) - 1]
+
 }
 
 func (b *Board) SwitchActivePlayer() {
@@ -418,9 +414,17 @@ func (b *Board) CalculateGameOver(lm []EfficientMove) (bool, Color) {
 
 	}
 
-	if b.History[b.Position] >= 3 {
-		return true, 0
+	posCount := 0
+	for _, h := range b.History {
+		if h == b.Position {
+			posCount += 1
+		}
+		if posCount >= 3 {
+			// Draw by repetition!
+			return true, 0
+		}
 	}
+
 	return false, 0
 }
 

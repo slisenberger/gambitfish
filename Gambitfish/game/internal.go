@@ -32,7 +32,7 @@ var BLACKPAWNATTACKS [64]uint64
 
 // The preprocessed random numbers to be used for zobrist hash keys.
 // It is a map of color-> piece -> square
-var ZOBRISTPIECES map[Piece][64]uint64
+var ZOBRISTPIECES [13][64]uint64
 
 // A random number indicating turn to move.
 var ZOBRISTTURN uint64
@@ -435,7 +435,7 @@ func InitPawnAttacks() {
 // See https://chessprogramming.wikispaces.com/Zobrist+Hashing
 func InitZobristNumbers() {
 	rand.Seed(time.Now().UTC().UnixNano())
-	ZOBRISTPIECES = map[Piece][64]uint64{}
+	ZOBRISTPIECES = [13][64]uint64{}
 	pieces := []Piece{
 		WHITEPAWN, BLACKPAWN, WHITEBISHOP, BLACKBISHOP, WHITEKNIGHT, BLACKKNIGHT,
 		WHITEROOK, BLACKROOK, WHITEQUEEN, BLACKQUEEN, WHITEKING, BLACKKING}

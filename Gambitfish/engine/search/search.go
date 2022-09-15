@@ -161,6 +161,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	if !ok || (old.Depth < depth) {
 		game.TranspositionTable[hash] = entry
 	}
+
 	return bestVal, best, nodes
 }
 
