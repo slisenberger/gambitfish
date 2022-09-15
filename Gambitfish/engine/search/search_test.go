@@ -55,6 +55,11 @@ func TestMate(t *testing.T) {
 			fen: "rn2kb1r/pp2pppp/5n2/Q3N3/3P4/4B3/P3qPPP/2R2RK1 w kq - 0 1",
 			move: "Rc1-c8",
 			depth: 1,
+		},{
+			name: "don't get mated!",
+			fen: "4k3/p2N2pr/p5qB/2b2p2/1rp1b2P/4P3/PP3PP1/2RQ1RK1 w - - 0 1",
+			move: "Bh6-g5",
+			depth: 5,
 		},
 	}
 
@@ -67,7 +72,7 @@ func TestMate(t *testing.T) {
 	   }
 	   _, move, _ := AlphaBetaSearch(b, e, tc.depth, math.Inf(-1), math.Inf(1), false, b.Active, game.NewKillerMoves())
 	   if move.String() != tc.move {
-		t.Errorf("Got wrong move. Want %v, got %v", tc.move, move.String())
+		t.Errorf("Got wrong move for test %v. Want %v, got %v",tc.name, tc.move, move.String())
 		b.Print()
 	   }
         }
@@ -105,7 +110,7 @@ func TestMaterial(t *testing.T) {
 	   }
 	   eval, move, _ := AlphaBetaSearch(b, e, tc.depth, math.Inf(-1), math.Inf(1), false, b.Active, game.NewKillerMoves())
 	   if move.String() != tc.move {
-		t.Errorf("Got wrong move. Want %v, got %v (eval %v)", tc.move,  move.String(), eval)
+		t.Errorf("Got wrong move in test %v. Want %v, got %v (eval %v)", tc.name, tc.move,  move.String(), eval)
 		b.Print()
 	   }
         }

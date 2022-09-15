@@ -421,7 +421,8 @@ func (b *Board) AllQuiescenceMoves() ([]EfficientMove, []EfficientMove) {
 				// * Start in check
 				// * Delivers check
 				// * Captures
-				if startincheck ||  IsCheck(b, -1 * b.Active) || move.Capture() != NULLPIECE {
+				// * Promotions
+				if startincheck ||  IsCheck(b, -1 * b.Active) || move.Capture() != NULLPIECE || move.Promotion() != NULLPIECE {
 					qmoves = append(qmoves, move)
 				}
 			}

@@ -48,8 +48,9 @@ func (p *AIPlayer) MakeMove(b *game.Board) error {
 		eval = -1 * eval
 	}
 	fmt.Println(fmt.Sprintf("AI Player making best move with depth %v: %v, eval %v", p.Depth, move, eval))
+	// Principal Variation has a crashing bug.
 
-	PrintPrincipalVariation(b)
+	//PrintPrincipalVariation(b)
 	game.ApplyMove(b, move)
 	return nil
 }
