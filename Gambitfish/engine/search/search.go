@@ -83,7 +83,6 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	if game.IsCheck(b, b.Active) {
 		depth = depth + 1
 	}
-	threat := game.EfficientMove(0)
 
 	// Try a null move first. If we can prune the search tree without
 	// moving, we should. We also identify threats in the position this way.
@@ -93,7 +92,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 		b.EPSquare = game.OFFBOARD_SQUARE
 		var n int
 	        b.SwitchActivePlayer()	
-		eval, threat, n = AlphaBetaSearch(b, e, depth-1-NULL_MOVE_REDUCED_SEARCH_DEPTH, -beta, -alpha, false, -c, km)
+		eval, _, n = AlphaBetaSearch(b, e, depth-1-NULL_MOVE_REDUCED_SEARCH_DEPTH, -beta, -alpha, false, -c, km)
 		// negamax
 		eval = -1 * eval
 	        b.SwitchActivePlayer()	
@@ -108,7 +107,7 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 	for i := 0; i < len(moves); i++ {
 		move := moves[i]
 		// Late Move Reductions. Trim the search space for later moves in our ordering scheme if they are quiet.
-		if (i >=4) && (depth > 3) && move.Capture() == game.NULLPIECE && !game.IsCheck(b, b.Active)&& move.Promotion() == game.NULLPIECE && threat != game.EfficientMove(0) {
+		if (i >= 4) && (depth > 3) && move.Capture() == game.NULLPIECE && !game.IsCheck(b, b.Active) && move.Promotion() == game.NULLPIECE {
 			// Also exclude moves that give check from reductions.
 			// Need a faster way to check if moves are checking moves.
 			bs := game.ApplyMove(b, move)
