@@ -26,14 +26,13 @@ func main() {
 			game.MaterialEvaluator{},
 			game.PieceSquareEvaluator{},
 			// Calculating legal moves may be slowing this down. 
-			//game.MobilityEvaluator{},
+			// game.MobilityEvaluator{},
 			// game.KingSafetyEvaluator{},
-			// game.OpeningEvaluator{},
 		},
 	}
-       //	p1 := player.CommandLinePlayer{Color: game.WHITE}
-	p1 := player.AIPlayer{Evaluator: e, Depth: 9, Color: game.WHITE}
-	p2 := player.AIPlayer{Evaluator: e, Depth: 6, Color: game.BLACK}
+	p1 := player.CommandLinePlayer{Color: game.WHITE}
+//	p1 := player.AIPlayer{Evaluator: e, Depth: 5, Color: game.WHITE}
+	p2 := player.AIPlayer{Evaluator: e, Depth: 7, Color: game.BLACK}
 	b.Print()
 	for i := 0; i < 300; i++ {
 		//time.Sleep(1 * time.Second)

@@ -260,7 +260,7 @@ func OrderMoves(b *Board, moves []EfficientMove, depth int, km KillerMoves, q bo
 			continue
 		}
 		if m.Capture() != NULLPIECE {
-			moveScores[m] = captureScore + m.Capture().Value() - m.Piece().Value()
+			moveScores[m] = captureScore + (10 * m.Capture().Value()) - m.Piece().Value()
 			continue
 		} else {
 

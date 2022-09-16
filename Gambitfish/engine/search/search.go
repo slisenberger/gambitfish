@@ -7,7 +7,7 @@ import "../../game"
 // We reach depth 0 with pending captures.
 // This should eventually be controlled, but for now we max quiescence search
 // another nodes.
-const MAX_QUIESCENCE_DEPTH = 0
+const MAX_QUIESCENCE_DEPTH = 8
 
 const NULL_MOVE_REDUCED_SEARCH_DEPTH = 2
 
@@ -149,10 +149,10 @@ func AlphaBetaSearch(b *game.Board, e game.Evaluator, depth int, alpha, beta flo
 
 	// Only store values if they are better values than we've seen before, or if
 	// no values have been stored, or if a collission.
-	old, ok := game.TranspositionTable[hash]
-	if !ok || (old.Depth < depth) || old.Position != b.Position {
+//	old, ok := game.TranspositionTable[hash]
+//	if !ok || (old.Depth < depth) || old.Position != b.Position {
 		game.TranspositionTable[hash] = entry
-	}
+//	}
 
 	return bestVal, best, nodes
 }

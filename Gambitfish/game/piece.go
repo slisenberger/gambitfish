@@ -460,7 +460,7 @@ func (p Piece) Value() float64 {
 	case BLACKQUEEN, WHITEQUEEN:
 		return 9.0
 	case BLACKKING, WHITEKING:
-		return 100.0
+		return 0.0
 	}
 	return 0.0
 }
